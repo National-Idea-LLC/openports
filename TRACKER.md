@@ -25,10 +25,21 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 - [x] Capture `lsof` fixture into `OpenPortsTests/Fixtures/lsof-sample.txt` — [E2-144](https://linear.app/ielyas/issue/E2-144) (In Review)
 - [x] GitHub Actions: `xcodebuild test` on PR and push to `main` (`.github/workflows/ci.yml`, `macos-26`, ad-hoc signing) — [E2-145](https://linear.app/ielyas/issue/E2-145) (In Review)
 
+## M1 tasks
+
+- [x] `LsofParser` pure parser + fixture/edge-case tests — [E2-164](https://linear.app/ielyas/issue/E2-164) (In Review)
+- [ ] `LsofRunner` (`Process` wrapper, fixed args, exit-code contract) + `PortScanner` actor (coalesced refresh)
+- [ ] `ProcessKiller` — SIGTERM, PID re-validation, Force Kill (SIGKILL) after ~2 s
+- [ ] `PortListModel` (`@MainActor @Observable`) — poll every 2 s while popover visible, filter
+- [ ] `PortListView` / `PortRow` — list, selection, ↗ open, copy URL/port/PID, kill, context menu
+- [ ] Empty and error states
+- [ ] Launch at Login (`SMAppService`) + ⌘Q
+
 ## Dev changelog
 
 <!-- Newest first. One dated entry per meaningful change. -->
 
+- **2026-08-27** — `LsofParser` implemented: pure `String -> [Listener]`, `(pid, port)` merge with address union, bracketed IPv6, injectable UID→name resolver; 10 parser tests incl. the live fixture (E2-164). M1 task list added.
 - **2026-08-27** — CI added: GitHub Actions runs `xcodebuild test` on every PR and push to `main` (E2-145). M0 tasks all complete.
 - **2026-08-27** — Xcode project scaffolded (`project.yml` → xcodegen): `OpenPorts` app + `OpenPortsTests`; `MenuBarExtra` stub, `Listener` model, live `lsof` fixture + 2 passing Swift Testing tests. Build and test verified (E2-143, E2-144).
 - **2026-08-27** — Spec open questions #1–#3 resolved by owner: "player" = app; minimum macOS 15; row click selects (browser opens via ↗ / ⏎ / context menu). Spec flows and interaction details updated (E2-142).
