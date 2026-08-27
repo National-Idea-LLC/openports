@@ -1,0 +1,49 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserdata
+*.xcuserdatad/
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.xcarchive
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# Signing / release artifacts
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+*.dmg
+*.zip
+notarization-*.log
+ExportOptions*.plist
+
+# Secrets / env
+.env
+.env.*
+*.secret
+
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Editors
+.vscode/
+.idea/
+*.swp
