@@ -1,0 +1,83 @@
+# Source of truth for OpenPorts.xcodeproj — regenerate with `xcodegen generate`.
+name: OpenPorts
+options:
+  bundleIdPrefix: sa.ni
+  deploymentTarget:
+    macOS: "15.0"
+  xcodeVersion: "26.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    DEVELOPMENT_TEAM: M8A3G95883
+    CODE_SIGN_STYLE: Automatic
+    MACOSX_DEPLOYMENT_TARGET: "15.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+
+targets:
+  OpenPorts:
+    type: application
+    platform: macOS
+    sources:
+      - path: OpenPorts
+        excludes:
+          - "Info.plist"
+    info:
+      path: OpenPorts/Info.plist
+      properties:
+        CFBundleName: OpenPorts
+        CFBundleDisplayName: OpenPorts
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSUIElement: true
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        LSApplicationCategoryType: public.app-category.developer-tools
+        NSHumanReadableCopyright: "© 2026 National Idea LLC. MIT License."
+    entitlements:
+      path: OpenPorts/OpenPorts.entitlements
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: sa.ni.openports
+        PRODUCT_NAME: OpenPorts
+        ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_APP_SANDBOX: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: NO
+        COMBINE_HIDPI_IMAGES: YES
+
+  OpenPortsTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: OpenPortsTests
+    dependencies:
+      - target: OpenPorts
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: sa.ni.openports.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/OpenPorts.app/Contents/MacOS/OpenPorts
+        BUNDLE_LOADER: $(TEST_HOST)
+
+schemes:
+  OpenPorts:
+    build:
+      targets:
+        OpenPorts: all
+        OpenPortsTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - OpenPortsTests
+    archive:
+      config: Release

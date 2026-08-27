@@ -24,9 +24,10 @@ points here — add conventions to this file or [rules/](rules/), never to CLAUD
 
 ## Commands
 
-Run from the repo root. (Xcode project is created in M0 — see TRACKER.)
+Run from the repo root.
 
 - `open OpenPorts.xcodeproj` — develop in Xcode; run the `OpenPorts` scheme
+- `xcodegen generate` — regenerate `OpenPorts.xcodeproj` after editing `project.yml` (the project file is committed; `project.yml` is its source of truth — never hand-edit the `.pbxproj`). Install with `brew install xcodegen`.
 - `xcodebuild -project OpenPorts.xcodeproj -scheme OpenPorts -configuration Debug build` — build
 - `xcodebuild -project OpenPorts.xcodeproj -scheme OpenPorts -destination 'platform=macOS' test` — unit tests (Swift Testing)
 - `xcodebuild -project OpenPorts.xcodeproj -scheme OpenPorts -configuration Release archive -archivePath build/OpenPorts.xcarchive` — release archive
@@ -62,6 +63,7 @@ The detailed rules live in `rules/` — highlights:
 - **Commits:** Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`). Scope per feature/task; include TRACKER (+ CHANGELOG when user-visible) in the same commit.
 - **Commit/release gates:** analyze the diff → CHANGELOG gate → release gate → build/verify → commit → push. Never `git add`/`commit` before the gates resolve.
 - **UI copy:** Title Case for buttons and menu labels; sentence case everywhere else. Buttons are verb + object ("Kill Process", "Copy URL", not "OK"). Destructive verb is **Kill** (developer vocabulary). Errors say what failed, why, and what to do next.
+- **Project file:** targets, settings, Info.plist keys, and entitlements live in `project.yml`; change them there and run `xcodegen generate`. Bundle IDs: `sa.ni.openports` / `sa.ni.openports.tests`.
 - **Architecture:** `LsofParser` is a pure `String -> [Listener]` function with fixture tests; `PortScanner` is an actor; `PortListModel` is `@MainActor @Observable`; views hold no logic.
 - **Persistent keys/settings:** prefix `UserDefaults` keys with `openports.`; define each key once in a `DefaultsKeys` enum — never scatter string literals. Do not rename shipped keys without a migration.
 - **Secrets:** none expected. If one ever appears, Keychain only — never UserDefaults, plists, or committed files.
