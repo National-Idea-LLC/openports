@@ -23,12 +23,13 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 - [x] Resolve spec open questions #1–#3 — app / macOS 15 / row click selects, ↗ opens — [E2-142](https://linear.app/ielyas/issue/E2-142) (In Review)
 - [x] Create `OpenPorts.xcodeproj` via `project.yml` + xcodegen (app + test targets, Swift 6 strict, macOS 15, `LSUIElement`, sandbox off, hardened runtime on) — [E2-143](https://linear.app/ielyas/issue/E2-143) (In Review)
 - [x] Capture `lsof` fixture into `OpenPortsTests/Fixtures/lsof-sample.txt` — [E2-144](https://linear.app/ielyas/issue/E2-144) (In Review)
-- [ ] GitHub Actions: `xcodebuild test` on PR — [E2-145](https://linear.app/ielyas/issue/E2-145)
+- [x] GitHub Actions: `xcodebuild test` on PR and push to `main` (`.github/workflows/ci.yml`, `macos-26`, ad-hoc signing) — [E2-145](https://linear.app/ielyas/issue/E2-145) (In Review)
 
 ## Dev changelog
 
 <!-- Newest first. One dated entry per meaningful change. -->
 
+- **2026-08-27** — CI added: GitHub Actions runs `xcodebuild test` on every PR and push to `main` (E2-145). M0 tasks all complete.
 - **2026-08-27** — Xcode project scaffolded (`project.yml` → xcodegen): `OpenPorts` app + `OpenPortsTests`; `MenuBarExtra` stub, `Listener` model, live `lsof` fixture + 2 passing Swift Testing tests. Build and test verified (E2-143, E2-144).
 - **2026-08-27** — Spec open questions #1–#3 resolved by owner: "player" = app; minimum macOS 15; row click selects (browser opens via ↗ / ⏎ / context menu). Spec flows and interaction details updated (E2-142).
 - **2026-08-27** — `git init`, first commit, public GitHub repo created under National-Idea-LLC; MIT `LICENSE` and `README.md` added; spec open question #7 resolved (MIT).
