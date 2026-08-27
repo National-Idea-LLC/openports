@@ -8,8 +8,8 @@ Mirrored in Linear: [OpenPorts project](https://linear.app/ielyas/project/openpo
 
 | Phase | Scope | Status |
 |-------|-------|--------|
-| M0 | Foundation — spec, rules, Xcode project scaffold, `.gitignore`, CI skeleton | 🔄 In progress |
-| M1 | P0 core — `LsofParser` + tests, `PortScanner` actor, `MenuBarExtra` list, open/copy/kill, refresh, empty/error states, Launch at Login, filter | ⬜ Not started |
+| M0 | Foundation — spec, rules, Xcode project scaffold, `.gitignore`, CI skeleton | ✅ Done (2026-08-27) |
+| M1 | P0 core — `LsofParser` + tests, `PortScanner` actor, `MenuBarExtra` list, open/copy/kill, refresh, empty/error states, Launch at Login, filter | 🔄 In progress |
 | M2 | P1 polish — ignore list, sort, greyed root-owned rows, keyboard nav, menu bar count | ⬜ Not started |
 | M3 | Release — Developer ID signing, notarization, GitHub Release, README | ⬜ Not started |
 
