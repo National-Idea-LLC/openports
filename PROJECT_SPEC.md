@@ -127,7 +127,7 @@ Fixed popover size ≈ 360 × 440 pt; list scrolls. **[A]**
 | Process termination | `Darwin.kill(pid, SIGTERM/SIGKILL)` | Direct syscall, no subprocess |
 | Persistence | `UserDefaults` (ignore list, prefs) | Nothing else to store |
 | Login item | `ServiceManagement.SMAppService` | Official API, macOS 13+ |
-| Min OS | macOS 15 Sonoma-successor (Sequoia) **[A]** | Enables `@Observable`, Swift 6 features; drop to 14 if needed |
+| Min OS | macOS 15 Sequoia (confirmed 2026-08-27) | Enables `@Observable`, Swift 6 features; drop to 14 if needed |
 | Dependencies | None | "Minimal" is a hard requirement |
 | Build | Xcode project, single app target + unit test target | |
 
