@@ -7,7 +7,7 @@
 
 OpenPorts is a minimal, native macOS menu bar app written in SwiftUI that lists every TCP port currently in LISTEN state on the machine, shows which process owns it, and lets the user open it in the browser, copy its URL, or kill the owning process — in one click. It is a GUI over `lsof` and `kill`, in the spirit of [Port Manager](https://portmanager.app/) and [Open Ports](https://openports.app/), but stripped to the essentials.
 
-> Note: the original request said "swiftui **player**"; this is read as a typo for "app". **[A]**
+> Note: the original request said "swiftui **player**"; confirmed by the owner (2026-08-27) as a typo for "app".
 
 ## Problem Statement
 
@@ -89,7 +89,7 @@ Developers running multiple local servers (Vite, Next, Rails, Docker, Postgres, 
 
 ### Flow 2: Jump to a running server
 1. Click menu bar icon.
-2. Click the port row (or the ↗ button) → default browser opens `http://localhost:<port>`.
+2. Click the ↗ button on the port row (or select the row and press ⏎) → default browser opens `http://localhost:<port>`.
 3. Popover closes.
 
 ### Flow 3: Share a URL
@@ -226,7 +226,7 @@ Not applicable — no network API. Internal surface:
 - **Copy**: sentence case, terse. Destructive verb is "Kill" (matches developer vocabulary and both reference apps).
 
 ### Interaction details
-- Single click on row → open in browser **[A]** (alternative: click selects; open is explicit — decide in Open Questions).
+- Single click on a row **selects** it (highlight + reveals hover actions); it never opens the browser. Opening is explicit: the ↗ button, ⏎ on the selected row, or the context menu. Double-click is reserved (no action in MVP). *(Owner decision 2026-08-27, Open Question #3.)*
 - Kill button is a small ✕ that appears on hover; confirmation is *not* required for SIGTERM (fast path), but **is** required for SIGKILL via a two-step inline button.
 - Escape closes the popover.
 
@@ -331,9 +331,9 @@ OpenPorts/
 
 | # | Question | Assumption used | Decide by |
 |---|----------|-----------------|-----------|
-| 1 | "player" in the request — typo for "app"? | Yes, app | Before scaffolding |
-| 2 | Minimum macOS: 15 (Sequoia) or 14 (Sonoma)? | 15 | Before scaffolding |
-| 3 | Click on a row: opens browser immediately, or selects with explicit ↗ button? | Opens browser; ↗ also present | During UI build |
+| 1 | "player" in the request — typo for "app"? | **Resolved 2026-08-27: yes, app** | — |
+| 2 | Minimum macOS: 15 (Sequoia) or 14 (Sonoma)? | **Resolved 2026-08-27: macOS 15** | — |
+| 3 | Click on a row: opens browser immediately, or selects with explicit ↗ button? | **Resolved 2026-08-27: click selects; ↗ / ⏎ / context menu open** | — |
 | 4 | Menu bar icon: plain symbol vs. symbol + listener count by default? | Plain; count is an opt-in setting | During UI build |
 | 5 | Product name: "OpenPorts" (directory name) — conflicts with openports.app branding; rename (e.g. "Portly", "Listen")? | "OpenPorts" as working title | Before first release |
 | 6 | Distribution: GitHub Releases only, or also Homebrew cask at launch? | GitHub Releases | Before first release |
