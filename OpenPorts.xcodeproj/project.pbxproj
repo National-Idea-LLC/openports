@@ -10,10 +10,13 @@
 		455FF1670F7E46E32DEC72C9 /* OpenPortsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F661C58854A6D4A0E67FE1 /* OpenPortsApp.swift */; };
 		579D29727E8E4A3E7C214621 /* PortListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 355E28AE63B41B2B5EEEF73C /* PortListView.swift */; };
 		6C89DDD2B03BF0D87B7D2E21 /* LsofParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A9049BBBD7EA4A4CA4AEBF /* LsofParserTests.swift */; };
+		A346E6DE5F46DD053D98F228 /* PortScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 251688B1E7ADB190F7EF7ADF /* PortScannerTests.swift */; };
 		AB315936E11F5B69B2161A13 /* Listener.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4BD839496B6561213F16E5A /* Listener.swift */; };
 		B66BC5D0377E8E5199F7436F /* ListenerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1837CF63460904493D9C2C37 /* ListenerTests.swift */; };
 		B7D49BAA7E5995C9149CEEC9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BBFC86D166358AA735C8578D /* Assets.xcassets */; };
 		C302A62526FD0FA5DEC85270 /* lsof-sample.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7F6B2939794CE7483B87E640 /* lsof-sample.txt */; };
+		CA869B0C6028ECEF7A3EFEC9 /* PortScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2169857DF809A0FE78B0CFB6 /* PortScanner.swift */; };
+		DA8ED329475B16E769F8B5E1 /* LsofRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07B9168C3F66F8B49A351BC0 /* LsofRunner.swift */; };
 		DE682C0E685AD79CE858C11D /* LsofParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 919AA1F563445362A10CCDFC /* LsofParser.swift */; };
 /* End PBXBuildFile section */
 
@@ -28,9 +31,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		07B9168C3F66F8B49A351BC0 /* LsofRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LsofRunner.swift; sourceTree = "<group>"; };
 		0F35E206B0134B6BD3ABD8FB /* OpenPorts.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OpenPorts.entitlements; sourceTree = "<group>"; };
 		1837CF63460904493D9C2C37 /* ListenerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenerTests.swift; sourceTree = "<group>"; };
 		1C01B7340DC32D2F378157B5 /* OpenPortsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OpenPortsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2169857DF809A0FE78B0CFB6 /* PortScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortScanner.swift; sourceTree = "<group>"; };
+		251688B1E7ADB190F7EF7ADF /* PortScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortScannerTests.swift; sourceTree = "<group>"; };
 		355E28AE63B41B2B5EEEF73C /* PortListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortListView.swift; sourceTree = "<group>"; };
 		7F6B2939794CE7483B87E640 /* lsof-sample.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "lsof-sample.txt"; sourceTree = "<group>"; };
 		919AA1F563445362A10CCDFC /* LsofParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LsofParser.swift; sourceTree = "<group>"; };
@@ -63,6 +69,8 @@
 			isa = PBXGroup;
 			children = (
 				919AA1F563445362A10CCDFC /* LsofParser.swift */,
+				07B9168C3F66F8B49A351BC0 /* LsofRunner.swift */,
+				2169857DF809A0FE78B0CFB6 /* PortScanner.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -95,6 +103,7 @@
 			children = (
 				1837CF63460904493D9C2C37 /* ListenerTests.swift */,
 				E2A9049BBBD7EA4A4CA4AEBF /* LsofParserTests.swift */,
+				251688B1E7ADB190F7EF7ADF /* PortScannerTests.swift */,
 				11ED05A6FD040CB68FAC4A85 /* Fixtures */,
 			);
 			path = OpenPortsTests;
@@ -236,6 +245,7 @@
 			files = (
 				B66BC5D0377E8E5199F7436F /* ListenerTests.swift in Sources */,
 				6C89DDD2B03BF0D87B7D2E21 /* LsofParserTests.swift in Sources */,
+				A346E6DE5F46DD053D98F228 /* PortScannerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -245,8 +255,10 @@
 			files = (
 				AB315936E11F5B69B2161A13 /* Listener.swift in Sources */,
 				DE682C0E685AD79CE858C11D /* LsofParser.swift in Sources */,
+				DA8ED329475B16E769F8B5E1 /* LsofRunner.swift in Sources */,
 				455FF1670F7E46E32DEC72C9 /* OpenPortsApp.swift in Sources */,
 				579D29727E8E4A3E7C214621 /* PortListView.swift in Sources */,
+				CA869B0C6028ECEF7A3EFEC9 /* PortScanner.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

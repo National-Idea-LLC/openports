@@ -28,7 +28,7 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 ## M1 tasks
 
 - [x] `LsofParser` pure parser + fixture/edge-case tests — [E2-164](https://linear.app/ielyas/issue/E2-164) (In Review)
-- [ ] `LsofRunner` (`Process` wrapper, fixed args, exit-code contract) + `PortScanner` actor (coalesced refresh)
+- [x] `LsofRunner` (`Process` wrapper, fixed args, exit-code contract) + `PortScanner` actor (coalesced refresh) — [E2-166](https://linear.app/ielyas/issue/E2-166) (In Review)
 - [ ] `ProcessKiller` — SIGTERM, PID re-validation, Force Kill (SIGKILL) after ~2 s
 - [ ] `PortListModel` (`@MainActor @Observable`) — poll every 2 s while popover visible, filter
 - [ ] `PortListView` / `PortRow` — list, selection, ↗ open, copy URL/port/PID, kill, context menu
@@ -39,6 +39,7 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 
 <!-- Newest first. One dated entry per meaningful change. -->
 
+- **2026-08-27** — `LsofRunner` (absolute-path `Process`, no shell, concurrent pipe drain) and `PortScanner` actor (single in-flight scan, callers coalesce) with typed `ScanError`; 9 tests incl. coalescing and a real-`lsof` integration check (E2-166).
 - **2026-08-27** — `LsofParser` implemented: pure `String -> [Listener]`, `(pid, port)` merge with address union, bracketed IPv6, injectable UID→name resolver; 10 parser tests incl. the live fixture (E2-164). M1 task list added.
 - **2026-08-27** — CI added: GitHub Actions runs `xcodebuild test` on every PR and push to `main` (E2-145). M0 tasks all complete.
 - **2026-08-27** — Xcode project scaffolded (`project.yml` → xcodegen): `OpenPorts` app + `OpenPortsTests`; `MenuBarExtra` stub, `Listener` model, live `lsof` fixture + 2 passing Swift Testing tests. Build and test verified (E2-143, E2-144).
