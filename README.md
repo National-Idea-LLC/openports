@@ -2,7 +2,9 @@
 
 A minimal, open-source macOS menu bar app that lists every listening TCP port, shows which process owns it, and lets you open it in the browser, copy its URL, or kill the process in one click.
 
-> **Status:** early development — no release yet. Follow [TRACKER.md](TRACKER.md) for progress.
+> **Status:** v0.1.0 — first public release.
+
+![Squatter's port list](docs/screenshot-list.png)
 
 ## The name
 
@@ -26,6 +28,14 @@ Local dev servers pile up: `node` on 3000, `vite` on 5173, something forgotten o
 - **No network, no telemetry.** It never leaves your Mac.
 - **No third-party dependencies.** Swift 6 / SwiftUI only.
 - **Not sandboxed, by necessity.** Killing another process needs `kill(2)`; the sandbox forbids it. Distributed as a signed, notarized build via GitHub Releases rather than the Mac App Store.
+
+## Install
+
+```sh
+brew install --cask National-Idea-LLC/tap/squatter
+```
+
+Or download the DMG from [Releases](https://github.com/National-Idea-LLC/squatter/releases), drag Squatter to Applications, and launch it. The build is signed with a Developer ID and notarized by Apple.
 
 ## Requirements
 

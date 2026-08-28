@@ -1,6 +1,6 @@
 cask "squatter" do
   version "0.1.0"
-  sha256 :no_check # replaced with the release DMG checksum at publish time
+  sha256 "82b34bd383a432d8064c6c84e7000012419bad30bd255378751c0ace9b18249a"
 
   url "https://github.com/National-Idea-LLC/squatter/releases/download/v#{version}/Squatter-#{version}.dmg",
       verified: "github.com/National-Idea-LLC/squatter/"

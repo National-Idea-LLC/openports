@@ -50,9 +50,9 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 
 - [x] Rename to Squatter — [E2-187](https://linear.app/ielyas/issue/E2-187) (In Review)
 - [x] App icon, `scripts/release.sh`, DMG, Homebrew cask skeleton — [E2-188](https://linear.app/ielyas/issue/E2-188) (In Review)
-- [ ] **Blocked on owner:** notarization credentials — `xcrun notarytool store-credentials squatter --apple-id <id> --team-id M8A3G95883 --password <app-specific-password>`
-- [ ] Notarize + staple, verify `spctl` accepts the DMG
-- [ ] README screenshots
+- [x] Notarization credentials stored (keychain profile `squatter`)
+- [x] Notarize + staple — `spctl` reports `accepted / source=Notarized Developer ID`
+- [x] README screenshots + install instructions
 - [ ] Tag `v0.1.0`, move CHANGELOG `[Unreleased]` → `[0.1.0]`, publish GitHub Release with the DMG
 - [ ] Publish the Homebrew cask (fill sha256, open tap/homebrew-cask PR)
 - [ ] Manual check: Launch at Login toggle against the signed build
@@ -61,6 +61,7 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 
 <!-- Newest first. One dated entry per meaningful change. -->
 
+- **2026-08-28** — v0.1.0 notarized: submission 20738e21 Accepted, stapled, `spctl` accepts (`source=Notarized Developer ID`). DMG sha256 `82b34bd3…9b18249a` wired into the cask; CHANGELOG cut to `[0.1.0]`; README screenshots and install instructions added (E2-188).
 - **2026-08-28** — Release pipeline: app icon generated from `scripts/make-icon.swift` (dark panel, one lit LED), `scripts/release.sh` (test → archive → Developer ID export → signature/hardened-runtime/sandbox checks → signed DMG → optional notarize+staple), `Casks/squatter.rb` skeleton. Verified end to end: `build/Squatter-0.1.0.dmg`, 2.0 MB, signed by M8A3G95883, hardened runtime on; `spctl` rejects only as "Unnotarized Developer ID" (E2-188).
 - **2026-08-28** — Renamed OpenPorts → **Squatter** (owner decision, spec Q#5: OpenPorts collided with openports.app). Xcode targets, bundle IDs `sa.ni.squatter`, `squatter.*` defaults keys (no migration — nothing shipped), UI strings, About URLs, CI, docs and rules; GitHub repo and Linear project renamed. Spec Q#6 resolved: GitHub Releases **and** a Homebrew cask at launch. 63 tests green (E2-187).
 - **2026-08-28** — Row options button: a ⋯ menu in the hover actions presents the same items as the right-click menu, built from one shared `menuItems` builder so they can't drift (E2-186).

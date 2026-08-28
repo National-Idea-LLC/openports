@@ -5,6 +5,19 @@ All notable user-facing changes to Squatter. Written for the people who use it â
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [0.1.0] - 2026-08-28
+
+First public release: a menu bar app that shows what's listening on every port and lets you open, copy, or kill it.
+
+
+### Added
 - Menu bar icon that opens a list of every port your Mac is listening on, with the process name, PID, and address.
 - Open a port in your browser, or copy its URL, port, or PID from the row or the right-click menu.
 - Kill a process from its row. If it ignores the request, a Force Kill button appears after 2 seconds.
@@ -21,7 +34,3 @@ All notable user-facing changes to Squatter. Written for the people who use it â
 ### Changed
 - The app is now called Squatter. (It was OpenPorts during development.)
 - Fresh look for the port list: a status light on every row (green means it's yours to kill, gray means another user owns it, red means it didn't exit), rows grouped into Yours, Other users, and Ignored, and bigger, easier-to-scan port numbers.
-
-### Fixed
-
-### Removed
