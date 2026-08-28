@@ -6,8 +6,8 @@ import Observation
 @Observable
 final class SettingsModel {
     static let refreshIntervalChoices: [TimeInterval] = [1, 2, 5]
-    static let releasesURL = URL(string: "https://github.com/National-Idea-LLC/openports/releases")
-    static let sourceURL = URL(string: "https://github.com/National-Idea-LLC/openports")
+    static let releasesURL = URL(string: "https://github.com/National-Idea-LLC/squatter/releases")
+    static let sourceURL = URL(string: "https://github.com/National-Idea-LLC/squatter")
 
     /// "0.1.0 (1)" from the bundle, or "—" when running outside a bundle (tests).
     static var bundleVersion: String {
@@ -70,8 +70,8 @@ final class SettingsModel {
             loginItemError = nil
         } catch {
             loginItemError = enabled
-                ? String(localized: "Couldn't turn on Launch at Login: \(error.localizedDescription) Try again, or add OpenPorts under System Settings › General › Login Items.")
-                : String(localized: "Couldn't turn off Launch at Login: \(error.localizedDescription) Try again, or remove OpenPorts under System Settings › General › Login Items.")
+                ? String(localized: "Couldn't turn on Launch at Login: \(error.localizedDescription) Try again, or add Squatter under System Settings › General › Login Items.")
+                : String(localized: "Couldn't turn off Launch at Login: \(error.localizedDescription) Try again, or remove Squatter under System Settings › General › Login Items.")
         }
         refreshLoginItemStatus()
     }

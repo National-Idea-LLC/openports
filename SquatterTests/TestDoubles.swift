@@ -1,7 +1,7 @@
 import Darwin
 import Foundation
 import Synchronization
-@testable import OpenPorts
+@testable import Squatter
 
 /// Scripted stand-in for `lsof` that counts launches, can hold each run open, and can be re-scripted.
 actor FakeRunner: CommandRunning {
@@ -81,7 +81,7 @@ final class RecordingActions: SystemActions {
 
 /// A throwaway `UserDefaults` suite, wiped on creation.
 func freshDefaults(_ name: String = #function) -> UserDefaults {
-    let suite = "sa.ni.openports.tests.\(name)"
+    let suite = "sa.ni.squatter.tests.\(name)"
     let defaults = UserDefaults(suiteName: suite)!
     defaults.removePersistentDomain(forName: suite)
     return defaults

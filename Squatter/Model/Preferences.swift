@@ -2,11 +2,11 @@ import Foundation
 
 /// Every persisted key, defined once. Never rename a shipped key without a migration.
 enum DefaultsKeys {
-    static let refreshInterval = "openports.refreshInterval"
-    static let showCountInMenuBar = "openports.showCountInMenuBar"
-    static let ignoredPorts = "openports.ignoredPorts"
-    static let ignoredProcessNames = "openports.ignoredProcessNames"
-    static let sortOrder = "openports.sortOrder"
+    static let refreshInterval = "squatter.refreshInterval"
+    static let showCountInMenuBar = "squatter.showCountInMenuBar"
+    static let ignoredPorts = "squatter.ignoredPorts"
+    static let ignoredProcessNames = "squatter.ignoredProcessNames"
+    static let sortOrder = "squatter.sortOrder"
 }
 
 /// How the list is ordered. Raw values are persisted — don't rename.

@@ -1,0 +1,570 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		047842168E98E3DA742047B3 /* ProcessKiller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7077596CAE863FE3E62245FD /* ProcessKiller.swift */; };
+		06E86C358764505BC58C3B3C /* PortRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E24ADD61D90D12374BFE2E54 /* PortRow.swift */; };
+		0B2F398054336703CC30C651 /* SystemActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7B51E4B0082BCFDFF15A08 /* SystemActions.swift */; };
+		44825945E94BFC7F45752DA4 /* SettingsModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 260686C41B3BF8859A40B24F /* SettingsModelTests.swift */; };
+		453B2640ED6240446647CB4D /* PortListModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D41CCFA526C37194579DD61 /* PortListModelTests.swift */; };
+		4D7C4AE39EF51FD51587A74A /* ListenerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D1D2BABEAD4883EC684374E /* ListenerTests.swift */; };
+		4D89A9C534F4354CC45ACBD1 /* PortListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE9406DD715F6649B347628B /* PortListModel.swift */; };
+		4E07580406E51A67675A5769 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB9D683D427119F26ED79956 /* Preferences.swift */; };
+		4F57DCC5472A556D01BD30EC /* SettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A075467266762D38618B2FB1 /* SettingsModel.swift */; };
+		5158494330EA0CD9DFECF2F6 /* SquatterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950483E06AD50CDD7A7E1A4C /* SquatterApp.swift */; };
+		7D3A54930A24C848A690D609 /* PortListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73839A6602150E8EC0825B8C /* PortListView.swift */; };
+		89321005E136F3499E448085 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACFC57CEC22AC119320E67B9 /* SettingsView.swift */; };
+		918384C4BF754873C6AE385A /* PortScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF09314B6EDA8671DB0E1389 /* PortScannerTests.swift */; };
+		9313F8154DE4F9B5134CECB9 /* Listener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 140D76EC9CAAA310A129F5DC /* Listener.swift */; };
+		9AB696FBFF44F0AB4AF88617 /* LsofParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09318F82072389F64905A075 /* LsofParser.swift */; };
+		9B5766787A56E61A5BDFAC2E /* TestDoubles.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30E37B93D4AF27C03A7DB8D /* TestDoubles.swift */; };
+		9F445A200B71549F5B6425A8 /* LsofParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03600873F2C9F8BFFC667F2 /* LsofParserTests.swift */; };
+		A978EB5F5C5CE9C664E66453 /* PortScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A835191EBE19DFB26670E92 /* PortScanner.swift */; };
+		B4C16B55F4490BBE9A7C2166 /* ProcessKillerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD22B384EF0193A6A63A7215 /* ProcessKillerTests.swift */; };
+		B949E7A9F5B2EFC308798622 /* SnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A917D9F91EB4C4B17A65F529 /* SnapshotTests.swift */; };
+		BF6AA3EAC29BE7B8C429423E /* LoginItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30D350415F73080839C4EC5 /* LoginItem.swift */; };
+		F0AC9D05F9876B81A987631E /* LsofRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75537A4539E472D0F6E17827 /* LsofRunner.swift */; };
+		F4D398DE12425896C733B815 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8B0E0121DC24D19C318A5070 /* Assets.xcassets */; };
+		FC1399BB13F569B5A90E1533 /* lsof-sample.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9A9EF2D70620759ABC83BD58 /* lsof-sample.txt */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		8DFA6C14F568F70E95101DC4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3DDB38B08C45EC5619406642 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 49EDCB142E8F69B8CB988880;
+			remoteInfo = Squatter;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0274282CB88661603CA57822 /* Squatter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Squatter.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		09318F82072389F64905A075 /* LsofParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LsofParser.swift; sourceTree = "<group>"; };
+		140D76EC9CAAA310A129F5DC /* Listener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Listener.swift; sourceTree = "<group>"; };
+		1A835191EBE19DFB26670E92 /* PortScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortScanner.swift; sourceTree = "<group>"; };
+		260686C41B3BF8859A40B24F /* SettingsModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModelTests.swift; sourceTree = "<group>"; };
+		33C96B821FB9E46F3CCB1543 /* Squatter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Squatter.entitlements; sourceTree = "<group>"; };
+		3D41CCFA526C37194579DD61 /* PortListModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortListModelTests.swift; sourceTree = "<group>"; };
+		40EA2202D76DFA6F4A21B4B0 /* SquatterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SquatterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7077596CAE863FE3E62245FD /* ProcessKiller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessKiller.swift; sourceTree = "<group>"; };
+		73839A6602150E8EC0825B8C /* PortListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortListView.swift; sourceTree = "<group>"; };
+		75537A4539E472D0F6E17827 /* LsofRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LsofRunner.swift; sourceTree = "<group>"; };
+		8B0E0121DC24D19C318A5070 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		8D1D2BABEAD4883EC684374E /* ListenerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListenerTests.swift; sourceTree = "<group>"; };
+		950483E06AD50CDD7A7E1A4C /* SquatterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SquatterApp.swift; sourceTree = "<group>"; };
+		9A9EF2D70620759ABC83BD58 /* lsof-sample.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "lsof-sample.txt"; sourceTree = "<group>"; };
+		A075467266762D38618B2FB1 /* SettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModel.swift; sourceTree = "<group>"; };
+		A917D9F91EB4C4B17A65F529 /* SnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotTests.swift; sourceTree = "<group>"; };
+		AB9D683D427119F26ED79956 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
+		ACFC57CEC22AC119320E67B9 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B30E37B93D4AF27C03A7DB8D /* TestDoubles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDoubles.swift; sourceTree = "<group>"; };
+		BC7B51E4B0082BCFDFF15A08 /* SystemActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemActions.swift; sourceTree = "<group>"; };
+		C03600873F2C9F8BFFC667F2 /* LsofParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LsofParserTests.swift; sourceTree = "<group>"; };
+		CD22B384EF0193A6A63A7215 /* ProcessKillerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessKillerTests.swift; sourceTree = "<group>"; };
+		CF09314B6EDA8671DB0E1389 /* PortScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortScannerTests.swift; sourceTree = "<group>"; };
+		D30D350415F73080839C4EC5 /* LoginItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItem.swift; sourceTree = "<group>"; };
+		DE9406DD715F6649B347628B /* PortListModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortListModel.swift; sourceTree = "<group>"; };
+		E24ADD61D90D12374BFE2E54 /* PortRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortRow.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		410C9DA56DCE76C79FB18A71 /* SquatterTests */ = {
+			isa = PBXGroup;
+			children = (
+				8D1D2BABEAD4883EC684374E /* ListenerTests.swift */,
+				C03600873F2C9F8BFFC667F2 /* LsofParserTests.swift */,
+				3D41CCFA526C37194579DD61 /* PortListModelTests.swift */,
+				CF09314B6EDA8671DB0E1389 /* PortScannerTests.swift */,
+				CD22B384EF0193A6A63A7215 /* ProcessKillerTests.swift */,
+				260686C41B3BF8859A40B24F /* SettingsModelTests.swift */,
+				A917D9F91EB4C4B17A65F529 /* SnapshotTests.swift */,
+				B30E37B93D4AF27C03A7DB8D /* TestDoubles.swift */,
+				F21E30F7A073A50B692943E8 /* Fixtures */,
+			);
+			path = SquatterTests;
+			sourceTree = "<group>";
+		};
+		56089AC5342F9A08BF9A9C4B /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				73839A6602150E8EC0825B8C /* PortListView.swift */,
+				E24ADD61D90D12374BFE2E54 /* PortRow.swift */,
+				ACFC57CEC22AC119320E67B9 /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		704C72CD10DF5DFE638D01B6 /* Squatter */ = {
+			isa = PBXGroup;
+			children = (
+				33C96B821FB9E46F3CCB1543 /* Squatter.entitlements */,
+				950483E06AD50CDD7A7E1A4C /* SquatterApp.swift */,
+				D2150CA8C25A05E2A6536FB4 /* Model */,
+				E1ACC98CE90DF88730D854B8 /* Resources */,
+				7AD524329CA6CAFF28164A1E /* Services */,
+				EABF2C6D6832A8546E2B3CA4 /* ViewModels */,
+				56089AC5342F9A08BF9A9C4B /* Views */,
+			);
+			path = Squatter;
+			sourceTree = "<group>";
+		};
+		7AD524329CA6CAFF28164A1E /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				D30D350415F73080839C4EC5 /* LoginItem.swift */,
+				09318F82072389F64905A075 /* LsofParser.swift */,
+				75537A4539E472D0F6E17827 /* LsofRunner.swift */,
+				1A835191EBE19DFB26670E92 /* PortScanner.swift */,
+				7077596CAE863FE3E62245FD /* ProcessKiller.swift */,
+				BC7B51E4B0082BCFDFF15A08 /* SystemActions.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		8B8C4ECBED2A1BDA9A83145C = {
+			isa = PBXGroup;
+			children = (
+				704C72CD10DF5DFE638D01B6 /* Squatter */,
+				410C9DA56DCE76C79FB18A71 /* SquatterTests */,
+				93029D98C3A4DCEBAFCD034F /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		93029D98C3A4DCEBAFCD034F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0274282CB88661603CA57822 /* Squatter.app */,
+				40EA2202D76DFA6F4A21B4B0 /* SquatterTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D2150CA8C25A05E2A6536FB4 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				140D76EC9CAAA310A129F5DC /* Listener.swift */,
+				AB9D683D427119F26ED79956 /* Preferences.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		E1ACC98CE90DF88730D854B8 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8B0E0121DC24D19C318A5070 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		EABF2C6D6832A8546E2B3CA4 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				DE9406DD715F6649B347628B /* PortListModel.swift */,
+				A075467266762D38618B2FB1 /* SettingsModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		F21E30F7A073A50B692943E8 /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				9A9EF2D70620759ABC83BD58 /* lsof-sample.txt */,
+			);
+			path = Fixtures;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		23E39FDC5AE2EB930874AF7C /* SquatterTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 249707E85AE4167487A67E4D /* Build configuration list for PBXNativeTarget "SquatterTests" */;
+			buildPhases = (
+				F64075A42869B23345C031D9 /* Sources */,
+				B55776C210D2E97E3E3056A8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5BE2360FEC5B42C6BB953E1C /* PBXTargetDependency */,
+			);
+			name = SquatterTests;
+			packageProductDependencies = (
+			);
+			productName = SquatterTests;
+			productReference = 40EA2202D76DFA6F4A21B4B0 /* SquatterTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		49EDCB142E8F69B8CB988880 /* Squatter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E6BA31C4F3A91F55EA57A998 /* Build configuration list for PBXNativeTarget "Squatter" */;
+			buildPhases = (
+				145F2151DFCA9CE1B47E8B38 /* Sources */,
+				1684C0E66D612025CE36B215 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Squatter;
+			packageProductDependencies = (
+			);
+			productName = Squatter;
+			productReference = 0274282CB88661603CA57822 /* Squatter.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3DDB38B08C45EC5619406642 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					23E39FDC5AE2EB930874AF7C = {
+						DevelopmentTeam = M8A3G95883;
+						ProvisioningStyle = Automatic;
+					};
+					49EDCB142E8F69B8CB988880 = {
+						DevelopmentTeam = M8A3G95883;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 976964D300C692A32D78B87E /* Build configuration list for PBXProject "Squatter" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 8B8C4ECBED2A1BDA9A83145C;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 93029D98C3A4DCEBAFCD034F /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				49EDCB142E8F69B8CB988880 /* Squatter */,
+				23E39FDC5AE2EB930874AF7C /* SquatterTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1684C0E66D612025CE36B215 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F4D398DE12425896C733B815 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B55776C210D2E97E3E3056A8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FC1399BB13F569B5A90E1533 /* lsof-sample.txt in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		145F2151DFCA9CE1B47E8B38 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9313F8154DE4F9B5134CECB9 /* Listener.swift in Sources */,
+				BF6AA3EAC29BE7B8C429423E /* LoginItem.swift in Sources */,
+				9AB696FBFF44F0AB4AF88617 /* LsofParser.swift in Sources */,
+				F0AC9D05F9876B81A987631E /* LsofRunner.swift in Sources */,
+				4D89A9C534F4354CC45ACBD1 /* PortListModel.swift in Sources */,
+				7D3A54930A24C848A690D609 /* PortListView.swift in Sources */,
+				06E86C358764505BC58C3B3C /* PortRow.swift in Sources */,
+				A978EB5F5C5CE9C664E66453 /* PortScanner.swift in Sources */,
+				4E07580406E51A67675A5769 /* Preferences.swift in Sources */,
+				047842168E98E3DA742047B3 /* ProcessKiller.swift in Sources */,
+				4F57DCC5472A556D01BD30EC /* SettingsModel.swift in Sources */,
+				89321005E136F3499E448085 /* SettingsView.swift in Sources */,
+				5158494330EA0CD9DFECF2F6 /* SquatterApp.swift in Sources */,
+				0B2F398054336703CC30C651 /* SystemActions.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F64075A42869B23345C031D9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4D7C4AE39EF51FD51587A74A /* ListenerTests.swift in Sources */,
+				9F445A200B71549F5B6425A8 /* LsofParserTests.swift in Sources */,
+				453B2640ED6240446647CB4D /* PortListModelTests.swift in Sources */,
+				918384C4BF754873C6AE385A /* PortScannerTests.swift in Sources */,
+				B4C16B55F4490BBE9A7C2166 /* ProcessKillerTests.swift in Sources */,
+				44825945E94BFC7F45752DA4 /* SettingsModelTests.swift in Sources */,
+				B949E7A9F5B2EFC308798622 /* SnapshotTests.swift in Sources */,
+				9B5766787A56E61A5BDFAC2E /* TestDoubles.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5BE2360FEC5B42C6BB953E1C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 49EDCB142E8F69B8CB988880 /* Squatter */;
+			targetProxy = 8DFA6C14F568F70E95101DC4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		2425CA56201B5B488364886B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = M8A3G95883;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		9BD6BD5805054B219F0BB906 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Squatter/Squatter.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Squatter/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = sa.ni.squatter;
+				PRODUCT_NAME = Squatter;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		9DC47E0A8AED7E06076E2C7E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Squatter/Squatter.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Squatter/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = sa.ni.squatter;
+				PRODUCT_NAME = Squatter;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		B18B00DA3583C1E5E984A2CA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = sa.ni.squatter.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Squatter.app/Contents/MacOS/Squatter";
+			};
+			name = Debug;
+		};
+		B4447C4BA1966A7DECCA7212 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = sa.ni.squatter.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Squatter.app/Contents/MacOS/Squatter";
+			};
+			name = Release;
+		};
+		F471EB91827628AF3B233236 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = M8A3G95883;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_TREAT_WARNINGS_AS_ERRORS = YES;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		249707E85AE4167487A67E4D /* Build configuration list for PBXNativeTarget "SquatterTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B18B00DA3583C1E5E984A2CA /* Debug */,
+				B4447C4BA1966A7DECCA7212 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		976964D300C692A32D78B87E /* Build configuration list for PBXProject "Squatter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F471EB91827628AF3B233236 /* Debug */,
+				2425CA56201B5B488364886B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E6BA31C4F3A91F55EA57A998 /* Build configuration list for PBXNativeTarget "Squatter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9BD6BD5805054B219F0BB906 /* Debug */,
+				9DC47E0A8AED7E06076E2C7E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3DDB38B08C45EC5619406642 /* Project object */;
+}

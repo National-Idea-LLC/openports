@@ -15,10 +15,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7EFE0B3A94361BE5FD25574A"
-               BuildableName = "OpenPorts.app"
-               BlueprintName = "OpenPorts"
-               ReferencedContainer = "container:OpenPorts.xcodeproj">
+               BlueprintIdentifier = "49EDCB142E8F69B8CB988880"
+               BuildableName = "Squatter.app"
+               BlueprintName = "Squatter"
+               ReferencedContainer = "container:Squatter.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -29,10 +29,10 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D325B31E1733FF8940C4C83C"
-               BuildableName = "OpenPortsTests.xctest"
-               BlueprintName = "OpenPortsTests"
-               ReferencedContainer = "container:OpenPorts.xcodeproj">
+               BlueprintIdentifier = "23E39FDC5AE2EB930874AF7C"
+               BuildableName = "SquatterTests.xctest"
+               BlueprintName = "SquatterTests"
+               ReferencedContainer = "container:Squatter.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,10 +46,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7EFE0B3A94361BE5FD25574A"
-            BuildableName = "OpenPorts.app"
-            BlueprintName = "OpenPorts"
-            ReferencedContainer = "container:OpenPorts.xcodeproj">
+            BlueprintIdentifier = "49EDCB142E8F69B8CB988880"
+            BuildableName = "Squatter.app"
+            BlueprintName = "Squatter"
+            ReferencedContainer = "container:Squatter.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -58,10 +58,10 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D325B31E1733FF8940C4C83C"
-               BuildableName = "OpenPortsTests.xctest"
-               BlueprintName = "OpenPortsTests"
-               ReferencedContainer = "container:OpenPorts.xcodeproj">
+               BlueprintIdentifier = "23E39FDC5AE2EB930874AF7C"
+               BuildableName = "SquatterTests.xctest"
+               BlueprintName = "SquatterTests"
+               ReferencedContainer = "container:Squatter.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -82,10 +82,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7EFE0B3A94361BE5FD25574A"
-            BuildableName = "OpenPorts.app"
-            BlueprintName = "OpenPorts"
-            ReferencedContainer = "container:OpenPorts.xcodeproj">
+            BlueprintIdentifier = "49EDCB142E8F69B8CB988880"
+            BuildableName = "Squatter.app"
+            BlueprintName = "Squatter"
+            ReferencedContainer = "container:Squatter.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
@@ -101,10 +101,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7EFE0B3A94361BE5FD25574A"
-            BuildableName = "OpenPorts.app"
-            BlueprintName = "OpenPorts"
-            ReferencedContainer = "container:OpenPorts.xcodeproj">
+            BlueprintIdentifier = "49EDCB142E8F69B8CB988880"
+            BuildableName = "Squatter.app"
+            BlueprintName = "Squatter"
+            ReferencedContainer = "container:Squatter.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

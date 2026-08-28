@@ -32,8 +32,8 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild \
-            -project OpenPorts.xcodeproj \
-            -scheme OpenPorts \
+            -project Squatter.xcodeproj \
+            -scheme Squatter \
             -destination 'platform=macOS' \
             CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= \
             test 2>&1 | grep -vE "linkd\.autoShortcut|Process Instance Registry"

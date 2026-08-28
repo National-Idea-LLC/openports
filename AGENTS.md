@@ -1,4 +1,4 @@
-# AGENTS.md — OpenPorts
+# AGENTS.md — Squatter
 
 A minimal macOS menu bar app that lists every listening TCP port, shows the owning process, and lets you open it in the browser, copy its URL, or kill the process in one click. Full requirements: [PROJECT_SPEC.md](PROJECT_SPEC.md).
 
@@ -18,7 +18,7 @@ points here — add conventions to this file or [rules/](rules/), never to CLAUD
 5. **Keep this AGENTS.md current** as commands, conventions, or structure change.
 6. **Stay minimal.** No third-party packages, no App Sandbox, no privilege escalation, no telemetry or network calls. If a feature needs one of these, stop and ask.
 7. **Never spawn a shell.** `lsof` is invoked by absolute path with fixed arguments via `Process`; processes are killed with `kill(2)` only after re-validating the PID still maps to the scanned process name.
-8. **Keep the Linear project in sync** — [OpenPorts](https://linear.app/ielyas/project/openports-8016284756f8) (team Elyas, `E2-…`). Every TRACKER.md status change gets the matching Linear update (issue created / In Progress / In Review, milestone = phase). Never set an issue to Done/Canceled unless the owner explicitly asks. Details: [rules/issue-tracker-status.md](rules/issue-tracker-status.md).
+8. **Keep the Linear project in sync** — [Squatter](https://linear.app/ielyas/project/squatter-8016284756f8) (team Elyas, `E2-…`). Every TRACKER.md status change gets the matching Linear update (issue created / In Progress / In Review, milestone = phase). Never set an issue to Done/Canceled unless the owner explicitly asks. Details: [rules/issue-tracker-status.md](rules/issue-tracker-status.md).
 
 ---
 
@@ -26,11 +26,11 @@ points here — add conventions to this file or [rules/](rules/), never to CLAUD
 
 Run from the repo root.
 
-- `open OpenPorts.xcodeproj` — develop in Xcode; run the `OpenPorts` scheme
-- `xcodegen generate` — regenerate `OpenPorts.xcodeproj` after editing `project.yml` (the project file is committed; `project.yml` is its source of truth — never hand-edit the `.pbxproj`). Install with `brew install xcodegen`.
-- `xcodebuild -project OpenPorts.xcodeproj -scheme OpenPorts -configuration Debug build` — build
-- `xcodebuild -project OpenPorts.xcodeproj -scheme OpenPorts -destination 'platform=macOS' test` — unit tests (Swift Testing)
-- `xcodebuild -project OpenPorts.xcodeproj -scheme OpenPorts -configuration Release archive -archivePath build/OpenPorts.xcarchive` — release archive
+- `open Squatter.xcodeproj` — develop in Xcode; run the `Squatter` scheme
+- `xcodegen generate` — regenerate `Squatter.xcodeproj` after editing `project.yml` (the project file is committed; `project.yml` is its source of truth — never hand-edit the `.pbxproj`). Install with `brew install xcodegen`.
+- `xcodebuild -project Squatter.xcodeproj -scheme Squatter -configuration Debug build` — build
+- `xcodebuild -project Squatter.xcodeproj -scheme Squatter -destination 'platform=macOS' test` — unit tests (Swift Testing)
+- `xcodebuild -project Squatter.xcodeproj -scheme Squatter -configuration Release archive -archivePath build/Squatter.xcarchive` — release archive
 - `xcrun notarytool submit … --wait` then `xcrun stapler staple` — notarize a release build
 - `swiftlint` — lint (only if `.swiftlint.yml` is added; not required for M0)
 - Debug helper: `lsof -nP -iTCP -sTCP:LISTEN +c0 -F pcunPT` — the exact command the scanner runs
@@ -39,7 +39,7 @@ Run from the repo root.
 
 ## CHANGELOG.md (user-facing)
 
-Write for the people who use OpenPorts, not developers.
+Write for the people who use Squatter, not developers.
 
 | Change type | Update `CHANGELOG.md`? |
 |-------------|-------------------------|
@@ -63,7 +63,7 @@ The detailed rules live in `rules/` — highlights:
 - **Commits:** Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`). Scope per feature/task; include TRACKER (+ CHANGELOG when user-visible) in the same commit.
 - **Commit/release gates:** analyze the diff → CHANGELOG gate → release gate → build/verify → commit → push. Never `git add`/`commit` before the gates resolve.
 - **UI copy:** Title Case for buttons and menu labels; sentence case everywhere else. Buttons are verb + object ("Kill Process", "Copy URL", not "OK"). Destructive verb is **Kill** (developer vocabulary). Errors say what failed, why, and what to do next.
-- **Project file:** targets, settings, Info.plist keys, and entitlements live in `project.yml`; change them there and run `xcodegen generate`. Bundle IDs: `sa.ni.openports` / `sa.ni.openports.tests`.
+- **Project file:** targets, settings, Info.plist keys, and entitlements live in `project.yml`; change them there and run `xcodegen generate`. Bundle IDs: `sa.ni.squatter` / `sa.ni.squatter.tests`.
 - **Architecture:** `LsofParser` is a pure `String -> [Listener]` function with fixture tests; `PortScanner` is an actor; `PortListModel` is `@MainActor @Observable`; views hold no logic.
-- **Persistent keys/settings:** prefix `UserDefaults` keys with `openports.`; define each key once in a `DefaultsKeys` enum — never scatter string literals. Do not rename shipped keys without a migration.
+- **Persistent keys/settings:** prefix `UserDefaults` keys with `squatter.`; define each key once in a `DefaultsKeys` enum — never scatter string literals. Do not rename shipped keys without a migration.
 - **Secrets:** none expected. If one ever appears, Keychain only — never UserDefaults, plists, or committed files.

@@ -22,13 +22,13 @@ enum ScanError: Error, Equatable, Sendable, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .lsofNotFound(let path):
-            String(localized: "Couldn't find lsof at \(path). OpenPorts needs the system lsof tool to list ports.")
+            String(localized: "Couldn't find lsof at \(path). Squatter needs the system lsof tool to list ports.")
         case .launchFailed(let reason):
             String(localized: "Couldn't start lsof: \(reason). Try refreshing.")
         case .nonZeroExit(let code, let stderr):
             String(localized: "lsof exited with code \(code). \(stderr.isEmpty ? "" : stderr) Try refreshing.")
         case .outputNotUTF8:
-            String(localized: "lsof returned output OpenPorts couldn't read. Try refreshing.")
+            String(localized: "lsof returned output Squatter couldn't read. Try refreshing.")
         }
     }
 }

@@ -9,16 +9,16 @@ _Secrets, API keys, and persistent configuration handling_
 
 ## Secrets
 
-OpenPorts has no accounts, no API keys, and makes no network calls. Keep it that way; if a secret is ever unavoidable:
+Squatter has no accounts, no API keys, and makes no network calls. Keep it that way; if a secret is ever unavoidable:
 
 - Secrets live in the macOS **Keychain** only. Never in UserDefaults, plists, source, or committed `.env` files.
 - Sensitive features are **opt-in** (default off) with an explicit enable flag.
-- For UI, mirror key *presence* with a boolean flag (e.g. `openports.hasSavedKey`) — do not read the secret itself to render display state.
+- For UI, mirror key *presence* with a boolean flag (e.g. `squatter.hasSavedKey`) — do not read the secret itself to render display state.
 - Never read, paste, or log secret values in terminal output, commits, or chat.
 
 ## Persistent keys (UserDefaults)
 
-- Prefix every key with `openports.` (e.g. `openports.ignoredPorts`, `openports.refreshInterval`, `openports.showCountInMenuBar`).
+- Prefix every key with `squatter.` (e.g. `squatter.ignoredPorts`, `squatter.refreshInterval`, `squatter.showCountInMenuBar`).
 - Define each key **once** in a `DefaultsKeys` enum and reference it — never scatter string literals.
 - Do not rename shipped keys without a migration.
 

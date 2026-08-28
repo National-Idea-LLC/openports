@@ -1,4 +1,4 @@
-# CLAUDE.md — OpenPorts
+# CLAUDE.md — Squatter
 
 Claude Code: this project's instructions live in **[AGENTS.md](AGENTS.md)**.
 That file is the single source of truth, shared with every other agent and

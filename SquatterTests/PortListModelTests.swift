@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import OpenPorts
+@testable import Squatter
 
 @MainActor
 struct PortListModelTests {
@@ -398,7 +398,7 @@ struct PreferencesTests {
 
     @Test func keysCarryThePrefix() {
         for key in [DefaultsKeys.refreshInterval, DefaultsKeys.showCountInMenuBar, DefaultsKeys.ignoredPorts, DefaultsKeys.ignoredProcessNames, DefaultsKeys.sortOrder] {
-            #expect(key.hasPrefix("openports."))
+            #expect(key.hasPrefix("squatter."))
         }
     }
 }

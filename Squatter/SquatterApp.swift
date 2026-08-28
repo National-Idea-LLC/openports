@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct OpenPortsApp: App {
+struct SquatterApp: App {
     @State private var model = PortListModel()
     @State private var settings = SettingsModel()
 
@@ -12,10 +12,10 @@ struct OpenPortsApp: App {
             if let count = model.menuBarCount {
                 Label(String(count), systemImage: "network")
                     .labelStyle(.titleAndIcon)
-                    .accessibilityLabel(Text("OpenPorts, \(count) listening"))
+                    .accessibilityLabel(Text("Squatter, \(count) listening"))
             } else {
                 Image(systemName: "network")
-                    .accessibilityLabel(Text("OpenPorts"))
+                    .accessibilityLabel(Text("Squatter"))
             }
         }
         .menuBarExtraStyle(.window)

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable user-facing changes to OpenPorts. Written for the people who use it — plain language, no file names or internal jargon.
+All notable user-facing changes to Squatter. Written for the people who use it — plain language, no file names or internal jargon.
 
 ## [Unreleased]
 
@@ -10,7 +10,7 @@ All notable user-facing changes to OpenPorts. Written for the people who use it 
 - Kill a process from its row. If it ignores the request, a Force Kill button appears after 2 seconds.
 - Filter the list by port, process name, or PID.
 - The list refreshes every 2 seconds while it's open, and shows a clear message when nothing is listening or the scan fails.
-- Settings (⌘,): launch OpenPorts at login, and choose how often the list refreshes (1, 2, or 5 seconds).
+- Settings (⌘,): launch Squatter at login, and choose how often the list refreshes (1, 2, or 5 seconds).
 - Ignore ports or processes you don't care about from the right-click menu. Hidden rows are counted in the footer, where one click shows them again; manage the list in Settings.
 - Sort the list by port or by process name (Settings).
 - Every row now has a ⋯ button with the full set of actions, so you don't have to know to right-click.
@@ -19,6 +19,7 @@ All notable user-facing changes to OpenPorts. Written for the people who use it 
 - About section in Settings with the version, a Check for Updates button that opens the GitHub releases page, and a link to the source.
 
 ### Changed
+- The app is now called Squatter. (It was OpenPorts during development.)
 - Fresh look for the port list: a status light on every row (green means it's yours to kill, gray means another user owns it, red means it didn't exit), rows grouped into Yours, Other users, and Ignored, and bigger, easier-to-scan port numbers.
 
 ### Fixed

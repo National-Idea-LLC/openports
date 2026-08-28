@@ -2,13 +2,13 @@ import AppKit
 import Foundation
 import SwiftUI
 import Testing
-@testable import OpenPorts
+@testable import Squatter
 
 /// Renders the popover in a real (offscreen) window and writes PNGs for eyeballing.
 /// Not an assertion on pixels — a build-time sanity check that the views lay out.
 @MainActor
 struct SnapshotTests {
-    private static let outputDirectory = URL(filePath: NSTemporaryDirectory()).appending(path: "openports-snapshots")
+    private static let outputDirectory = URL(filePath: NSTemporaryDirectory()).appending(path: "squatter-snapshots")
 
     private func snapshot<V: View>(_ view: V, name: String, size: CGSize = CGSize(width: 360, height: 460), dark: Bool = false) throws -> URL {
         let host = NSHostingView(rootView: view)

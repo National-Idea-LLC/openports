@@ -177,8 +177,8 @@ struct PortListView: View {
                 Image(systemName: "power")
             }
             .keyboardShortcut("q")
-            .accessibilityLabel(Text("Quit OpenPorts"))
-            .help(Text("Quit OpenPorts (⌘Q)"))
+            .accessibilityLabel(Text("Quit Squatter"))
+            .help(Text("Quit Squatter (⌘Q)"))
         }
         .font(.caption)
         .foregroundStyle(.secondary)

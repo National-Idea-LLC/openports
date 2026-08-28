@@ -1,7 +1,7 @@
 import Darwin
 import Foundation
 import Testing
-@testable import OpenPorts
+@testable import Squatter
 
 struct ProcessKillerTests {
     @Test func sendsSigtermByDefaultAndSigkillWhenForced() throws {

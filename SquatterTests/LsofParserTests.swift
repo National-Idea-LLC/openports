@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import OpenPorts
+@testable import Squatter
 
 struct LsofParserTests {
     private static func users(_ uid: uid_t) -> String {

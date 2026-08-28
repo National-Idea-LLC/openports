@@ -60,7 +60,7 @@ struct SettingsView: View {
             } header: {
                 Text("About")
             } footer: {
-                Text("OpenPorts never connects to the internet on its own. Checking for updates opens GitHub in your browser.")
+                Text("Squatter never connects to the internet on its own. Checking for updates opens GitHub in your browser.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

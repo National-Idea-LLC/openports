@@ -1,5 +1,5 @@
 ---
-description: Linear project sync — keep the OpenPorts project current, never close issues without owner sign-off
+description: Linear project sync — keep the Squatter project current, never close issues without owner sign-off
 alwaysApply: true
 ---
 
@@ -7,7 +7,7 @@ alwaysApply: true
 
 _Keep the Linear project in sync with the repo; never close issues without owner sign-off_
 
-**Project:** [OpenPorts](https://linear.app/ielyas/project/openports-8016284756f8) · team **Elyas** (issue prefix `E2`) · milestones `M0 — Foundation`, `M1 — P0 core`, `M2 — P1 polish`, `M3 — Release` mirror the TRACKER.md phase board.
+**Project:** [Squatter](https://linear.app/ielyas/project/squatter-8016284756f8) · team **Elyas** (issue prefix `E2`) · milestones `M0 — Foundation`, `M1 — P0 core`, `M2 — P1 polish`, `M3 — Release` mirror the TRACKER.md phase board.
 
 ## Keep it updated (same commit-sized unit as TRACKER.md)
 

@@ -23,12 +23,12 @@ _macOS native conventions — SwiftUI, HIG, concurrency, UserDefaults_
 
 ## Data & persistence
 
-- UserDefaults keys: prefix `openports.`, define once in a `DefaultsKeys` enum, never rename shipped keys without a migration.
+- UserDefaults keys: prefix `squatter.`, define once in a `DefaultsKeys` enum, never rename shipped keys without a migration.
 - No Keychain, network, or file storage expected. Adding any of them is an architecture change — ask first.
 
 ## Architecture & concurrency
 
-- `LsofParser` is a **pure function** (`String -> [Listener]`) with no I/O; every parsing change ships with a fixture test in `OpenPortsTests`.
+- `LsofParser` is a **pure function** (`String -> [Listener]`) with no I/O; every parsing change ships with a fixture test in `SquatterTests`.
 - `PortScanner` is an `actor`: one `lsof` in flight at a time; concurrent refresh requests coalesce.
 - `PortListModel` is `@MainActor @Observable`; views bind to it and contain no logic.
 - Polling runs only while the popover is visible (`onAppear`/`onDisappear`); cancel the task on disappear.

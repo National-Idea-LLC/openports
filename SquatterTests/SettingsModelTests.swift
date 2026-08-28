@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import OpenPorts
+@testable import Squatter
 
 @MainActor
 struct SettingsModelTests {
@@ -61,8 +61,8 @@ struct SettingsModelTests {
         model.checkForUpdates()
         model.openSource()
         #expect(actions.opened.map(\.absoluteString) == [
-            "https://github.com/National-Idea-LLC/openports/releases",
-            "https://github.com/National-Idea-LLC/openports",
+            "https://github.com/National-Idea-LLC/squatter/releases",
+            "https://github.com/National-Idea-LLC/squatter",
         ])
         #expect(model.appVersion == "9.9.9 (42)")
         #expect(!SettingsModel.bundleVersion.isEmpty)

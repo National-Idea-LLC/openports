@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import OpenPorts
+@testable import Squatter
 
 struct ListenerTests {
     @Test func idCombinesPidAndPort() {

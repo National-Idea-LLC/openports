@@ -1,11 +1,11 @@
-# OpenPorts — Technical Specification
+# Squatter — Technical Specification
 
 > Generated: 2026-08-26
 > Status: Draft (generated non-interactively; assumptions are marked **[A]** and collected in *Open Questions*)
 
 ## Executive Summary
 
-OpenPorts is a minimal, native macOS menu bar app written in SwiftUI that lists every TCP port currently in LISTEN state on the machine, shows which process owns it, and lets the user open it in the browser, copy its URL, or kill the owning process — in one click. It is a GUI over `lsof` and `kill`, in the spirit of [Port Manager](https://portmanager.app/) and [Open Ports](https://openports.app/), but stripped to the essentials.
+Squatter is a minimal, native macOS menu bar app written in SwiftUI that lists every TCP port currently in LISTEN state on the machine, shows which process owns it, and lets the user open it in the browser, copy its URL, or kill the owning process — in one click. It is a GUI over `lsof` and `kill`, in the spirit of [Port Manager](https://portmanager.app/) and [Open Ports](https://squatter.app/), but stripped to the essentials.
 
 > Note: the original request said "swiftui **player**"; confirmed by the owner (2026-08-27) as a typo for "app".
 
@@ -39,7 +39,7 @@ Developers running multiple local servers (Vite, Next, Rails, Docker, Postgres, 
 | App | Form | Notable | Gap this project fills |
 |-----|------|---------|------------------------|
 | Port Manager (portmanager.app) | Menu bar, macOS 10.12+ | Open in browser, copy URL, kill | Closed source, older toolchain |
-| Open Ports (openports.app) | Menu bar, paid (Lemon Squeezy) | "GUI for `lsof` and `kill`", Docker containers, ignore list | Paid, closed source |
+| Open Ports (squatter.app) | Menu bar, paid (Lemon Squeezy) | "GUI for `lsof` and `kill`", Docker containers, ignore list | Paid, closed source |
 | `lsof` / `kill` in terminal | CLI | Ubiquitous | Requires remembering flags and PIDs |
 
 **Differentiator**: open, modern SwiftUI (`MenuBarExtra`, `@Observable`, Swift 6 concurrency), zero dependencies, deliberately tiny. Feature parity with the core of both apps; Docker and extras are explicitly deferred.
@@ -123,7 +123,7 @@ Fixed popover size ≈ 360 × 440 pt; list scrolls. **[A]**
 | UI | SwiftUI, `MenuBarExtra(.window)` | Native menu bar popover with full SwiftUI views; no AppKit status-item plumbing |
 | Language | Swift 6, strict concurrency | Current toolchain (Xcode 26.6 on this machine); actors isolate the scanner |
 | State | `@Observable` model + `@MainActor` view model | Modern, minimal boilerplate |
-| Port detection | `lsof -nP -iTCP -sTCP:LISTEN +c0 -F pcunPT` via `Foundation.Process` | Same proven approach as openports.app; robust field-mode output; zero code for socket introspection |
+| Port detection | `lsof -nP -iTCP -sTCP:LISTEN +c0 -F pcunPT` via `Foundation.Process` | Same proven approach as squatter.app; robust field-mode output; zero code for socket introspection |
 | Process termination | `Darwin.kill(pid, SIGTERM/SIGKILL)` | Direct syscall, no subprocess |
 | Persistence | `UserDefaults` (ignore list, prefs) | Nothing else to store |
 | Login item | `ServiceManagement.SMAppService` | Official API, macOS 13+ |
@@ -135,8 +135,8 @@ Fixed popover size ≈ 360 × 440 pt; list scrolls. **[A]**
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│ OpenPortsApp (@main)                                 │
-│   MenuBarExtra("OpenPorts", systemImage: "network")  │
+│ SquatterApp (@main)                                 │
+│   MenuBarExtra("Squatter", systemImage: "network")  │
 │     └─ PortListView ──▶ PortListModel (@Observable)  │
 │                            │  refresh()/kill()       │
 │                            ▼                         │
@@ -255,7 +255,7 @@ Not applicable; fixed-size popover.
 
 ### Monitoring & Observability
 - No telemetry, no analytics, no network calls at all (privacy is a feature — worth stating on the README).
-- `os.Logger` with subsystem `app.openports` for local debugging.
+- `os.Logger` with subsystem `app.squatter` for local debugging.
 - Crash reports: macOS built-in only.
 
 ## Security Considerations
@@ -299,10 +299,10 @@ Not applicable; fixed-size popover.
 ## Project Layout (proposed)
 
 ```
-OpenPorts/
-├── OpenPorts.xcodeproj
-├── OpenPorts/
-│   ├── OpenPortsApp.swift          # @main, MenuBarExtra
+Squatter/
+├── Squatter.xcodeproj
+├── Squatter/
+│   ├── SquatterApp.swift          # @main, MenuBarExtra
 │   ├── Model/
 │   │   ├── Listener.swift
 │   │   └── Preferences.swift
@@ -319,7 +319,7 @@ OpenPorts/
 │   │   ├── EmptyStateView.swift
 │   │   └── SettingsView.swift
 │   └── Resources/Assets.xcassets
-├── OpenPortsTests/
+├── SquatterTests/
 │   ├── LsofParserTests.swift
 │   └── Fixtures/lsof-sample.txt
 ├── PROJECT_SPEC.md
@@ -335,8 +335,8 @@ OpenPorts/
 | 2 | Minimum macOS: 15 (Sequoia) or 14 (Sonoma)? | **Resolved 2026-08-27: macOS 15** | — |
 | 3 | Click on a row: opens browser immediately, or selects with explicit ↗ button? | **Resolved 2026-08-27: click selects; ↗ / ⏎ / context menu open** | — |
 | 4 | Menu bar icon: plain symbol vs. symbol + listener count by default? | Plain; count is an opt-in setting | During UI build |
-| 5 | Product name: "OpenPorts" (directory name) — conflicts with openports.app branding; rename (e.g. "Portly", "Listen")? | "OpenPorts" as working title | Before first release |
-| 6 | Distribution: GitHub Releases only, or also Homebrew cask at launch? | GitHub Releases | Before first release |
+| 5 | Product name | **Resolved 2026-08-28: "Squatter"** — renamed from OpenPorts, which collided with openports.app | — |
+| 6 | Distribution: GitHub Releases only, or also Homebrew cask? | **Resolved 2026-08-28: both** — signed DMG on GitHub Releases plus a Homebrew cask at launch | — |
 | 7 | Open source license? | **Resolved 2026-08-27: MIT** (`LICENSE`, © National Idea LLC) | — |
 | 8 | Include Docker container annotation in MVP? | No (P2) | After MVP usage |
 
@@ -349,6 +349,6 @@ OpenPorts/
 
 ### References
 - https://portmanager.app/ — menu bar port manager: view, open in browser, copy URL, kill.
-- https://openports.app/ — "GUI for `lsof` and `kill`"; uses `lsof -P -iTCP -sTCP:LISTEN +c0`; Docker support; ignore list.
+- https://squatter.app/ — "GUI for `lsof` and `kill`"; uses `lsof -P -iTCP -sTCP:LISTEN +c0`; Docker support; ignore list.
 - `man lsof` — `-F` field output format.
 - Apple: `MenuBarExtra`, `SMAppService`, App Sandbox limitations on `kill(2)`.
