@@ -29,6 +29,19 @@ struct Preferences {
         nonmutating set { defaults.set(newValue, forKey: DefaultsKeys.refreshInterval) }
     }
 
+    var ignoredPorts: Set<UInt16> {
+        get {
+            let stored = defaults.array(forKey: DefaultsKeys.ignoredPorts) as? [Int] ?? []
+            return Set(stored.compactMap { UInt16(exactly: $0) })
+        }
+        nonmutating set { defaults.set(newValue.sorted().map(Int.init), forKey: DefaultsKeys.ignoredPorts) }
+    }
+
+    var ignoredProcessNames: Set<String> {
+        get { Set(defaults.stringArray(forKey: DefaultsKeys.ignoredProcessNames) ?? []) }
+        nonmutating set { defaults.set(newValue.sorted(), forKey: DefaultsKeys.ignoredProcessNames) }
+    }
+
     var showCountInMenuBar: Bool {
         get { defaults.bool(forKey: DefaultsKeys.showCountInMenuBar) }
         nonmutating set { defaults.set(newValue, forKey: DefaultsKeys.showCountInMenuBar) }

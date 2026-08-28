@@ -61,6 +61,10 @@ struct PortListView: View {
             }
         } else if model.listeners.isEmpty {
             StateView(systemImage: "network.slash", title: Text("Nothing is listening."))
+        } else if model.filtered.isEmpty, model.filterText.isEmpty {
+            StateView(systemImage: "eye.slash", title: Text("Everything is ignored.")) {
+                Button("Show Ignored") { model.showIgnored = true }
+            }
         } else if model.filtered.isEmpty {
             StateView(systemImage: "magnifyingglass", title: Text("No ports match “\(model.filterText)”"))
         } else {
@@ -121,6 +125,19 @@ struct PortListView: View {
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
 
+            if model.hiddenCount > 0 {
+                Button {
+                    model.showIgnored.toggle()
+                } label: {
+                    Text(hiddenText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text(model.showIgnored ? "Hide ignored ports" : "Show ignored ports"))
+            }
+
             Spacer()
 
             Button {
@@ -132,7 +149,7 @@ struct PortListView: View {
             .accessibilityLabel(Text("Settings"))
             .help(Text("Settings (⌘,)"))
             .popover(isPresented: $isShowingSettings, arrowEdge: .bottom) {
-                SettingsView(settings: settings)
+                SettingsView(settings: settings, model: model)
             }
 
             Button {
@@ -154,6 +171,12 @@ struct PortListView: View {
 
     private var selectedListener: Listener? {
         model.filtered.first { $0.id == model.selection }
+    }
+
+    private var hiddenText: String {
+        model.showIgnored
+            ? String(localized: "\(model.hiddenCount) ignored · Hide")
+            : String(localized: "\(model.hiddenCount) hidden · Show")
     }
 
     private var countText: String {

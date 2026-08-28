@@ -3,6 +3,7 @@ import SwiftUI
 /// Shown from the gear in the popover footer. Binds to `SettingsModel`; no logic here.
 struct SettingsView: View {
     @Bindable var settings: SettingsModel
+    let model: PortListModel
 
     var body: some View {
         Form {
@@ -35,11 +36,34 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            if !model.ignoredPorts.isEmpty || !model.ignoredProcessNames.isEmpty {
+                Section("Ignored") {
+                    ForEach(model.ignoredPorts.sorted(), id: \.self) { port in
+                        ignoredRow(Text("Port \(String(port))")) { model.removeIgnoredPort(port) }
+                    }
+                    ForEach(model.ignoredProcessNames.sorted(), id: \.self) { name in
+                        ignoredRow(Text(name)) { model.removeIgnoredProcessName(name) }
+                    }
+                }
+            }
         }
         .formStyle(.grouped)
         .frame(width: 320)
         .fixedSize(horizontal: false, vertical: true)
         .onAppear { settings.refreshLoginItemStatus() }
+    }
+
+    private func ignoredRow(_ label: Text, remove: @escaping () -> Void) -> some View {
+        LabeledContent {
+            Button(action: remove) {
+                Image(systemName: "xmark.circle.fill")
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
+            .accessibilityLabel(Text("Stop ignoring"))
+        } label: {
+            label
+        }
     }
 
     private func intervalLabel(_ seconds: TimeInterval) -> String {
@@ -48,5 +72,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView(settings: SettingsModel())
+    SettingsView(settings: SettingsModel(), model: PortListModel())
 }

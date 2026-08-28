@@ -10,6 +10,7 @@ struct PortRow: View {
     private var isSelected: Bool { model.selection == listener.id }
     private var killState: KillState? { model.killState(for: listener) }
     private var canKill: Bool { listener.isOwnedByCurrentUser }
+    private var isIgnored: Bool { model.isIgnored(listener) }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -18,8 +19,16 @@ struct PortRow: View {
                 .frame(minWidth: 52, alignment: .leading)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(listener.processName)
-                    .lineLimit(1)
+                HStack(spacing: 4) {
+                    Text(listener.processName)
+                        .lineLimit(1)
+                    if isIgnored {
+                        Image(systemName: "eye.slash")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .accessibilityLabel(Text("Ignored"))
+                    }
+                }
                 Text(detailText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -31,7 +40,7 @@ struct PortRow: View {
             trailing
         }
         .padding(.vertical, 4)
-        .opacity(canKill ? 1 : 0.6)
+        .opacity(canKill && !isIgnored ? 1 : 0.6)
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
         .contextMenu { contextMenu }
@@ -140,6 +149,17 @@ struct PortRow: View {
             Task { await model.forceKill(listener) }
         }
         .disabled(!canKill)
+        Divider()
+        if isIgnored {
+            Button("Unignore", systemImage: "eye") { model.unignore(listener) }
+        } else {
+            Button(String(localized: "Ignore Port \(String(listener.port))"), systemImage: "eye.slash") {
+                model.ignorePort(of: listener)
+            }
+            Button(String(localized: "Ignore \(listener.processName)"), systemImage: "eye.slash") {
+                model.ignoreProcess(of: listener)
+            }
+        }
     }
 
     // MARK: Text

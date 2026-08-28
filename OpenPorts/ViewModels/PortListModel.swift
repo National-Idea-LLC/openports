@@ -25,6 +25,10 @@ final class PortListModel {
     private(set) var killStates: [Listener.ID: KillState] = [:]
     var filterText = ""
     var selection: Listener.ID?
+    /// Reveal ignored rows (they render dimmed with an Unignore action).
+    var showIgnored = false
+    private(set) var ignoredPorts: Set<UInt16>
+    private(set) var ignoredProcessNames: Set<String>
 
     @ObservationIgnored private let scanner: PortScanner
     @ObservationIgnored private let killer: ProcessKiller
@@ -48,19 +52,29 @@ final class PortListModel {
         self.preferences = preferences
         self.forceKillGrace = forceKillGrace
         self.forceKillWait = forceKillWait
+        self.ignoredPorts = preferences.ignoredPorts
+        self.ignoredProcessNames = preferences.ignoredProcessNames
     }
 
     // MARK: Derived
 
-    /// Listeners matching `filterText` against port, process name, and PID.
+    /// Listeners matching `filterText` (port, process name, PID), minus ignored rows unless `showIgnored`.
     var filtered: [Listener] {
         let query = filterText.trimmingCharacters(in: .whitespaces)
-        guard !query.isEmpty else { return listeners }
-        return listeners.filter {
-            $0.processName.localizedCaseInsensitiveContains(query)
-                || String($0.port).contains(query)
-                || String($0.pid).contains(query)
+        return listeners.filter { listener in
+            guard showIgnored || !isIgnored(listener) else { return false }
+            guard !query.isEmpty else { return true }
+            return listener.processName.localizedCaseInsensitiveContains(query)
+                || String(listener.port).contains(query)
+                || String(listener.pid).contains(query)
         }
+    }
+
+    /// How many current listeners the ignore list hides (independent of the text filter).
+    var hiddenCount: Int { listeners.count(where: isIgnored) }
+
+    func isIgnored(_ listener: Listener) -> Bool {
+        ignoredPorts.contains(listener.port) || ignoredProcessNames.contains(listener.processName)
     }
 
     var isPolling: Bool { pollTask != nil }
@@ -137,6 +151,41 @@ final class PortListModel {
 
     func dismissKillError(for listener: Listener) {
         if case .failed = killStates[listener.id] { killStates[listener.id] = nil }
+    }
+
+    // MARK: Ignore list
+
+    func ignorePort(of listener: Listener) {
+        ignoredPorts.insert(listener.port)
+        preferences.ignoredPorts = ignoredPorts
+        clearSelectionIfHidden()
+    }
+
+    func ignoreProcess(of listener: Listener) {
+        ignoredProcessNames.insert(listener.processName)
+        preferences.ignoredProcessNames = ignoredProcessNames
+        clearSelectionIfHidden()
+    }
+
+    /// Removes every rule that hides this listener (its port and its process name).
+    func unignore(_ listener: Listener) {
+        removeIgnoredPort(listener.port)
+        removeIgnoredProcessName(listener.processName)
+    }
+
+    func removeIgnoredPort(_ port: UInt16) {
+        ignoredPorts.remove(port)
+        preferences.ignoredPorts = ignoredPorts
+    }
+
+    func removeIgnoredProcessName(_ name: String) {
+        ignoredProcessNames.remove(name)
+        preferences.ignoredProcessNames = ignoredProcessNames
+    }
+
+    private func clearSelectionIfHidden() {
+        guard let selection, !filtered.contains(where: { $0.id == selection }) else { return }
+        self.selection = nil
     }
 
     // MARK: Open / copy

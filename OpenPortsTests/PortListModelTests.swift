@@ -134,6 +134,68 @@ struct PortListModelTests {
         #expect(model.selection == nil)
     }
 
+    // MARK: ignore list
+
+    private static let twoLsof = sampleLsof + "p7\ncpostgres\nu501\nf1\nPTCP\nn127.0.0.1:5432\nTST=LISTEN\n"
+
+    @Test func ignoringAPortHidesItAndCountsIt() async {
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(Self.twoLsof))))
+        await model.refresh()
+        model.selection = sampleListener.id
+        model.ignorePort(of: sampleListener)
+        #expect(model.filtered.map(\.port) == [5432])
+        #expect(model.hiddenCount == 1)
+        #expect(model.isIgnored(sampleListener))
+        #expect(model.selection == nil, "hidden row can't stay selected")
+        model.showIgnored = true
+        #expect(model.filtered.map(\.port) == [3000, 5432])
+        #expect(model.hiddenCount == 1, "count is independent of reveal")
+    }
+
+    @Test func ignoringAProcessHidesEveryPortItOwns() async {
+        let sameProcess = sampleLsof + "p42\ncnode\nu501\nf2\nPTCP\nn*:3001\nTST=LISTEN\n"
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(sameProcess))))
+        await model.refresh()
+        #expect(model.listeners.count == 2)
+        model.ignoreProcess(of: sampleListener)
+        #expect(model.filtered.isEmpty)
+        #expect(model.hiddenCount == 2)
+        model.unignore(sampleListener)
+        #expect(model.filtered.count == 2)
+        #expect(model.hiddenCount == 0)
+    }
+
+    @Test func ignoreListPersistsAcrossModels() async {
+        let defaults = freshDefaults()
+        let first = makeModel(defaults: defaults)
+        await first.refresh()
+        first.ignorePort(of: sampleListener)
+        first.ignoreProcess(of: sampleListener)
+
+        let second = makeModel(defaults: defaults)
+        await second.refresh()
+        #expect(second.ignoredPorts == [3000])
+        #expect(second.ignoredProcessNames == ["node"])
+        #expect(second.filtered.isEmpty)
+
+        second.removeIgnoredPort(3000)
+        #expect(second.filtered.isEmpty, "process rule still hides it")
+        second.removeIgnoredProcessName("node")
+        #expect(second.filtered == [sampleListener])
+        #expect(Preferences(defaults: defaults).ignoredPorts.isEmpty)
+        #expect(Preferences(defaults: defaults).ignoredProcessNames.isEmpty)
+    }
+
+    @Test func textFilterAndIgnoreCompose() async {
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(Self.twoLsof))))
+        await model.refresh()
+        model.ignorePort(of: sampleListener)
+        model.filterText = "node"
+        #expect(model.filtered.isEmpty)
+        model.showIgnored = true
+        #expect(model.filtered.map(\.processName) == ["node"])
+    }
+
     @Test func openAndCopyGoThroughSystemActions() async {
         let actions = RecordingActions()
         let model = makeModel(actions: actions)
@@ -166,6 +228,19 @@ struct PreferencesTests {
         #expect(prefs.refreshInterval == 60)
         prefs.refreshInterval = -1
         #expect(prefs.refreshInterval == 2, "non-positive falls back to the default")
+    }
+
+    @Test func ignoreListsRoundTripAndDropInvalidPorts() {
+        let defaults = freshDefaults()
+        let prefs = Preferences(defaults: defaults)
+        #expect(prefs.ignoredPorts.isEmpty && prefs.ignoredProcessNames.isEmpty)
+        prefs.ignoredPorts = [8080, 3000]
+        prefs.ignoredProcessNames = ["node", "rapportd"]
+        #expect(defaults.array(forKey: DefaultsKeys.ignoredPorts) as? [Int] == [3000, 8080])
+        #expect(Preferences(defaults: defaults).ignoredPorts == [3000, 8080])
+        #expect(Preferences(defaults: defaults).ignoredProcessNames == ["node", "rapportd"])
+        defaults.set([70000, -1, 22], forKey: DefaultsKeys.ignoredPorts) // out-of-range junk
+        #expect(Preferences(defaults: defaults).ignoredPorts == [22])
     }
 
     @Test func keysCarryThePrefix() {

@@ -11,6 +11,7 @@ All notable user-facing changes to OpenPorts. Written for the people who use it 
 - Filter the list by port, process name, or PID.
 - The list refreshes every 2 seconds while it's open, and shows a clear message when nothing is listening or the scan fails.
 - Settings (⌘,): launch OpenPorts at login, and choose how often the list refreshes (1, 2, or 5 seconds).
+- Ignore ports or processes you don't care about from the right-click menu. Hidden rows are counted in the footer, where one click shows them again; manage the list in Settings.
 
 ### Changed
 
