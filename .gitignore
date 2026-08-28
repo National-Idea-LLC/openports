@@ -47,3 +47,6 @@ ExportOptions*.plist
 .vscode/
 .idea/
 *.swp
+
+# Agent scratch (Claude Code worktrees, session state)
+.claude/
