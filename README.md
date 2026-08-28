@@ -37,6 +37,8 @@ brew install --cask National-Idea-LLC/tap/squatter
 
 Or download the DMG from [Releases](https://github.com/National-Idea-LLC/squatter/releases), drag Squatter to Applications, and launch it. The build is signed with a Developer ID and notarized by Apple.
 
+The cask lives in [National-Idea-LLC/homebrew-tap](https://github.com/National-Idea-LLC/homebrew-tap), not in this repository — Homebrew only installs a cask from a tap, so that copy is the only one that does anything.
+
 ## Requirements
 
 - macOS 15 or later

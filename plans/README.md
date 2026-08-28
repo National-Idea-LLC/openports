@@ -147,10 +147,11 @@ v0.1.1 reported no ticket. Confirmed again after a real `brew install --cask` fr
 tap. 0.1.2 contains no app code changes; it exists solely because only a rebuild can carry an
 app-level ticket.
 
-**New follow-up created by 006**: `Casks/squatter.rb` now exists in two repos and must be
-bumped in both on every release. This is the drift risk the plan warned about, and it is now
-live rather than hypothetical — it makes the tag-triggered release workflow (E2-188) load
-bearing rather than a nicety.
+**Follow-up created by 006, since resolved**: `Casks/squatter.rb` briefly existed in two
+repos and had to be bumped in both. Closed on 2026-08-29 by deleting the copy in the app repo —
+Homebrew only reads a cask from a tap, so that copy had no consumer. The tap repo is now the
+single source of truth. The tag-triggered release workflow (E2-188) now has one file to update
+instead of two.
 
 ## Dependency notes
 
