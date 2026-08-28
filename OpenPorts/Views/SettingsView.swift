@@ -3,7 +3,7 @@ import SwiftUI
 /// Shown from the gear in the popover footer. Binds to `SettingsModel`; no logic here.
 struct SettingsView: View {
     @Bindable var settings: SettingsModel
-    let model: PortListModel
+    @Bindable var model: PortListModel
 
     var body: some View {
         Form {
@@ -26,6 +26,10 @@ struct SettingsView: View {
                 }
             }
             Section {
+                Picker("Sort by", selection: $model.sortOrder) {
+                    Text("Port").tag(SortOrder.port)
+                    Text("Process name").tag(SortOrder.processName)
+                }
                 Picker("Refresh every", selection: $settings.refreshInterval) {
                     ForEach(SettingsModel.refreshIntervalChoices, id: \.self) { seconds in
                         Text(intervalLabel(seconds)).tag(seconds)

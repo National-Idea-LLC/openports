@@ -196,6 +196,25 @@ struct PortListModelTests {
         #expect(model.filtered.map(\.processName) == ["node"])
     }
 
+    // MARK: sort
+
+    @Test func sortByProcessNameIsCaseInsensitiveThenPort() async {
+        let lsof = "p1\ncZeta\nu501\nf1\nPTCP\nn*:80\nTST=LISTEN\n"
+            + "p2\ncalpha\nu501\nf1\nPTCP\nn*:9000\nTST=LISTEN\n"
+            + "p3\ncBeta\nu501\nf1\nPTCP\nn*:443\nTST=LISTEN\n"
+            + "p4\ncalpha\nu501\nf1\nPTCP\nn*:8000\nTST=LISTEN\n"
+        let defaults = freshDefaults()
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(lsof))), defaults: defaults)
+        await model.refresh()
+        #expect(model.sortOrder == .port)
+        #expect(model.filtered.map(\.port) == [80, 443, 8000, 9000])
+
+        model.sortOrder = .processName
+        #expect(model.filtered.map { "\($0.processName):\($0.port)" } == ["alpha:8000", "alpha:9000", "Beta:443", "Zeta:80"])
+        #expect(Preferences(defaults: defaults).sortOrder == .processName, "persisted")
+        #expect(makeModel(defaults: defaults).sortOrder == .processName, "restored on next launch")
+    }
+
     @Test func openAndCopyGoThroughSystemActions() async {
         let actions = RecordingActions()
         let model = makeModel(actions: actions)
@@ -243,8 +262,14 @@ struct PreferencesTests {
         #expect(Preferences(defaults: defaults).ignoredPorts == [22])
     }
 
+    @Test func sortOrderFallsBackToPortOnUnknownValue() {
+        let defaults = freshDefaults()
+        defaults.set("bogus", forKey: DefaultsKeys.sortOrder)
+        #expect(Preferences(defaults: defaults).sortOrder == .port)
+    }
+
     @Test func keysCarryThePrefix() {
-        for key in [DefaultsKeys.refreshInterval, DefaultsKeys.showCountInMenuBar, DefaultsKeys.ignoredPorts, DefaultsKeys.ignoredProcessNames] {
+        for key in [DefaultsKeys.refreshInterval, DefaultsKeys.showCountInMenuBar, DefaultsKeys.ignoredPorts, DefaultsKeys.ignoredProcessNames, DefaultsKeys.sortOrder] {
             #expect(key.hasPrefix("openports."))
         }
     }

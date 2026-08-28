@@ -6,6 +6,13 @@ enum DefaultsKeys {
     static let showCountInMenuBar = "openports.showCountInMenuBar"
     static let ignoredPorts = "openports.ignoredPorts"
     static let ignoredProcessNames = "openports.ignoredProcessNames"
+    static let sortOrder = "openports.sortOrder"
+}
+
+/// How the list is ordered. Raw values are persisted — don't rename.
+enum SortOrder: String, CaseIterable, Sendable {
+    case port
+    case processName
 }
 
 /// Typed access to the app's `UserDefaults`. Inject a private suite in tests.
@@ -40,6 +47,11 @@ struct Preferences {
     var ignoredProcessNames: Set<String> {
         get { Set(defaults.stringArray(forKey: DefaultsKeys.ignoredProcessNames) ?? []) }
         nonmutating set { defaults.set(newValue.sorted(), forKey: DefaultsKeys.ignoredProcessNames) }
+    }
+
+    var sortOrder: SortOrder {
+        get { defaults.string(forKey: DefaultsKeys.sortOrder).flatMap(SortOrder.init(rawValue:)) ?? .port }
+        nonmutating set { defaults.set(newValue.rawValue, forKey: DefaultsKeys.sortOrder) }
     }
 
     var showCountInMenuBar: Bool {

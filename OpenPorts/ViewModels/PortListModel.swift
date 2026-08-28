@@ -29,6 +29,9 @@ final class PortListModel {
     var showIgnored = false
     private(set) var ignoredPorts: Set<UInt16>
     private(set) var ignoredProcessNames: Set<String>
+    var sortOrder: SortOrder {
+        didSet { preferences.sortOrder = sortOrder }
+    }
 
     @ObservationIgnored private let scanner: PortScanner
     @ObservationIgnored private let killer: ProcessKiller
@@ -54,19 +57,31 @@ final class PortListModel {
         self.forceKillWait = forceKillWait
         self.ignoredPorts = preferences.ignoredPorts
         self.ignoredProcessNames = preferences.ignoredProcessNames
+        self.sortOrder = preferences.sortOrder
     }
 
     // MARK: Derived
 
-    /// Listeners matching `filterText` (port, process name, PID), minus ignored rows unless `showIgnored`.
+    /// Listeners matching `filterText` (port, process name, PID), minus ignored rows unless
+    /// `showIgnored`, in `sortOrder`.
     var filtered: [Listener] {
         let query = filterText.trimmingCharacters(in: .whitespaces)
-        return listeners.filter { listener in
+        let visible = listeners.filter { listener in
             guard showIgnored || !isIgnored(listener) else { return false }
             guard !query.isEmpty else { return true }
             return listener.processName.localizedCaseInsensitiveContains(query)
                 || String(listener.port).contains(query)
                 || String(listener.pid).contains(query)
+        }
+        switch sortOrder {
+        case .port:
+            return visible // scanner order: port, then name, then PID
+        case .processName:
+            return visible.sorted {
+                let names = $0.processName.localizedCaseInsensitiveCompare($1.processName)
+                guard names == .orderedSame else { return names == .orderedAscending }
+                return ($0.port, $0.pid) < ($1.port, $1.pid)
+            }
         }
     }
 
