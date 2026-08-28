@@ -23,6 +23,15 @@ actor FakeRunner: CommandRunning {
     }
 }
 
+/// Deterministic uid → name mapping so expectations don't depend on the host's account names.
+@Sendable func testUserName(_ uid: uid_t) -> String {
+    switch uid {
+    case 501: "elyas"
+    case 0: "root"
+    default: "uid\(uid)"
+    }
+}
+
 let sampleLsof = "p42\ncnode\nu501\nf1\nPTCP\nn*:3000\nTST=LISTEN\n"
 let sampleListener = Listener(port: 3000, pid: 42, processName: "node", user: "elyas", addresses: ["*"], isOwnedByCurrentUser: true)
 

@@ -11,7 +11,7 @@ struct PortListModelTests {
         defaults: UserDefaults = freshDefaults()
     ) -> PortListModel {
         PortListModel(
-            scanner: PortScanner(runner: runner, currentUID: 501),
+            scanner: PortScanner(runner: runner, currentUID: 501, userName: testUserName),
             killer: kills.killer,
             actions: actions,
             preferences: Preferences(defaults: defaults),
