@@ -306,6 +306,35 @@ struct PortListModelTests {
         #expect(model.killState(for: sampleListener) == nil)
     }
 
+    @Test func armingASecondRowCancelsTheFirst() async {
+        let two = sampleLsof + "p7\ncpostgres\nu501\nf1\nPTCP\nn127.0.0.1:5432\nTST=LISTEN\n"
+        let kills = KillRecorder(names: [42: "node", 7: "postgres"])
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(two))), kills: kills)
+        await model.refresh()
+        let postgres = model.listeners[1]
+
+        model.requestKill(sampleListener)
+        model.requestKill(postgres)
+        #expect(model.killState(for: sampleListener) == nil, "the first row disarms")
+        #expect(model.killState(for: postgres) == .confirming)
+        #expect(model.killStates.values.count(where: { $0 == .confirming }) == 1)
+        #expect(kills.signals.isEmpty)
+    }
+
+    @Test func armingDoesNotDisturbAKillAlreadyInFlight() async {
+        let two = sampleLsof + "p7\ncpostgres\nu501\nf1\nPTCP\nn127.0.0.1:5432\nTST=LISTEN\n"
+        let kills = KillRecorder(names: [42: "node", 7: "postgres"])
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(two))), kills: kills)
+        await model.refresh()
+        let postgres = model.listeners[1]
+
+        await model.kill(sampleListener) // node never exits → .stillRunning
+        #expect(model.killState(for: sampleListener) == .stillRunning)
+        model.requestKill(postgres)
+        #expect(model.killState(for: sampleListener) == .stillRunning, "in-flight kills survive")
+        #expect(model.killState(for: postgres) == .confirming)
+    }
+
     @Test func confirmationIsRefusedForOtherUsersRows() async {
         let root = "p1\nclaunchd\nu0\nf1\nPTCP\nn*:22\nTST=LISTEN\n"
         let model = makeModel(runner: FakeRunner(.success(lsofResult(root))), kills: KillRecorder(names: [1: "launchd"]))

@@ -195,9 +195,11 @@ final class PortListModel {
 
     // MARK: Kill
 
-    /// Arms the confirmation. Nothing is signalled until `confirmKill(_:)`.
+    /// Arms the confirmation. Nothing is signalled until `kill(_:)`.
+    /// Only one row can be armed at a time — arming a new one cancels the previous.
     func requestKill(_ listener: Listener) {
         guard listener.isOwnedByCurrentUser, killStates[listener.id] == nil else { return }
+        cancelAllKillConfirmations()
         killStates[listener.id] = .confirming
     }
 
