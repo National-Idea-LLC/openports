@@ -13,6 +13,15 @@ struct PortRow: View {
     private var canKill: Bool { listener.isOwnedByCurrentUser }
     private var isIgnored: Bool { model.isIgnored(listener) }
 
+    /// The question this row is asking, or `nil` when it is not awaiting confirmation.
+    private var confirmationPrompt: Text? {
+        switch killState {
+        case .confirming: Text("Kill this process?")
+        case .confirmingForce: Text("Force kill this process?")
+        default: nil
+        }
+    }
+
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
             LED(color: ledColor)
@@ -56,10 +65,10 @@ struct PortRow: View {
                 .font(.callout.weight(.medium))
                 .lineLimit(1)
                 .foregroundStyle(isIgnored ? .secondary : .primary)
-            if killState == .confirming {
+            if let confirmationPrompt {
                 // The name above already says which process; this line asks, so the buttons
                 // never have to compete with a long name for width.
-                Text("Kill this process?")
+                confirmationPrompt
                     .font(.caption2)
                     .foregroundStyle(.red)
             } else {
@@ -82,7 +91,7 @@ struct PortRow: View {
 
     private var ledColor: Color {
         switch killState {
-        case .confirming: .red
+        case .confirming, .confirmingForce: .red
         case .terminating, .forcing: .orange
         case .stillRunning, .failed: .red
         case nil:
@@ -115,6 +124,20 @@ struct PortRow: View {
                 .tint(.red)
                 .controlSize(.small)
                 .accessibilityLabel(Text("Confirm killing \(listener.processName) on port \(String(listener.port))"))
+            }
+            .fixedSize()
+        case .confirmingForce:
+            HStack(spacing: 8) {
+                Button("Cancel") { model.cancelKill(listener) }
+                    .controlSize(.small)
+                    .keyboardShortcut(.cancelAction)
+                Button("Force Kill", role: .destructive) {
+                    Task { await model.forceKill(listener) }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+                .controlSize(.small)
+                .accessibilityLabel(Text("Confirm force killing \(listener.processName) on port \(String(listener.port))"))
             }
             .fixedSize()
         case .terminating:
@@ -218,7 +241,7 @@ struct PortRow: View {
         }
         .disabled(!canKill)
         Button("Force Kill", systemImage: "bolt.fill", role: .destructive) {
-            Task { await model.forceKill(listener) }
+            model.requestForceKill(listener)
         }
         .disabled(!canKill)
         Divider()

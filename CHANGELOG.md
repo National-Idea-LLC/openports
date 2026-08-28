@@ -12,6 +12,7 @@ All notable user-facing changes to Squatter. Written for the people who use it �
 - Killing a process now asks first: the row asks "Kill this process?" with Kill and Cancel. Only one row asks at a time, and Escape backs out. This applies however you start it — the ✕ button, the menu, or the Delete key.
 
 ### Fixed
+- Force Kill in the right-click menu now asks before it acts. Previously it killed the process the instant you clicked it, with no way to back out.
 
 ### Removed
 

@@ -61,6 +61,7 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 
 <!-- Newest first. One dated entry per meaningful change. -->
 
+- **2026-08-28** — Closed the last unconfirmed kill path: the row menu's Force Kill armed nothing and sent SIGKILL on click, so it now arms its own `KillState.confirmingForce` ("Force kill this process?" with Cancel / Force Kill), Escape and a new arming both clear it, and `PortListModel.kill`/`forceKill` refuse rows the user doesn't own instead of relying on the view's `.disabled`. Armed prompts are also dropped when the popover closes. 5 tests, 74 total.
 - **2026-08-28** — Row action chips (⋯ / ↗ / ✕) redrawn on `.thickMaterial` with tinted glyphs so they stay legible over the window background, the hover fill and the accent-coloured selection alike; snapshot windows are now made key so selection and prominent buttons render in colour instead of the inactive grey that was hiding these contrast problems (E2-200).
 - **2026-08-28** — Only one kill confirmation can be armed at a time: arming a row disarms any other pending one, while kills already in flight (terminating / still running / failed) are left alone; 2 tests, 69 total (E2-197).
 - **2026-08-28** — Fixed truncated confirmation copy: the prompt moved to the row's second line ("Kill this process?" in red) so the process name keeps its usual width, and the Cancel/Kill and Force Kill controls are `fixedSize` with layout priority so they can never collapse into ellipses. Snapshot now arms the longest name in the fixture (E2-197).

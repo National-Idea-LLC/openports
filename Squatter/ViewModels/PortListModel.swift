@@ -5,6 +5,8 @@ import Observation
 enum KillState: Equatable, Sendable {
     /// Kill was requested; waiting for the user to confirm before any signal is sent.
     case confirming
+    /// Force Kill was requested from the menu; waiting for confirmation before SIGKILL.
+    case confirmingForce
     /// SIGTERM sent; waiting up to the grace period for the process to exit.
     case terminating
     /// Still alive after the grace period — the UI offers Force Kill.
@@ -157,8 +159,11 @@ final class PortListModel {
     }
 
     /// Popover closed: back to background cadence if the badge is on, otherwise stop entirely.
+    /// An armed confirmation is dropped — the model outlives the popover, and a Kill button
+    /// left primed from a previous session is not a prompt the user is still answering.
     func stopPolling() {
         isPopoverVisible = false
+        cancelAllKillConfirmations()
         restartPollingLoop()
     }
 
@@ -203,19 +208,33 @@ final class PortListModel {
         killStates[listener.id] = .confirming
     }
 
+    /// Arms the Force Kill confirmation. Nothing is signalled until `forceKill(_:)`.
+    func requestForceKill(_ listener: Listener) {
+        guard listener.isOwnedByCurrentUser, killStates[listener.id] == nil else { return }
+        cancelAllKillConfirmations()
+        killStates[listener.id] = .confirmingForce
+    }
+
     func cancelKill(_ listener: Listener) {
-        guard killStates[listener.id] == .confirming else { return }
+        guard Self.isConfirming(killStates[listener.id]) else { return }
         killStates[listener.id] = nil
     }
 
     /// True while any row is waiting for confirmation — lets Escape cancel from the list.
-    var isAwaitingKillConfirmation: Bool { killStates.values.contains(.confirming) }
+    var isAwaitingKillConfirmation: Bool { killStates.values.contains(where: Self.isConfirming) }
 
     func cancelAllKillConfirmations() {
-        killStates = killStates.filter { $0.value != .confirming }
+        killStates = killStates.filter { !Self.isConfirming($0.value) }
+    }
+
+    /// The two armed-but-unsignalled states. Anything else is a kill already in flight
+    /// and must survive cancellation.
+    private static func isConfirming(_ state: KillState?) -> Bool {
+        state == .confirming || state == .confirmingForce
     }
 
     func kill(_ listener: Listener) async {
+        guard listener.isOwnedByCurrentUser else { return }
         killStates[listener.id] = .terminating
         do {
             try killer.terminate(listener)
@@ -232,6 +251,7 @@ final class PortListModel {
     }
 
     func forceKill(_ listener: Listener) async {
+        guard listener.isOwnedByCurrentUser else { return }
         killStates[listener.id] = .forcing
         do {
             try killer.terminate(listener, force: true)
