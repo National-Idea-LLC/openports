@@ -7,6 +7,16 @@ All notable user-facing changes to Squatter. Written for the people who use it â
 ### Added
 
 ### Changed
+
+### Fixed
+
+### Removed
+
+## [0.1.1] - 2026-08-28
+
+Safer kills and a scanner that can't hang: Force Kill now confirms, and two freeze bugs are gone.
+
+### Changed
 - The row under your pointer is now highlighted, so it's obvious which port the buttons act on.
 - The row buttons stay readable when the row is selected or hovered.
 - Killing a process now asks first: the row asks "Kill this process?" with Kill and Cancel. Only one row asks at a time, and Escape backs out. This applies however you start it â€” the âœ• button, the menu, or the Delete key.
@@ -15,8 +25,6 @@ All notable user-facing changes to Squatter. Written for the people who use it â
 - Force Kill in the right-click menu now asks before it acts. Previously it killed the process the instant you clicked it, with no way to back out.
 - Squatter no longer freezes on machines with a very large number of listening ports.
 - If the system tool Squatter uses to read ports ever stops responding, the list now shows an error you can retry instead of spinning forever.
-
-### Removed
 
 ## [0.1.0] - 2026-08-28
 
