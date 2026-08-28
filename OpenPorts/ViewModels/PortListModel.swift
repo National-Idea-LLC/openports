@@ -32,6 +32,14 @@ final class PortListModel {
     var sortOrder: SortOrder {
         didSet { preferences.sortOrder = sortOrder }
     }
+    /// Show the visible-listener count next to the menu bar icon. Turning it on polls in the
+    /// background at `badgeInterval` while the popover is closed; off means popover-only polling.
+    var showCountInMenuBar: Bool {
+        didSet {
+            preferences.showCountInMenuBar = showCountInMenuBar
+            restartPollingLoop()
+        }
+    }
 
     @ObservationIgnored private let scanner: PortScanner
     @ObservationIgnored private let killer: ProcessKiller
@@ -39,7 +47,9 @@ final class PortListModel {
     @ObservationIgnored private let preferences: Preferences
     @ObservationIgnored private let forceKillGrace: Duration
     @ObservationIgnored private let forceKillWait: Duration
+    @ObservationIgnored private let badgeInterval: Duration
     @ObservationIgnored private var pollTask: Task<Void, Never>?
+    @ObservationIgnored private var isPopoverVisible = false
 
     init(
         scanner: PortScanner = PortScanner(),
@@ -47,7 +57,8 @@ final class PortListModel {
         actions: any SystemActions = AppKitSystemActions(),
         preferences: Preferences = Preferences(),
         forceKillGrace: Duration = .seconds(2),
-        forceKillWait: Duration = .seconds(1)
+        forceKillWait: Duration = .seconds(1),
+        badgeInterval: Duration = .seconds(10)
     ) {
         self.scanner = scanner
         self.killer = killer
@@ -55,9 +66,12 @@ final class PortListModel {
         self.preferences = preferences
         self.forceKillGrace = forceKillGrace
         self.forceKillWait = forceKillWait
+        self.badgeInterval = badgeInterval
         self.ignoredPorts = preferences.ignoredPorts
         self.ignoredProcessNames = preferences.ignoredProcessNames
         self.sortOrder = preferences.sortOrder
+        self.showCountInMenuBar = preferences.showCountInMenuBar
+        restartPollingLoop()
     }
 
     // MARK: Derived
@@ -94,6 +108,13 @@ final class PortListModel {
 
     var isPolling: Bool { pollTask != nil }
 
+    /// Number to show in the menu bar, or `nil` when the badge is off or nothing has loaded yet.
+    /// Counts what the list would show with the ignore list applied.
+    var menuBarCount: Int? {
+        guard showCountInMenuBar, hasLoaded else { return nil }
+        return listeners.count - hiddenCount
+    }
+
     /// The selected row, if it is currently visible.
     var selectedListener: Listener? {
         filtered.first { $0.id == selection }
@@ -103,24 +124,33 @@ final class PortListModel {
 
     // MARK: Refresh
 
-    /// Scans immediately, then every `refreshInterval` seconds until `stopPolling()`.
-    /// Call from `onAppear`; polling must not run while the popover is closed.
-    /// The interval is re-read each tick so a settings change applies without restarting.
+    /// Popover appeared: scan now and every `refreshInterval` seconds until `stopPolling()`.
     func startPolling() {
-        guard pollTask == nil else { return }
+        guard !isPopoverVisible else { return }
+        isPopoverVisible = true
+        restartPollingLoop()
+    }
+
+    /// Popover closed: back to background cadence if the badge is on, otherwise stop entirely.
+    func stopPolling() {
+        isPopoverVisible = false
+        restartPollingLoop()
+    }
+
+    /// One loop serves both cadences; the interval is re-read each tick so a settings change
+    /// applies without restarting.
+    private func restartPollingLoop() {
+        pollTask?.cancel()
+        pollTask = nil
+        guard isPopoverVisible || showCountInMenuBar else { return }
         pollTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
                 await refresh()
-                let interval = Duration.seconds(preferences.refreshInterval)
+                let interval = isPopoverVisible ? Duration.seconds(preferences.refreshInterval) : badgeInterval
                 do { try await Task.sleep(for: interval) } catch { return }
             }
         }
-    }
-
-    func stopPolling() {
-        pollTask?.cancel()
-        pollTask = nil
     }
 
     func refresh() async {

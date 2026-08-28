@@ -26,6 +26,7 @@ struct SettingsView: View {
                 }
             }
             Section {
+                Toggle("Show count in menu bar", isOn: $model.showCountInMenuBar)
                 Picker("Sort by", selection: $model.sortOrder) {
                     Text("Port").tag(SortOrder.port)
                     Text("Process name").tag(SortOrder.processName)
@@ -36,7 +37,9 @@ struct SettingsView: View {
                     }
                 }
             } footer: {
-                Text("Only while the list is open.")
+                Text(model.showCountInMenuBar
+                    ? "While the list is open. The menu bar count updates every 10 seconds."
+                    : "Only while the list is open.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

@@ -9,8 +9,14 @@ struct OpenPortsApp: App {
         MenuBarExtra {
             PortListView(model: model, settings: settings)
         } label: {
-            Image(systemName: "network")
-                .accessibilityLabel(Text("OpenPorts"))
+            if let count = model.menuBarCount {
+                Label(String(count), systemImage: "network")
+                    .labelStyle(.titleAndIcon)
+                    .accessibilityLabel(Text("OpenPorts, \(count) listening"))
+            } else {
+                Image(systemName: "network")
+                    .accessibilityLabel(Text("OpenPorts"))
+            }
         }
         .menuBarExtraStyle(.window)
     }

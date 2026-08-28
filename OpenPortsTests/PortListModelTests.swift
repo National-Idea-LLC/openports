@@ -8,7 +8,8 @@ struct PortListModelTests {
         runner: FakeRunner = FakeRunner(.success(lsofResult(sampleLsof))),
         kills: KillRecorder = KillRecorder(names: [42: "node"]),
         actions: RecordingActions = RecordingActions(),
-        defaults: UserDefaults = freshDefaults()
+        defaults: UserDefaults = freshDefaults(),
+        badgeInterval: Duration = .milliseconds(100)
     ) -> PortListModel {
         PortListModel(
             scanner: PortScanner(runner: runner, currentUID: 501, userName: testUserName),
@@ -16,7 +17,8 @@ struct PortListModelTests {
             actions: actions,
             preferences: Preferences(defaults: defaults),
             forceKillGrace: .milliseconds(60),
-            forceKillWait: .milliseconds(60)
+            forceKillWait: .milliseconds(60),
+            badgeInterval: badgeInterval
         )
     }
 
@@ -257,6 +259,70 @@ struct PortListModelTests {
         #expect(model.killState(for: sampleListener) == .stillRunning)
         #expect(!model.killSelected(), "kill already in flight")
         #expect(kills.signals.count == 1)
+    }
+
+    // MARK: menu bar count badge
+
+    @Test func badgeOffMeansNoCountAndNoBackgroundPolling() async throws {
+        let runner = FakeRunner(.success(lsofResult(sampleLsof)))
+        let model = makeModel(runner: runner)
+        #expect(model.menuBarCount == nil)
+        #expect(!model.isPolling)
+        try await Task.sleep(for: .milliseconds(250))
+        #expect(await runner.launches == 0)
+        await model.refresh()
+        #expect(model.menuBarCount == nil, "still nil while the badge is off")
+    }
+
+    @Test func badgeOnPollsInBackgroundAndCountsVisibleRows() async throws {
+        let two = sampleLsof + "p7\ncpostgres\nu501\nf1\nPTCP\nn127.0.0.1:5432\nTST=LISTEN\n"
+        let runner = FakeRunner(.success(lsofResult(two)))
+        let defaults = freshDefaults()
+        let model = makeModel(runner: runner, defaults: defaults)
+
+        model.showCountInMenuBar = true
+        #expect(model.isPolling)
+        try await Task.sleep(for: .milliseconds(350))
+        let launches = await runner.launches
+        #expect(launches >= 2 && launches <= 5, "background cadence, got \(launches)")
+        #expect(model.menuBarCount == 2)
+        #expect(Preferences(defaults: defaults).showCountInMenuBar)
+
+        model.ignorePort(of: sampleListener)
+        #expect(model.menuBarCount == 1, "ignored rows don't count")
+
+        model.showCountInMenuBar = false
+        #expect(!model.isPolling)
+        #expect(model.menuBarCount == nil)
+        let after = await runner.launches
+        try await Task.sleep(for: .milliseconds(250))
+        #expect(await runner.launches == after, "no polling once the badge is off")
+    }
+
+    @Test func badgeOnAtLaunchStartsPollingImmediately() async throws {
+        let defaults = freshDefaults()
+        Preferences(defaults: defaults).showCountInMenuBar = true
+        let runner = FakeRunner(.success(lsofResult(sampleLsof)))
+        let model = makeModel(runner: runner, defaults: defaults)
+        #expect(model.isPolling)
+        try await Task.sleep(for: .milliseconds(150))
+        #expect(await runner.launches >= 1)
+        #expect(model.menuBarCount == 1)
+    }
+
+    @Test func popoverCadenceWinsWhileOpenThenFallsBackToBadge() async throws {
+        let runner = FakeRunner(.success(lsofResult(sampleLsof)))
+        let model = makeModel(runner: runner, badgeInterval: .seconds(30))
+        model.showCountInMenuBar = true
+        try await Task.sleep(for: .milliseconds(100))
+        #expect(await runner.launches == 1, "one background scan, next in 30 s")
+
+        model.startPolling() // popover opened: refreshInterval (clamped 0.5 s) applies
+        try await Task.sleep(for: .milliseconds(700))
+        #expect(await runner.launches >= 2)
+
+        model.stopPolling()
+        #expect(model.isPolling, "badge keeps the loop alive after the popover closes")
     }
 
     @Test func openAndCopyGoThroughSystemActions() async {
