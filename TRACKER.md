@@ -46,10 +46,22 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 - [x] Row options button (⋯) presenting the same menu as right-click — [E2-186](https://linear.app/ielyas/issue/E2-186) (In Review)
 - [x] Popover redesign after first-launch feedback — status LEDs, Yours / Other users / Ignored groups, port-first rows — [E2-185](https://linear.app/ielyas/issue/E2-185) (In Review)
 
+## M3 tasks
+
+- [x] Rename to Squatter — [E2-187](https://linear.app/ielyas/issue/E2-187) (In Review)
+- [x] App icon, `scripts/release.sh`, DMG, Homebrew cask skeleton — [E2-188](https://linear.app/ielyas/issue/E2-188) (In Review)
+- [ ] **Blocked on owner:** notarization credentials — `xcrun notarytool store-credentials squatter --apple-id <id> --team-id M8A3G95883 --password <app-specific-password>`
+- [ ] Notarize + staple, verify `spctl` accepts the DMG
+- [ ] README screenshots
+- [ ] Tag `v0.1.0`, move CHANGELOG `[Unreleased]` → `[0.1.0]`, publish GitHub Release with the DMG
+- [ ] Publish the Homebrew cask (fill sha256, open tap/homebrew-cask PR)
+- [ ] Manual check: Launch at Login toggle against the signed build
+
 ## Dev changelog
 
 <!-- Newest first. One dated entry per meaningful change. -->
 
+- **2026-08-28** — Release pipeline: app icon generated from `scripts/make-icon.swift` (dark panel, one lit LED), `scripts/release.sh` (test → archive → Developer ID export → signature/hardened-runtime/sandbox checks → signed DMG → optional notarize+staple), `Casks/squatter.rb` skeleton. Verified end to end: `build/Squatter-0.1.0.dmg`, 2.0 MB, signed by M8A3G95883, hardened runtime on; `spctl` rejects only as "Unnotarized Developer ID" (E2-188).
 - **2026-08-28** — Renamed OpenPorts → **Squatter** (owner decision, spec Q#5: OpenPorts collided with openports.app). Xcode targets, bundle IDs `sa.ni.squatter`, `squatter.*` defaults keys (no migration — nothing shipped), UI strings, About URLs, CI, docs and rules; GitHub repo and Linear project renamed. Spec Q#6 resolved: GitHub Releases **and** a Homebrew cask at launch. 63 tests green (E2-187).
 - **2026-08-28** — Row options button: a ⋯ menu in the hover actions presents the same items as the right-click menu, built from one shared `menuItems` builder so they can't drift (E2-186).
 - **2026-08-28** — Popover redesigned (owner: "look ugly"): per-row status LED (green yours / gray other users / amber terminating / red still running), rows grouped Yours / Other users / Ignored via `PortListModel.groups`, port number as the dominant monospaced column, bind-address chips with network-reachability tooltip, tinted square hover actions, rounded filter field, material background, `.bar` status bar, "unlit panel" state views; dark-mode snapshot added; 63 tests (E2-185).

@@ -31,7 +31,8 @@ Run from the repo root.
 - `xcodebuild -project Squatter.xcodeproj -scheme Squatter -configuration Debug build` — build
 - `xcodebuild -project Squatter.xcodeproj -scheme Squatter -destination 'platform=macOS' test` — unit tests (Swift Testing)
 - `xcodebuild -project Squatter.xcodeproj -scheme Squatter -configuration Release archive -archivePath build/Squatter.xcarchive` — release archive
-- `xcrun notarytool submit … --wait` then `xcrun stapler staple` — notarize a release build
+- `scripts/release.sh [--notarize]` — test, archive, export Developer ID, verify, build and sign the DMG; `--notarize` also submits and staples (needs the `squatter` keychain profile)
+- `swift scripts/make-icon.swift` — regenerate the app icon set
 - `swiftlint` — lint (only if `.swiftlint.yml` is added; not required for M0)
 - Debug helper: `lsof -nP -iTCP -sTCP:LISTEN +c0 -F pcunPT` — the exact command the scanner runs
 
