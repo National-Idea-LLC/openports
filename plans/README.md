@@ -139,10 +139,13 @@ packaging is not user-visible. That was right while the fix was only a deprecati
 it stopped being right once the tap went live, because a Homebrew install path that works is
 something users can see and use. Both `[Unreleased]` entries were added deliberately.
 
-**What is still not true**: the shipped v0.1.1 app remains unstapled —
-`stapler validate /Applications/Squatter.app` still reports no ticket after installing from
-the live tap. 005 changes how releases are *built*, so only 0.1.2 onward carries an app-level
-ticket. Until then, a first launch on an offline Mac is still blocked.
+**Both proven in v0.1.2** (released 2026-08-29). `scripts/release.sh --notarize` ran twice —
+once as a dry run against 0.1.1 to prove the new stage, once for real. The decisive check is
+extracting the app *out* of the published DMG, the way `brew` does: `stapler validate` passes
+and `spctl` reports `accepted, source=Notarized Developer ID`, where the same command on
+v0.1.1 reported no ticket. Confirmed again after a real `brew install --cask` from the live
+tap. 0.1.2 contains no app code changes; it exists solely because only a rebuild can carry an
+app-level ticket.
 
 **New follow-up created by 006**: `Casks/squatter.rb` now exists in two repos and must be
 bumped in both on every release. This is the drift risk the plan warned about, and it is now
