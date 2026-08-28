@@ -61,6 +61,7 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 
 <!-- Newest first. One dated entry per meaningful change. -->
 
+- **2026-08-28** — Bumped `actions/checkout` from v4 to v5 in both CI jobs. GitHub had started forcing v4 onto Node 24 with a deprecation warning on every run, since v4 targets the retired Node 20 runtime.
 - **2026-08-28** — Housekeeping alongside the four plans above: `.gitignore` now covers `.claude/` (agent worktrees and session state), and the `plans/` directory is committed as the record of the audit that produced them — including the four plan defects found during execution and the two audit conclusions the drain deadlock disproved.
 - **2026-08-28** — `project.yml` is now enforced, not just declared: a `project-sync` CI job regenerates the project on every PR and fails if the committed `Squatter.xcodeproj` differs, and `scripts/release.sh` regenerates before archiving so a release can't be built from a hand-edited `.pbxproj`. Verified no existing drift against xcodegen 2.46.0 (E2-211).
 - **2026-08-28** — Bounded the `lsof` subprocess: `ProcessRunner` now runs a 10-second watchdog that SIGTERMs (then SIGKILLs) a child that hasn't exited and reports `ScanError.timedOut`. Previously a child that never exited left the drains waiting on EOF forever, so `PortScanner.inFlight` was never cleared and every later scan — Refresh included — joined the same dead task, wedging the app until quit. 3 tests, 84 total (E2-210).
