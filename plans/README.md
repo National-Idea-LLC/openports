@@ -23,8 +23,8 @@ each plan so an executor never has to go looking):
 | 002 | Put the `lsof` subprocess behind a testable seam and cover it with tests | P2 | M | — | DONE (reviewed; scope grew, see note) |
 | 003 | Stop a stuck `lsof` from wedging the app forever | P2 | S | 002 | DONE (reviewed) |
 | 004 | Make `project.yml` provably the source of truth for the Xcode project | P2 | S | — | DONE (reviewed) |
-| 005 | Staple the notarization ticket to the app, not just the DMG | P1 | S | — | DONE (script changed; proof pending the next `release.sh --notarize` run) |
-| 006 | Make the Homebrew cask actually installable | P1 | M | — | DONE (tap published and install verified end to end) |
+| 005 | Staple the notarization ticket to the app, not just the DMG (E2-218) | P1 | S | — | DONE (script changed; proof pending the next `release.sh --notarize` run) |
+| 006 | Make the Homebrew cask actually installable (E2-219) | P1 | M | — | DONE (tap published and install verified end to end) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with
 one-line rationale).
