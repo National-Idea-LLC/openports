@@ -43,6 +43,27 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            Section {
+                LabeledContent("Version", value: settings.appVersion)
+                LabeledContent {
+                    Button("Check for Updates") { settings.checkForUpdates() }
+                        .controlSize(.small)
+                } label: {
+                    Text("Updates")
+                }
+                LabeledContent {
+                    Button("View Source") { settings.openSource() }
+                        .controlSize(.small)
+                } label: {
+                    Text("Open source, MIT")
+                }
+            } header: {
+                Text("About")
+            } footer: {
+                Text("OpenPorts never connects to the internet on its own. Checking for updates opens GitHub in your browser.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
             if !model.ignoredPorts.isEmpty || !model.ignoredProcessNames.isEmpty {
                 Section("Ignored") {
                     ForEach(model.ignoredPorts.sorted(), id: \.self) { port in
@@ -55,8 +76,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 320)
-        .fixedSize(horizontal: false, vertical: true)
+        .frame(width: 320, height: 480) // fixed; the form scrolls when the ignore list grows
         .onAppear { settings.refreshLoginItemStatus() }
     }
 

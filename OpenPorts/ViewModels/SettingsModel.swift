@@ -6,6 +6,18 @@ import Observation
 @Observable
 final class SettingsModel {
     static let refreshIntervalChoices: [TimeInterval] = [1, 2, 5]
+    static let releasesURL = URL(string: "https://github.com/National-Idea-LLC/openports/releases")
+    static let sourceURL = URL(string: "https://github.com/National-Idea-LLC/openports")
+
+    /// "0.1.0 (1)" from the bundle, or "—" when running outside a bundle (tests).
+    static var bundleVersion: String {
+        let info = Bundle.main.infoDictionary ?? [:]
+        guard let short = info["CFBundleShortVersionString"] as? String else { return "—" }
+        let build = info["CFBundleVersion"] as? String
+        return build.map { "\(short) (\($0))" } ?? short
+    }
+
+    let appVersion: String
 
     private(set) var loginItemStatus: LoginItemStatus
     /// What went wrong the last time Launch at Login was toggled; `nil` after a success.
@@ -13,11 +25,30 @@ final class SettingsModel {
 
     @ObservationIgnored private let loginItem: any LoginItemManaging
     @ObservationIgnored private let preferences: Preferences
+    @ObservationIgnored private let actions: any SystemActions
 
-    init(loginItem: any LoginItemManaging = SystemLoginItem(), preferences: Preferences = Preferences()) {
+    init(
+        loginItem: any LoginItemManaging = SystemLoginItem(),
+        preferences: Preferences = Preferences(),
+        actions: any SystemActions = AppKitSystemActions(),
+        appVersion: String = SettingsModel.bundleVersion
+    ) {
         self.loginItem = loginItem
         self.preferences = preferences
+        self.actions = actions
+        self.appVersion = appVersion
         self.loginItemStatus = loginItem.status
+    }
+
+    /// No auto-updater: open the GitHub Releases page in the browser.
+    func checkForUpdates() {
+        guard let url = Self.releasesURL else { return }
+        actions.open(url)
+    }
+
+    func openSource() {
+        guard let url = Self.sourceURL else { return }
+        actions.open(url)
     }
 
     /// Bindable: `.enabled` and `.requiresApproval` both read as on — the user asked for it.

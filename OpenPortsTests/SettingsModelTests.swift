@@ -55,6 +55,19 @@ struct SettingsModelTests {
         #expect(SettingsModel.refreshIntervalChoices == [1, 2, 5])
     }
 
+    @Test func updatesAndSourceOpenGitHubInTheBrowser() {
+        let actions = RecordingActions()
+        let model = SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()), actions: actions, appVersion: "9.9.9 (42)")
+        model.checkForUpdates()
+        model.openSource()
+        #expect(actions.opened.map(\.absoluteString) == [
+            "https://github.com/National-Idea-LLC/openports/releases",
+            "https://github.com/National-Idea-LLC/openports",
+        ])
+        #expect(model.appVersion == "9.9.9 (42)")
+        #expect(!SettingsModel.bundleVersion.isEmpty)
+    }
+
     @Test func statusIsReReadOnDemand() {
         let item = FakeLoginItem(status: .disabled)
         let (model, _) = make(item)

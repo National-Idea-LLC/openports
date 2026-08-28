@@ -70,7 +70,7 @@ struct SnapshotTests {
 
         let approval = FakeLoginItem(status: .requiresApproval)
         let settings = SettingsModel(loginItem: approval, preferences: Preferences(defaults: freshDefaults()))
-        let settingsURL = try snapshot(SettingsView(settings: settings, model: ignoring).frame(width: 320), name: "settings", size: CGSize(width: 320, height: 330))
+        let settingsURL = try snapshot(SettingsView(settings: settings, model: ignoring).frame(width: 320), name: "settings", size: CGSize(width: 320, height: 560))
 
         for url in [listURL, stubbornURL, emptyURL, errorURL, ignoredURL, settingsURL] {
             let size = try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int ?? 0

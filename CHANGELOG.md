@@ -15,6 +15,7 @@ All notable user-facing changes to OpenPorts. Written for the people who use it 
 - Sort the list by port or by process name (Settings).
 - Keyboard control: arrow keys move the selection, Return opens it in the browser, Delete kills it, and ⌘C copies its URL.
 - Optional count in the menu bar showing how many ports are listening (Settings). It updates every 10 seconds while the list is closed.
+- About section in Settings with the version, a Check for Updates button that opens the GitHub releases page, and a link to the source.
 
 ### Changed
 

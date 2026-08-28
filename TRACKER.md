@@ -10,8 +10,8 @@ Mirrored in Linear: [OpenPorts project](https://linear.app/ielyas/project/openpo
 |-------|-------|--------|
 | M0 | Foundation — spec, rules, Xcode project scaffold, `.gitignore`, CI skeleton | ✅ Done (2026-08-27) |
 | M1 | P0 core — `LsofParser` + tests, `PortScanner` actor, `MenuBarExtra` list, open/copy/kill, refresh, empty/error states, Launch at Login, filter | ✅ Done (2026-08-28) |
-| M2 | P1 polish — ignore list, sort, greyed root-owned rows, keyboard nav, menu bar count | 🔄 In progress |
-| M3 | Release — Developer ID signing, notarization, GitHub Release, README | ⬜ Not started |
+| M2 | P1 polish — ignore list, sort, greyed root-owned rows, keyboard nav, menu bar count | ✅ Done (2026-08-28) |
+| M3 | Release — Developer ID signing, notarization, GitHub Release, README | 🔄 In progress |
 
 Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 
@@ -41,13 +41,14 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 - [x] Sort by port / process name (Settings picker, persisted) — [E2-181](https://linear.app/ielyas/issue/E2-181) (In Review)
 - [x] Keyboard: ⌫ kills selected row, ⌘C copies URL, list focused on open — [E2-182](https://linear.app/ielyas/issue/E2-182) (In Review)
 - [x] Menu bar count badge (opt-in, 10 s background poll while closed) — [E2-183](https://linear.app/ielyas/issue/E2-183) (In Review)
-- [ ] "Check for Updates" → GitHub Releases + version row — [E2-184](https://linear.app/ielyas/issue/E2-184)
+- [x] "Check for Updates" → GitHub Releases, View Source, version row — [E2-184](https://linear.app/ielyas/issue/E2-184) (In Review)
 - [x] Greyed rows for other users' processes — shipped in M1 (E2-176)
 
 ## Dev changelog
 
 <!-- Newest first. One dated entry per meaningful change. -->
 
+- **2026-08-28** — Settings About section: version from the bundle, "Check for Updates" → GitHub Releases, "View Source" → repo (both via `SystemActions`, no network in-app); settings popover fixed at 320×480 and scrolls. 1 test, 62 total. **M2 tasks complete** (E2-184).
 - **2026-08-28** — Menu bar count badge: "Show count in menu bar" toggle (`openports.showCountInMenuBar`), `Label` count next to the icon, single polling loop that runs at the popover interval while open and every 10 s in the background only while the badge is on; count excludes ignored rows; 4 tests, 61 total (E2-183).
 - **2026-08-28** — Keyboard navigation: list takes focus on open; ⏎ opens, ⌫ kills (own processes only, not while a kill is in flight), ⌘C copies the URL — via `openSelected`/`killSelected`/`copySelectedURL` model intents; 2 tests, 57 total (E2-182).
 - **2026-08-28** — Sort order: `SortOrder` (port | processName) persisted as `openports.sortOrder`, "Sort by" picker in Settings, case-insensitive name sort with port/PID tiebreak; 2 tests, 55 total (E2-181).
