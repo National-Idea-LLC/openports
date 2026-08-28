@@ -17,6 +17,7 @@
 		4E07580406E51A67675A5769 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB9D683D427119F26ED79956 /* Preferences.swift */; };
 		4F57DCC5472A556D01BD30EC /* SettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A075467266762D38618B2FB1 /* SettingsModel.swift */; };
 		5158494330EA0CD9DFECF2F6 /* SquatterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950483E06AD50CDD7A7E1A4C /* SquatterApp.swift */; };
+		53DA1522D9808D099ABD4066 /* LsofRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FA77E7CB852CE6148D79D60 /* LsofRunnerTests.swift */; };
 		7D3A54930A24C848A690D609 /* PortListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73839A6602150E8EC0825B8C /* PortListView.swift */; };
 		89321005E136F3499E448085 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACFC57CEC22AC119320E67B9 /* SettingsView.swift */; };
 		918384C4BF754873C6AE385A /* PortScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF09314B6EDA8671DB0E1389 /* PortScannerTests.swift */; };
@@ -52,6 +53,7 @@
 		33C96B821FB9E46F3CCB1543 /* Squatter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Squatter.entitlements; sourceTree = "<group>"; };
 		3D41CCFA526C37194579DD61 /* PortListModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortListModelTests.swift; sourceTree = "<group>"; };
 		40EA2202D76DFA6F4A21B4B0 /* SquatterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SquatterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4FA77E7CB852CE6148D79D60 /* LsofRunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LsofRunnerTests.swift; sourceTree = "<group>"; };
 		7077596CAE863FE3E62245FD /* ProcessKiller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessKiller.swift; sourceTree = "<group>"; };
 		73839A6602150E8EC0825B8C /* PortListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortListView.swift; sourceTree = "<group>"; };
 		75537A4539E472D0F6E17827 /* LsofRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LsofRunner.swift; sourceTree = "<group>"; };
@@ -79,6 +81,7 @@
 			children = (
 				8D1D2BABEAD4883EC684374E /* ListenerTests.swift */,
 				C03600873F2C9F8BFFC667F2 /* LsofParserTests.swift */,
+				4FA77E7CB852CE6148D79D60 /* LsofRunnerTests.swift */,
 				3D41CCFA526C37194579DD61 /* PortListModelTests.swift */,
 				CF09314B6EDA8671DB0E1389 /* PortScannerTests.swift */,
 				CD22B384EF0193A6A63A7215 /* ProcessKillerTests.swift */,
@@ -305,6 +308,7 @@
 			files = (
 				4D7C4AE39EF51FD51587A74A /* ListenerTests.swift in Sources */,
 				9F445A200B71549F5B6425A8 /* LsofParserTests.swift in Sources */,
+				53DA1522D9808D099ABD4066 /* LsofRunnerTests.swift in Sources */,
 				453B2640ED6240446647CB4D /* PortListModelTests.swift in Sources */,
 				918384C4BF754873C6AE385A /* PortScannerTests.swift in Sources */,
 				B4C16B55F4490BBE9A7C2166 /* ProcessKillerTests.swift in Sources */,
