@@ -29,6 +29,11 @@ echo "==> Squatter $VERSION"
 rm -rf "$BUILD"
 mkdir -p "$BUILD"
 
+echo "==> Regenerate project"
+command -v xcodegen >/dev/null || { echo "xcodegen not found — install with 'brew install xcodegen'"; exit 1; }
+xcodegen generate
+git diff --quiet -- Squatter.xcodeproj || echo "note: Squatter.xcodeproj was regenerated from project.yml — commit the change"
+
 echo "==> Tests"
 xcodebuild -project "$PROJECT" -scheme "$SCHEME" -destination 'platform=macOS' test -quiet
 
