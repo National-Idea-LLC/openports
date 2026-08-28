@@ -172,7 +172,7 @@ struct PortRow: View {
             .frame(width: 24, height: 24)
             .foregroundStyle(.secondary)
             // The borderless menu style drops the label's background, so the chip lives here.
-            .background(.quaternary.opacity(0.8), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .background(.thickMaterial, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
             .accessibilityLabel(Text("More actions for \(listener.processName) on port \(String(listener.port))"))
             .help(Text("More actions"))
 
@@ -263,6 +263,10 @@ private struct AddressChip: View {
 }
 
 /// Square icon button that only shows on hover/selection.
+///
+/// The chip is drawn in a material rather than a tinted wash: the row underneath can be the
+/// window background, the hover fill, or the accent-coloured selection, and only an opaque
+/// surface keeps the glyph legible on all three.
 private struct RowAction: View {
     let systemImage: String
     let tint: Color
@@ -273,7 +277,7 @@ private struct RowAction: View {
             Image(systemName: systemImage)
                 .font(.caption.weight(.bold))
                 .frame(width: 24, height: 24)
-                .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .background(.thickMaterial, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
                 .foregroundStyle(tint)
         }
         .buttonStyle(.plain)

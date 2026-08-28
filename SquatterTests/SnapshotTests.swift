@@ -16,6 +16,10 @@ struct SnapshotTests {
         let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
         window.contentView = host
         window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
+        // Key the window: inactive windows render selection and prominent buttons in grey,
+        // which hides exactly the contrast problems these snapshots exist to catch.
+        window.makeKeyAndOrderFront(nil)
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         host.layoutSubtreeIfNeeded()
         let rep = try #require(host.bitmapImageRepForCachingDisplay(in: host.bounds))
         host.cacheDisplay(in: host.bounds, to: rep)
