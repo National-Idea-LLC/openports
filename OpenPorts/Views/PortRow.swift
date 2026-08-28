@@ -13,34 +13,38 @@ struct PortRow: View {
     private var isIgnored: Bool { model.isIgnored(listener) }
 
     var body: some View {
-        HStack(spacing: 12) {
-            Text(String(listener.port))
-                .font(.system(.body, design: .monospaced).weight(.semibold))
-                .frame(minWidth: 52, alignment: .leading)
+        HStack(alignment: .center, spacing: 10) {
+            LED(color: ledColor)
 
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    Text(listener.processName)
-                        .lineLimit(1)
-                    if isIgnored {
-                        Image(systemName: "eye.slash")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .accessibilityLabel(Text("Ignored"))
+            Text(String(listener.port))
+                .font(.system(.title3, design: .monospaced).weight(.semibold))
+                .monospacedDigit()
+                .frame(width: 62, alignment: .leading)
+                .foregroundStyle(isIgnored ? .secondary : .primary)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(listener.processName)
+                    .font(.callout.weight(.medium))
+                    .lineLimit(1)
+                    .foregroundStyle(isIgnored ? .secondary : .primary)
+                HStack(spacing: 6) {
+                    Text(verbatim: "PID \(listener.pid)")
+                        .monospacedDigit()
+                    ForEach(listener.addresses.sorted(), id: \.self) { address in
+                        AddressChip(address: address)
                     }
                 }
-                Text(detailText)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
             }
 
-            Spacer(minLength: 8)
+            Spacer(minLength: 6)
 
             trailing
         }
-        .padding(.vertical, 4)
-        .opacity(canKill && !isIgnored ? 1 : 0.6)
+        .padding(.vertical, 5)
+        .padding(.horizontal, 6)
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
         .contextMenu { contextMenu }
@@ -49,6 +53,19 @@ struct PortRow: View {
         .accessibilityAction(named: Text("Open in Browser")) { model.open(listener) }
         .accessibilityAction(named: Text("Copy URL")) { model.copyURL(listener) }
         .accessibilityAction(named: Text("Kill Process")) { Task { await model.kill(listener) } }
+    }
+
+    // MARK: LED
+
+    private var ledColor: Color {
+        switch killState {
+        case .terminating, .forcing: .orange
+        case .stillRunning, .failed: .red
+        case nil:
+            if isIgnored { .primary.opacity(0.15) }
+            else if canKill { .green }
+            else { .secondary.opacity(0.5) }
+        }
     }
 
     // MARK: Trailing area
@@ -65,27 +82,31 @@ struct PortRow: View {
         case .forcing:
             progress(Text("Force killing…"))
         case .stillRunning:
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
                 Text("Still running")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Button("Force Kill", role: .destructive) {
                     Task { await model.forceKill(listener) }
                 }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
                 .controlSize(.small)
                 .accessibilityLabel(Text("Force kill \(listener.processName) on port \(String(listener.port))"))
             }
         case .failed(let message):
             HStack(spacing: 6) {
                 Text(message)
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundStyle(.red)
                     .lineLimit(2)
-                    .frame(maxWidth: 160, alignment: .trailing)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: 150, alignment: .trailing)
                 Button {
                     model.dismissKillError(for: listener)
                 } label: {
                     Image(systemName: "xmark")
+                        .font(.caption2.weight(.bold))
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
@@ -95,36 +116,28 @@ struct PortRow: View {
     }
 
     private var hoverActions: some View {
-        HStack(spacing: 8) {
-            Button {
+        HStack(spacing: 4) {
+            RowAction(systemImage: "arrow.up.right", tint: .accentColor) {
                 model.open(listener)
-            } label: {
-                Image(systemName: "arrow.up.right.square")
             }
-            .foregroundStyle(Color.accentColor)
             .accessibilityLabel(Text("Open \(listener.processName) on port \(String(listener.port)) in browser"))
             .help(Text("Open \(listener.localURLString)"))
 
-            Button(role: .destructive) {
+            RowAction(systemImage: "xmark", tint: canKill ? .red : .secondary) {
                 Task { await model.kill(listener) }
-            } label: {
-                Image(systemName: "xmark.circle.fill")
             }
-            .foregroundStyle(canKill ? Color.red : Color.secondary)
             .disabled(!canKill)
             .accessibilityLabel(Text("Kill \(listener.processName) on port \(String(listener.port))"))
             .help(canKill
                 ? Text("Kill \(listener.processName) (SIGTERM)")
                 : Text("Owned by \(listener.user). Kill it from that account or with sudo in Terminal."))
         }
-        .buttonStyle(.plain)
-        .font(.title3)
     }
 
     private func progress(_ label: Text) -> some View {
         HStack(spacing: 6) {
             ProgressView()
-                .controlSize(.small)
+                .controlSize(.mini)
             label
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -164,14 +177,46 @@ struct PortRow: View {
 
     // MARK: Text
 
-    private var detailText: String {
-        let addresses = listener.addresses.sorted().joined(separator: ", ")
-        return String(localized: "PID \(String(listener.pid)) · \(addresses)")
-    }
-
     private var accessibilityText: String {
         var text = String(localized: "\(listener.processName) on port \(String(listener.port)), PID \(String(listener.pid))")
         if !canKill { text += String(localized: ", owned by \(listener.user)") }
+        if isIgnored { text += String(localized: ", ignored") }
         return text
+    }
+}
+
+/// Bind address as a small monospaced chip. `*` means every interface — reachable from the network.
+private struct AddressChip: View {
+    let address: String
+
+    private var isWildcard: Bool { address == "*" || address == "0.0.0.0" || address == "::" }
+
+    var body: some View {
+        Text(address)
+            .font(.caption2.monospaced())
+            .padding(.horizontal, 4)
+            .padding(.vertical, 1)
+            .background(.quaternary.opacity(0.7), in: RoundedRectangle(cornerRadius: 3, style: .continuous))
+            .help(isWildcard
+                ? Text("Bound to all interfaces — reachable from other devices on your network")
+                : Text("Bound to \(address)"))
+    }
+}
+
+/// Square icon button that only shows on hover/selection.
+private struct RowAction: View {
+    let systemImage: String
+    let tint: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.caption.weight(.bold))
+                .frame(width: 24, height: 24)
+                .background(tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .foregroundStyle(tint)
+        }
+        .buttonStyle(.plain)
     }
 }

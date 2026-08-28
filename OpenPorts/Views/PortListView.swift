@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Popover root: search, list (or state view), footer. Binds to `PortListModel`; no logic here.
+/// Popover root: filter bar, grouped list (or a state view), status bar. Binds to `PortListModel`; no logic here.
 struct PortListView: View {
     @Bindable var model: PortListModel
     let settings: SettingsModel
@@ -10,64 +10,64 @@ struct PortListView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            searchField
-            Divider()
+            filterBar
             content
-            Divider()
-            footer
+            statusBar
         }
-        .frame(width: 360, height: 440)
+        .frame(width: 360, height: 460)
+        .background(.regularMaterial)
         .onAppear { model.startPolling() }
         .onDisappear { model.stopPolling() }
     }
 
-    // MARK: Sections
+    // MARK: Filter bar
 
-    private var searchField: some View {
-        HStack(spacing: 6) {
+    private var filterBar: some View {
+        HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
-            TextField(String(localized: "Filter by port, process, or PID"), text: $model.filterText)
+                .font(.callout)
+            TextField(String(localized: "Port, process, or PID"), text: $model.filterText)
                 .textFieldStyle(.plain)
+                .font(.callout)
             if !model.filterText.isEmpty {
                 Button {
                     model.filterText = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.tertiary)
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
                 .accessibilityLabel(Text("Clear filter"))
             }
         }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
     }
+
+    // MARK: Content
 
     @ViewBuilder
     private var content: some View {
         if !model.hasLoaded {
-            StateView(systemImage: "network") {
-                ProgressView()
-                    .controlSize(.small)
-            }
+            StateView(led: .secondary, title: Text("Scanning…"))
         } else if let error = model.lastError, model.listeners.isEmpty {
-            StateView(systemImage: "exclamationmark.triangle", title: Text("Couldn't list ports")) {
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+            StateView(led: .red, title: Text("Couldn't list ports"), detail: Text(error)) {
                 Button("Retry") { Task { await model.refresh() } }
                     .keyboardShortcut(.defaultAction)
             }
         } else if model.listeners.isEmpty {
-            StateView(systemImage: "network.slash", title: Text("Nothing is listening."))
+            StateView(led: .clear, title: Text("Nothing is listening."), detail: Text("Start a dev server and it shows up here."))
         } else if model.filtered.isEmpty, model.filterText.isEmpty {
-            StateView(systemImage: "eye.slash", title: Text("Everything is ignored.")) {
+            StateView(led: .secondary, title: Text("Everything is ignored."), detail: Text("\(model.hiddenCount) ignored")) {
                 Button("Show Ignored") { model.showIgnored = true }
             }
         } else if model.filtered.isEmpty {
-            StateView(systemImage: "magnifyingglass", title: Text("No ports match “\(model.filterText)”"))
+            StateView(led: .secondary, title: Text("No match for “\(model.filterText)”"))
         } else {
             VStack(spacing: 0) {
                 if let error = model.lastError {
@@ -80,12 +80,24 @@ struct PortListView: View {
 
     private var list: some View {
         List(selection: $model.selection) {
-            ForEach(model.filtered) { listener in
-                PortRow(model: model, listener: listener)
-                    .tag(listener.id)
+            ForEach(model.groups) { group in
+                // Headers are ordinary rows (not `Section` headers) so they scroll away instead of
+                // pinning with a hairline, and never take selection.
+                GroupHeader(kind: group.kind, count: group.listeners.count)
+                    .selectionDisabled()
+                    .listRowInsets(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8))
+                    .listRowSeparator(.hidden)
+                ForEach(group.listeners) { listener in
+                    PortRow(model: model, listener: listener)
+                        .tag(listener.id)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8))
+                        .listRowSeparator(.hidden)
+                }
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .environment(\.defaultMinListRowHeight, 24)
         .focused($isListFocused)
         .onAppear { isListFocused = true }
         .onKeyPress(.return) { model.openSelected() ? .handled : .ignored }
@@ -98,8 +110,7 @@ struct PortListView: View {
 
     private func errorBanner(_ message: String) -> some View {
         HStack(spacing: 8) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.yellow)
+            LED(color: .red)
             Text(message)
                 .font(.caption)
                 .lineLimit(2)
@@ -109,36 +120,39 @@ struct PortListView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .background(.quaternary)
+        .background(.red.opacity(0.08))
     }
 
-    private var footer: some View {
-        HStack(spacing: 10) {
+    // MARK: Status bar
+
+    private var statusBar: some View {
+        HStack(spacing: 12) {
             Button {
                 Task { await model.refresh() }
             } label: {
-                Image(systemName: "arrow.clockwise")
+                HStack(spacing: 6) {
+                    if model.isRefreshing {
+                        ProgressView().controlSize(.mini)
+                    } else {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    Text(countText)
+                        .monospacedDigit()
+                }
             }
             .keyboardShortcut("r")
-            .disabled(model.isRefreshing)
             .accessibilityLabel(Text("Refresh list"))
             .help(Text("Refresh (⌘R)"))
-
-            Text(countText)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
 
             if model.hiddenCount > 0 {
                 Button {
                     model.showIgnored.toggle()
                 } label: {
-                    Text(hiddenText)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
+                    HStack(spacing: 4) {
+                        Image(systemName: model.showIgnored ? "eye" : "eye.slash")
+                        Text(hiddenText).monospacedDigit()
+                    }
                 }
-                .buttonStyle(.plain)
                 .accessibilityLabel(Text(model.showIgnored ? "Hide ignored ports" : "Show ignored ports"))
             }
 
@@ -166,17 +180,19 @@ struct PortListView: View {
             .accessibilityLabel(Text("Quit OpenPorts"))
             .help(Text("Quit OpenPorts (⌘Q)"))
         }
-        .buttonStyle(.borderless)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .buttonStyle(.plain)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 9)
+        .background(.bar)
+        .overlay(alignment: .top) { Divider() }
     }
 
-    // MARK: Helpers
+    // MARK: Text
 
     private var hiddenText: String {
-        model.showIgnored
-            ? String(localized: "\(model.hiddenCount) ignored · Hide")
-            : String(localized: "\(model.hiddenCount) hidden · Show")
+        String(localized: "\(model.hiddenCount) ignored")
     }
 
     private var countText: String {
@@ -185,31 +201,89 @@ struct PortListView: View {
         if shown == total {
             return String(localized: "\(total) listening")
         }
-        return String(localized: "\(shown) of \(total) listening")
+        return String(localized: "\(shown) of \(total)")
     }
 }
 
-/// Centered symbol + title + optional extra content, used for loading, empty, and error states.
+// MARK: - Pieces
+
+/// The status light. One per row; also anchors the state views.
+struct LED: View {
+    var color: Color
+
+    var body: some View {
+        Circle()
+            .fill(color)
+            .frame(width: 7, height: 7)
+            .overlay(Circle().strokeBorder(.primary.opacity(0.12), lineWidth: 0.5))
+            .accessibilityHidden(true)
+    }
+}
+
+private struct GroupHeader: View {
+    let kind: ListenerGroup.Kind
+    let count: Int
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Text(title)
+            Text(String(count))
+                .monospacedDigit()
+                .foregroundStyle(.tertiary)
+            Spacer()
+        }
+        .font(.caption2.weight(.semibold))
+        .textCase(.uppercase)
+        .kerning(0.6)
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 6)
+        .padding(.top, 8)
+        .padding(.bottom, 2)
+    }
+
+    private var title: String {
+        switch kind {
+        case .yours: String(localized: "Yours")
+        case .otherUsers: String(localized: "Other users")
+        case .ignored: String(localized: "Ignored")
+        }
+    }
+}
+
+/// Centered LED + title + optional detail and action, for loading, empty, and error states.
 private struct StateView<Content: View>: View {
-    let systemImage: String
-    var title: Text?
+    let led: Color
+    var title: Text
+    var detail: Text?
     @ViewBuilder var content: () -> Content
 
-    init(systemImage: String, title: Text? = nil, @ViewBuilder content: @escaping () -> Content = { EmptyView() }) {
-        self.systemImage = systemImage
+    init(led: Color, title: Text, detail: Text? = nil, @ViewBuilder content: @escaping () -> Content = { EmptyView() }) {
+        self.led = led
         self.title = title
+        self.detail = detail
         self.content = content
     }
 
     var body: some View {
-        VStack(spacing: 10) {
-            Image(systemName: systemImage)
-                .font(.system(size: 34))
-                .foregroundStyle(.secondary)
-            if let title {
-                title.foregroundStyle(.secondary)
+        VStack(spacing: 12) {
+            // An unlit panel: eight dark sockets, the one that matters lit in the state's color.
+            HStack(spacing: 8) {
+                ForEach(0..<8, id: \.self) { index in
+                    LED(color: index == 3 && led != .clear ? led : Color.primary.opacity(0.08))
+                }
+            }
+            .padding(.bottom, 6)
+            title
+                .font(.body.weight(.medium))
+            if let detail {
+                detail
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 260)
             }
             content()
+                .padding(.top, 4)
         }
         .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -217,6 +217,24 @@ struct PortListModelTests {
         #expect(makeModel(defaults: defaults).sortOrder == .processName, "restored on next launch")
     }
 
+    @Test func groupsSplitYoursOthersAndIgnored() async {
+        let lsof = "p1\nclaunchd\nu0\nf1\nPTCP\nn*:22\nTST=LISTEN\n" + sampleLsof
+            + "p7\ncpostgres\nu501\nf1\nPTCP\nn127.0.0.1:5432\nTST=LISTEN\n"
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(lsof))))
+        await model.refresh()
+        #expect(model.groups.map(\.kind) == [.yours, .otherUsers])
+        #expect(model.groups[0].listeners.map(\.port) == [3000, 5432])
+        #expect(model.groups[1].listeners.map(\.port) == [22])
+
+        model.ignorePort(of: sampleListener)
+        #expect(model.groups.map(\.kind) == [.yours, .otherUsers])
+        model.showIgnored = true
+        #expect(model.groups.map(\.kind) == [.yours, .otherUsers, .ignored])
+        #expect(model.groups[2].listeners.map(\.port) == [3000])
+        model.filterText = "launchd"
+        #expect(model.groups.map(\.kind) == [.otherUsers], "empty groups drop out")
+    }
+
     // MARK: keyboard intents
 
     @Test func keyboardIntentsActOnTheVisibleSelection() async throws {

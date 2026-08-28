@@ -18,6 +18,7 @@ All notable user-facing changes to OpenPorts. Written for the people who use it 
 - About section in Settings with the version, a Check for Updates button that opens the GitHub releases page, and a link to the source.
 
 ### Changed
+- Fresh look for the port list: a status light on every row (green means it's yours to kill, gray means another user owns it, red means it didn't exit), rows grouped into Yours, Other users, and Ignored, and bigger, easier-to-scan port numbers.
 
 ### Fixed
 

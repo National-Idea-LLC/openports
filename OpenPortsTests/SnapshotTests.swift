@@ -10,12 +10,12 @@ import Testing
 struct SnapshotTests {
     private static let outputDirectory = URL(filePath: NSTemporaryDirectory()).appending(path: "openports-snapshots")
 
-    private func snapshot<V: View>(_ view: V, name: String, size: CGSize = CGSize(width: 360, height: 440)) throws -> URL {
+    private func snapshot<V: View>(_ view: V, name: String, size: CGSize = CGSize(width: 360, height: 460), dark: Bool = false) throws -> URL {
         let host = NSHostingView(rootView: view)
         host.frame = NSRect(origin: .zero, size: size)
         let window = NSWindow(contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
         window.contentView = host
-        window.appearance = NSAppearance(named: .aqua)
+        window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
         host.layoutSubtreeIfNeeded()
         let rep = try #require(host.bitmapImageRepForCachingDisplay(in: host.bounds))
         host.cacheDisplay(in: host.bounds, to: rep)
@@ -45,6 +45,7 @@ struct SnapshotTests {
         let list = await loadedModel(many)
         list.selection = sampleListener.id
         let listURL = try snapshot(PortListView(model: list, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list")
+        let darkURL = try snapshot(PortListView(model: list, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-dark", dark: true)
 
         let stubborn = await loadedModel(many)
         await stubborn.kill(sampleListener) // names never change → .stillRunning after the grace period
@@ -72,7 +73,7 @@ struct SnapshotTests {
         let settings = SettingsModel(loginItem: approval, preferences: Preferences(defaults: freshDefaults()))
         let settingsURL = try snapshot(SettingsView(settings: settings, model: ignoring).frame(width: 320), name: "settings", size: CGSize(width: 320, height: 560))
 
-        for url in [listURL, stubbornURL, emptyURL, errorURL, ignoredURL, settingsURL] {
+        for url in [listURL, darkURL, stubbornURL, emptyURL, errorURL, ignoredURL, settingsURL] {
             let size = try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int ?? 0
             #expect(size > 1_000, "\(url.lastPathComponent) looks blank")
         }

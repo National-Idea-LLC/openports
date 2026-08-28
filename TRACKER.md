@@ -43,11 +43,13 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 - [x] Menu bar count badge (opt-in, 10 s background poll while closed) — [E2-183](https://linear.app/ielyas/issue/E2-183) (In Review)
 - [x] "Check for Updates" → GitHub Releases, View Source, version row — [E2-184](https://linear.app/ielyas/issue/E2-184) (In Review)
 - [x] Greyed rows for other users' processes — shipped in M1 (E2-176)
+- [x] Popover redesign after first-launch feedback — status LEDs, Yours / Other users / Ignored groups, port-first rows — [E2-185](https://linear.app/ielyas/issue/E2-185) (In Review)
 
 ## Dev changelog
 
 <!-- Newest first. One dated entry per meaningful change. -->
 
+- **2026-08-28** — Popover redesigned (owner: "look ugly"): per-row status LED (green yours / gray other users / amber terminating / red still running), rows grouped Yours / Other users / Ignored via `PortListModel.groups`, port number as the dominant monospaced column, bind-address chips with network-reachability tooltip, tinted square hover actions, rounded filter field, material background, `.bar` status bar, "unlit panel" state views; dark-mode snapshot added; 63 tests (E2-185).
 - **2026-08-28** — Settings About section: version from the bundle, "Check for Updates" → GitHub Releases, "View Source" → repo (both via `SystemActions`, no network in-app); settings popover fixed at 320×480 and scrolls. 1 test, 62 total. **M2 tasks complete** (E2-184).
 - **2026-08-28** — Menu bar count badge: "Show count in menu bar" toggle (`openports.showCountInMenuBar`), `Label` count next to the icon, single polling loop that runs at the popover interval while open and every 10 s in the background only while the badge is on; count excludes ignored rows; 4 tests, 61 total (E2-183).
 - **2026-08-28** — Keyboard navigation: list takes focus on open; ⏎ opens, ⌫ kills (own processes only, not while a kill is in flight), ⌘C copies the URL — via `openSelected`/`killSelected`/`copySelectedURL` model intents; 2 tests, 57 total (E2-182).

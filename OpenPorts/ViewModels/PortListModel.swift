@@ -12,6 +12,13 @@ enum KillState: Equatable, Sendable {
     case failed(String)
 }
 
+struct ListenerGroup: Identifiable, Equatable {
+    enum Kind: Equatable { case yours, otherUsers, ignored }
+    let kind: Kind
+    let listeners: [Listener]
+    var id: Kind { kind }
+}
+
 /// Single source of truth for the popover. Views bind to it and hold no logic.
 @MainActor
 @Observable
@@ -97,6 +104,22 @@ final class PortListModel {
                 return ($0.port, $0.pid) < ($1.port, $1.pid)
             }
         }
+    }
+
+    /// `filtered`, split into the groups the list renders. Order encodes what you can act on:
+    /// your own processes first, other users' (not killable) next, ignored rows last when revealed.
+    var groups: [ListenerGroup] {
+        var yours: [Listener] = [], others: [Listener] = [], ignored: [Listener] = []
+        for listener in filtered {
+            if isIgnored(listener) { ignored.append(listener) }
+            else if listener.isOwnedByCurrentUser { yours.append(listener) }
+            else { others.append(listener) }
+        }
+        return [
+            ListenerGroup(kind: .yours, listeners: yours),
+            ListenerGroup(kind: .otherUsers, listeners: others),
+            ListenerGroup(kind: .ignored, listeners: ignored),
+        ].filter { !$0.listeners.isEmpty }
     }
 
     /// How many current listeners the ignore list hides (independent of the text filter).
