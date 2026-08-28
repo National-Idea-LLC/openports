@@ -5,14 +5,22 @@ All notable user-facing changes to Squatter. Written for the people who use it â
 ## [Unreleased]
 
 ### Added
-- Squatter can now be installed and updated with Homebrew: `brew install --cask National-Idea-LLC/tap/squatter`. The command was in the README before but never worked.
 
 ### Changed
 
 ### Fixed
-- Squatter now launches on a Mac that is offline or on a restricted network the first time you open it. Previously macOS could only confirm the app was notarized by checking with Apple over the internet.
 
 ### Removed
+
+## [0.1.2] - 2026-08-29
+
+Squatter now installs with Homebrew, and opens on a Mac that is offline the first time you launch it. The app itself is unchanged from 0.1.1.
+
+### Added
+- Squatter can now be installed and updated with Homebrew: `brew install --cask National-Idea-LLC/tap/squatter`. The command was in the README before but never worked.
+
+### Fixed
+- Squatter now launches on a Mac that is offline or on a restricted network the first time you open it. Previously macOS could only confirm the app was notarized by checking with Apple over the internet.
 
 ## [0.1.1] - 2026-08-28
 
