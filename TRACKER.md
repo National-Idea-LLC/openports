@@ -61,6 +61,7 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 
 <!-- Newest first. One dated entry per meaningful change. -->
 
+- **2026-08-28** — Fixed truncated confirmation copy: the prompt moved to the row's second line ("Kill this process?" in red) so the process name keeps its usual width, and the Cancel/Kill and Force Kill controls are `fixedSize` with layout priority so they can never collapse into ellipses. Snapshot now arms the longest name in the fixture (E2-197).
 - **2026-08-28** — Killing now confirms first (owner decision, overrides the spec's fast-path design): ✕, the Kill Process menu item, ⌫ and the accessibility action all arm `KillState.confirming`; the row shows "Kill <process>?" with Kill / Cancel, Escape cancels every armed row, a refresh that drops the row clears it, and other users' rows can't be armed. Spec interaction details updated; 4 new tests, 67 total (E2-197).
 - **2026-08-28** — Hovered rows now draw a subtle background so it is clear which row the ⋯ / ↗ / ✕ buttons belong to; selection keeps its own highlight, and the fade is skipped under Reduce Motion (E2-196).
 - **2026-08-28** — v0.1.0 notarized: submission 20738e21 Accepted, stapled, `spctl` accepts (`source=Notarized Developer ID`). DMG sha256 `82b34bd3…9b18249a` wired into the cask; CHANGELOG cut to `[0.1.0]`; README screenshots and install instructions added (E2-188).

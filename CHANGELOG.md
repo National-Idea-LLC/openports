@@ -8,7 +8,7 @@ All notable user-facing changes to Squatter. Written for the people who use it �
 
 ### Changed
 - The row under your pointer is now highlighted, so it's obvious which port the buttons act on.
-- Killing a process now asks first: the row turns into "Kill node?" with Kill and Cancel. Press Escape to back out. This applies however you start it — the ✕ button, the menu, or the Delete key.
+- Killing a process now asks first: the row asks "Kill this process?" with Kill and Cancel. Press Escape to back out. This applies however you start it — the ✕ button, the menu, or the Delete key.
 
 ### Fixed
 

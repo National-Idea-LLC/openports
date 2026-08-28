@@ -63,8 +63,11 @@ struct SnapshotTests {
         await failing.refresh()
         let errorURL = try snapshot(PortListView(model: failing, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "error")
 
-        let confirming = await loadedModel(many)
-        confirming.requestKill(sampleListener)
+        // Arm the longest name in the fixture — the confirmation must not truncate its buttons.
+        let longName = many + "p11\ncAdobe Desktop Service\nu501\nf1\nPTCP\nn127.0.0.1:15292\nTST=LISTEN\n"
+        let confirming = await loadedModel(longName, kills: KillRecorder(names: [11: "Adobe Desktop Service"]))
+        let victim = try #require(confirming.listeners.first { $0.processName == "Adobe Desktop Service" })
+        confirming.requestKill(victim)
         let confirmURL = try snapshot(PortListView(model: confirming, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-confirm-kill")
 
         let ignoring = await loadedModel(many)

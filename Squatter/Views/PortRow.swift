@@ -23,26 +23,12 @@ struct PortRow: View {
                 .frame(width: 62, alignment: .leading)
                 .foregroundStyle(isIgnored ? .secondary : .primary)
 
-            VStack(alignment: .leading, spacing: 1) {
-                Text(listener.processName)
-                    .font(.callout.weight(.medium))
-                    .lineLimit(1)
-                    .foregroundStyle(isIgnored ? .secondary : .primary)
-                HStack(spacing: 6) {
-                    Text(verbatim: "PID \(listener.pid)")
-                        .monospacedDigit()
-                    ForEach(listener.addresses.sorted(), id: \.self) { address in
-                        AddressChip(address: address)
-                    }
-                }
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-            }
+            details
 
             Spacer(minLength: 6)
 
             trailing
+                .layoutPriority(1)
         }
         .padding(.vertical, 5)
         .padding(.horizontal, 6)
@@ -62,6 +48,34 @@ struct PortRow: View {
         .accessibilityAction(named: Text("Open in Browser")) { model.open(listener) }
         .accessibilityAction(named: Text("Copy URL")) { model.copyURL(listener) }
         .accessibilityAction(named: Text("Kill Process")) { model.requestKill(listener) }
+    }
+
+    private var details: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(listener.processName)
+                .font(.callout.weight(.medium))
+                .lineLimit(1)
+                .foregroundStyle(isIgnored ? .secondary : .primary)
+            if killState == .confirming {
+                // The name above already says which process; this line asks, so the buttons
+                // never have to compete with a long name for width.
+                Text("Kill this process?")
+                    .font(.caption2)
+                    .foregroundStyle(.red)
+            } else {
+                HStack(spacing: 6) {
+                    Text(verbatim: "PID \(listener.pid)")
+                        .monospacedDigit()
+                    ForEach(listener.addresses.sorted(), id: \.self) { address in
+                        AddressChip(address: address)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            }
+        }
     }
 
     // MARK: LED
@@ -88,11 +102,9 @@ struct PortRow: View {
                 hoverActions
             }
         case .confirming:
+            // The row already names the process, so the prompt stays short — long names
+            // would otherwise squeeze the buttons into ellipses.
             HStack(spacing: 8) {
-                Text("Kill \(listener.processName)?")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
                 Button("Cancel") { model.cancelKill(listener) }
                     .controlSize(.small)
                     .keyboardShortcut(.cancelAction)
@@ -104,6 +116,7 @@ struct PortRow: View {
                 .controlSize(.small)
                 .accessibilityLabel(Text("Confirm killing \(listener.processName) on port \(String(listener.port))"))
             }
+            .fixedSize()
         case .terminating:
             progress(Text("Killing…"))
         case .forcing:
@@ -121,6 +134,7 @@ struct PortRow: View {
                 .controlSize(.small)
                 .accessibilityLabel(Text("Force kill \(listener.processName) on port \(String(listener.port))"))
             }
+            .fixedSize()
         case .failed(let message):
             HStack(spacing: 6) {
                 Text(message)
