@@ -37,3 +37,28 @@ jobs:
             -destination 'platform=macOS' \
             CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= \
             test 2>&1 | grep -vE "linkd\.autoShortcut|Process Instance Registry"
+
+  project-sync:
+    name: project.yml is in sync
+    runs-on: macos-26
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xcodegen
+        run: |
+          set -euo pipefail
+          brew install xcodegen
+          xcodegen --version
+
+      - name: Regenerate and compare
+        run: |
+          set -euo pipefail
+          xcodegen generate
+          if ! git diff --exit-code -- Squatter.xcodeproj; then
+            echo
+            echo "Squatter.xcodeproj does not match project.yml."
+            echo "project.yml is the source of truth — run 'xcodegen generate' and commit the result."
+            echo "If the diff is only cosmetic, xcodegen has been upgraded; regenerating and committing is still the fix."
+            exit 1
+          fi

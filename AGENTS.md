@@ -28,6 +28,7 @@ Run from the repo root.
 
 - `open Squatter.xcodeproj` — develop in Xcode; run the `Squatter` scheme
 - `xcodegen generate` — regenerate `Squatter.xcodeproj` after editing `project.yml` (the project file is committed; `project.yml` is its source of truth — never hand-edit the `.pbxproj`). Install with `brew install xcodegen`.
+- `xcodegen generate && git diff --exit-code -- Squatter.xcodeproj` — verify the committed project matches `project.yml`. CI runs this on every PR (`project-sync` job) and `scripts/release.sh` regenerates before archiving, so a release is always built from `project.yml`.
 - `xcodebuild -project Squatter.xcodeproj -scheme Squatter -configuration Debug build` — build
 - `xcodebuild -project Squatter.xcodeproj -scheme Squatter -destination 'platform=macOS' test` — unit tests (Swift Testing)
 - `xcodebuild -project Squatter.xcodeproj -scheme Squatter -configuration Release archive -archivePath build/Squatter.xcarchive` — release archive
