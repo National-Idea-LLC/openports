@@ -121,7 +121,6 @@ Or download the DMG from [Releases](https://github.com/National-Idea-LLC/squatte
 
 **In scope**:
 - `Casks/squatter.rb` (step 2 only — the `depends_on` line)
-- `README.md` (step 3, only if the owner has answered step 1)
 - `TRACKER.md`
 
 **Out of scope** (do NOT touch):
@@ -130,6 +129,8 @@ Or download the DMG from [Releases](https://github.com/National-Idea-LLC/squatte
 - Creating a GitHub repository. An executor must never create a public repo; that is the
   owner's action even once the decision in step 1 is made.
 - The DMG-download paragraph in the README. It is accurate and is the working fallback.
+- **`README.md` entirely.** Step 1 resolved to option (a), under which the existing install
+  line is already correct. Nothing in that file needs to change.
 
 ## Git workflow
 
@@ -138,10 +139,30 @@ or tag. Do not update Linear.
 
 ## Steps
 
-### Step 1: OWNER DECISION — how should the cask be distributed?
+### Step 1: OWNER DECISION — ANSWERED 2026-08-29 → option (a)
 
-**Do not implement this step. Report it and stop if it is unanswered.** There are three
-options and they are not equivalent:
+> **Decision: create `National-Idea-LLC/homebrew-tap`.** The owner chose the conventional
+> Homebrew path — a separate `homebrew-*` tap repo — which is exactly what `README.md:35`
+> already advertises. Consequences for the rest of this plan:
+>
+> - **Step 3 becomes a no-op.** Leave `README.md:35` exactly as it is; it becomes correct the
+>   moment the tap repo exists. `README.md` is now **out of scope** — do not edit it.
+> - **Creating the repository is still the owner's action, not an executor's.** Never run
+>   `gh repo create` or equivalent. Its absence is expected, not a failure.
+> - Steps 2, 4 and 5 proceed unchanged.
+>
+> Rationale, recorded so it is not re-litigated: (b) tapping this repo directly has no sync
+> cost but an unfamiliar two-line install and makes `brew update` re-fetch the whole app repo;
+> (c) dropping the cask loses `brew upgrade` for users. (a) is what nearly every project ships
+> and what the README already promises. Its one real cost — the cask's `version`/`sha256`
+> drifting in a second repo — is manual only until the tag-triggered release workflow
+> (Linear E2-188) pushes the bump automatically. See Maintenance notes.
+>
+> The endgame is neither: submission to `homebrew/cask` core, where `brew install --cask
+> squatter` works with no tap at all. That has notability requirements Squatter does not meet
+> yet, so it is a later move.
+
+The three options as originally posed, kept as the record of what was weighed:
 
 **(a) Create `National-Idea-LLC/homebrew-tap`** (matches what the README already claims).
 A new public repo containing `Casks/squatter.rb`. The README line then works unchanged.
@@ -158,8 +179,7 @@ tap name.
 DMG download becomes the only documented path. Cost: no `brew upgrade` for users. Honest, and
 the least machinery — the project's stated value is minimalism.
 
-There is no default here that an executor may pick. Each changes what users type and what the
-release process must maintain.
+Each changes what users type and what the release process must maintain. **Resolved: (a).**
 
 ### Step 2: Fix the deprecated `depends_on` syntax — safe to do regardless
 
@@ -184,24 +204,12 @@ behavioural change; macOS 15 remains the floor, matching `MACOSX_DEPLOYMENT_TARG
 - `grep -n "depends_on" Casks/squatter.rb` → exactly one line, reading `  depends_on macos: :sequoia`
 - `grep -c '">= :sequoia"' Casks/squatter.rb` → `0`
 
-### Step 3: Fix the README — ONLY if step 1 has been answered
+### Step 3: README — NOTHING TO DO
 
-If the owner has not chosen, **skip this step and say so in your report**. Do not guess.
+Step 1 resolved to option (a), so `README.md:35` is already the correct command. Do not touch
+`README.md`. It is listed under "Out of scope" for exactly this reason.
 
-- If **(a)**: leave `README.md:35` exactly as it is. It becomes correct the moment the tap
-  repo exists.
-- If **(b)**: replace the single command with the two-step form:
-
-  ```sh
-  brew tap National-Idea-LLC/squatter https://github.com/National-Idea-LLC/squatter
-  brew install --cask squatter
-  ```
-
-- If **(c)**: delete the ```sh fenced block and the `brew` line entirely, and reword the
-  following paragraph so it no longer starts with "Or" — it becomes the only method.
-
-**Verify** (option-dependent): `sed -n '32,40p' README.md` reads coherently and contains no
-instruction that cannot be executed today.
+**Verify**: `git status --porcelain README.md` → empty.
 
 ### Step 4: Prove the cask installs, using a scratch tap
 
@@ -233,7 +241,7 @@ after the last two commands `/Applications/Squatter.app` is gone and the tap is 
 match what you actually did in step 3:
 
 ```
-- **2026-08-28** — Fixed the deprecated `depends_on macos:` string form in `Casks/squatter.rb`, which made Homebrew warn on every operation. Also recorded that the README's advertised `brew install --cask National-Idea-LLC/tap/squatter` cannot work: the `homebrew-tap` repository does not exist and Homebrew refuses a cask outside a tap, so the only working install path today is the DMG download. Choosing between a tap repo, tapping this repo directly, or dropping the cask is an owner decision.
+- **2026-08-29** — Fixed the deprecated `depends_on macos:` string form in `Casks/squatter.rb`, which made Homebrew warn on every operation. Also recorded that the README's advertised `brew install --cask National-Idea-LLC/tap/squatter` cannot work yet: the `homebrew-tap` repository does not exist and Homebrew refuses a cask outside a tap, so the only working install path today is the DMG download. The owner has chosen to create `National-Idea-LLC/homebrew-tap`, which makes the README line correct without changing it; publishing that repo, and keeping the cask's version and sha256 in sync with each release, is the remaining work.
 ```
 
 **Verify**: `grep -c "homebrew-tap" TRACKER.md` → `1`.
@@ -254,15 +262,15 @@ No unit tests — this is packaging. Verification is step 4's scratch-tap instal
 - [ ] Step 4 completes, prints `0.1.1` and `accepted`, emits no deprecation warning, and leaves
       `/Applications/Squatter.app` absent and the scratch tap untapped
 - [ ] `grep -c "homebrew-tap" TRACKER.md` → `1`
-- [ ] `git status --porcelain` lists only `Casks/squatter.rb`, `TRACKER.md`, and `README.md`
-      (README only if step 1 was answered) — nothing staged or committed
+- [ ] `git status --porcelain` lists only `Casks/squatter.rb` and `TRACKER.md` — nothing else
+      modified, nothing staged or committed
 
 ## STOP conditions
 
 Stop and report back (do not improvise) if:
 
-- **Step 1 is unanswered and you are about to change `README.md`.** Do steps 2, 4 and 5, then
-  stop and report that the README and the tap remain blocked on the owner.
+- **You are about to change `README.md`.** Don't. Step 1 resolved to option (a), under which
+  the file is already correct.
 - **You are about to create a GitHub repository.** Never. Report instead.
 - `/Applications/Squatter.app` already exists before step 4 — the owner has it installed and
   the test would clobber their copy.
@@ -273,12 +281,16 @@ Stop and report back (do not improvise) if:
 
 ## Maintenance notes
 
-- **Whatever the owner picks in step 1, the sync problem is the thing to watch.** The cask's
-  `version` and `sha256` must change on every release. Today that is manual and was done by
-  hand for 0.1.1. If option (a) is chosen, the cask lives in a *different repo* and drifts
-  silently — `brew install` would then hand users the previous DMG with a checksum mismatch.
-  Automating the cask bump belongs with the tag-triggered release workflow (Linear E2-188),
-  and is the strongest argument for option (b) or (c).
+- **Option (a) was chosen, so the sync problem is now the thing to watch.** The cask's
+  `version` and `sha256` must change on every release, and the canonical copy will live in a
+  *different repo* (`National-Idea-LLC/homebrew-tap`). Today that is manual — it was done by
+  hand for 0.1.1. When it drifts, `brew install` hands users the previous DMG and fails with a
+  checksum mismatch, and it fails for everyone at once. Automating the cask bump belongs with
+  the tag-triggered release workflow (Linear E2-188); until that exists, treat "push the cask
+  bump to homebrew-tap" as a mandatory step of cutting a release.
+- **Decide which copy of `Casks/squatter.rb` is canonical.** Keeping it in both repos invites
+  exactly the drift above. Either delete it here once the tap repo exists, or make the release
+  workflow copy this one into the tap so this repo stays the source of truth.
 - A reviewer should confirm `version` and `sha256` are byte-identical to before. The single
   most damaging mistake available in this file is a hash that does not match the published
   asset — every user's install breaks at once, with a scary-looking checksum error.

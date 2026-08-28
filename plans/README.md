@@ -24,7 +24,7 @@ each plan so an executor never has to go looking):
 | 003 | Stop a stuck `lsof` from wedging the app forever | P2 | S | 002 | DONE (reviewed) |
 | 004 | Make `project.yml` provably the source of truth for the Xcode project | P2 | S | — | DONE (reviewed) |
 | 005 | Staple the notarization ticket to the app, not just the DMG | P1 | S | — | TODO |
-| 006 | Make the Homebrew cask actually installable | P1 | M | — | TODO (step 1 needs an owner decision) |
+| 006 | Make the Homebrew cask actually installable | P1 | M | — | TODO (step 1 decided 2026-08-29 → create `homebrew-tap`; repo not yet published) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with
 one-line rationale).
@@ -89,13 +89,16 @@ shipped. Neither was visible from reading the source: both were found by install
 released artifact the way a user would.
 
 - **005 and 006 are independent** of each other and of everything above. 005 is a one-file
-  script change. 006 is mostly blocked on an owner decision.
+  script change. 006's decision is made; what remains is one file edit plus an owner action.
 - **Neither is fixed by a rebuild alone.** 005 changes how future releases are built, so it
   only takes effect on the next one. The already-published v0.1.1 DMG stays unstapled at the
   app level until a 0.1.2 is cut.
-- **006 step 1 is an owner decision** — create a `homebrew-tap` repo, serve the tap from this
-  repo, or drop the cask. An executor must not choose. The deprecated-syntax fix (step 2) is
-  safe to land on its own meanwhile.
+- **006 step 1 was decided on 2026-08-29: create `National-Idea-LLC/homebrew-tap`** — the
+  conventional Homebrew path, and the one `README.md:35` already advertises, so the README
+  needs no change. 006 is now unblocked for an executor (steps 2, 4, 5); step 3 is a no-op and
+  `README.md` moved to out-of-scope. **Creating the repo itself remains the owner's action** —
+  an executor must never create a GitHub repository. Until that repo is published, the brew
+  install command in the README still does not work for anyone.
 
 ### What the v0.1.1 release test found
 
@@ -105,7 +108,7 @@ real user would get:
 - **The advertised install command cannot work.** `README.md:35` says
   `brew install --cask National-Idea-LLC/tap/squatter`; `National-Idea-LLC/homebrew-tap` does
   not exist, and Homebrew refuses a cask outside a tap. Broken for every user since the
-  README was written. → plan 006
+  README was written. → plan 006 (resolved to: create the tap repo)
 - **Only the DMG is stapled, not the app.** `stapler validate` on the installed app: *"does
   not have a ticket stapled to it."* It passed Gatekeeper only because the test machine could
   reach Apple's notary service; an offline first launch would be blocked. → plan 005
