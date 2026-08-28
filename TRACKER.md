@@ -30,7 +30,7 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 - [x] `LsofParser` pure parser + fixture/edge-case tests — [E2-164](https://linear.app/ielyas/issue/E2-164) (In Review)
 - [x] `LsofRunner` (`Process` wrapper, fixed args, exit-code contract) + `PortScanner` actor (coalesced refresh) — [E2-166](https://linear.app/ielyas/issue/E2-166) (In Review)
 - [x] `ProcessKiller` — SIGTERM, PID re-validation, Force Kill (SIGKILL) after ~2 s — [E2-168](https://linear.app/ielyas/issue/E2-168) (In Review)
-- [ ] `PortListModel` (`@MainActor @Observable`) — poll every 2 s while popover visible, filter
+- [x] `PortListModel` (`@MainActor @Observable`) — poll every 2 s while popover visible, filter, kill flow — [E2-169](https://linear.app/ielyas/issue/E2-169) (In Review)
 - [ ] `PortListView` / `PortRow` — list, selection, ↗ open, copy URL/port/PID, kill, context menu
 - [ ] Empty and error states
 - [ ] Launch at Login (`SMAppService`) + ⌘Q
@@ -39,6 +39,7 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 
 <!-- Newest first. One dated entry per meaningful change. -->
 
+- **2026-08-28** — `PortListModel` (`@MainActor @Observable`): start/stop polling, refresh with last-good list + error, filter over port/name/PID, kill → 2 s grace → Force Kill offer, open/copy via `SystemActions` (AppKit behind a protocol); `Preferences` + `DefaultsKeys`; shared test doubles; 12 new tests, 42 total (E2-169).
 - **2026-08-27** — `ProcessKiller`: `kill(2)` SIGTERM/SIGKILL guarded by a `proc_name` re-check of the PID (verified `proc_name` == `lsof +c0` for live processes), typed `KillError`, `waitForExit` poll for the Force Kill offer; 9 tests incl. a real child-process kill (E2-168).
 - **2026-08-27** — `LsofRunner` (absolute-path `Process`, no shell, concurrent pipe drain) and `PortScanner` actor (single in-flight scan, callers coalesce) with typed `ScanError`; 9 tests incl. coalescing and a real-`lsof` integration check (E2-166).
 - **2026-08-27** — `LsofParser` implemented: pure `String -> [Listener]`, `(pid, port)` merge with address union, bracketed IPv6, injectable UID→name resolver; 10 parser tests incl. the live fixture (E2-164). M1 task list added.

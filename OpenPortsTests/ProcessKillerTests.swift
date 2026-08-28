@@ -1,87 +1,65 @@
 import Darwin
 import Foundation
-import Synchronization
 import Testing
 @testable import OpenPorts
 
-/// Records signals and serves scripted process names, so no real process is touched.
-private final class Recorder: Sendable {
-    private let state = Mutex<State>(State())
-    private struct State { var signals: [(pid_t, Int32)] = []; var names: [pid_t: String] = [:]; var signalResult: Int32 = 0 }
-
-    init(names: [pid_t: String], signalResult: Int32 = 0) {
-        state.withLock { $0.names = names; $0.signalResult = signalResult }
-    }
-    var signals: [(pid_t, Int32)] { state.withLock { $0.signals } }
-    func setName(_ name: String?, for pid: pid_t) { state.withLock { $0.names[pid] = name } }
-
-    var killer: ProcessKiller {
-        ProcessKiller(
-            signal: { pid, sig in self.state.withLock { $0.signals.append((pid, sig)); return $0.signalResult } },
-            processName: { pid in self.state.withLock { $0.names[pid] } }
-        )
-    }
-}
-
-private let node = Listener(port: 3000, pid: 42, processName: "node", user: "elyas", addresses: ["*"], isOwnedByCurrentUser: true)
-
 struct ProcessKillerTests {
     @Test func sendsSigtermByDefaultAndSigkillWhenForced() throws {
-        let rec = Recorder(names: [42: "node"])
-        try rec.killer.terminate(node)
-        try rec.killer.terminate(node, force: true)
+        let rec = KillRecorder(names: [42: "node"])
+        try rec.killer.terminate(sampleListener)
+        try rec.killer.terminate(sampleListener, force: true)
         #expect(rec.signals.map(\.0) == [42, 42])
         #expect(rec.signals.map(\.1) == [SIGTERM, SIGKILL])
     }
 
     @Test func refusesWhenPidNowBelongsToAnotherProcess() {
-        let rec = Recorder(names: [42: "Safari"])
+        let rec = KillRecorder(names: [42: "Safari"])
         #expect(throws: KillError.processChanged(pid: 42, expected: "node", actual: "Safari")) {
-            try rec.killer.terminate(node)
+            try rec.killer.terminate(sampleListener)
         }
         #expect(rec.signals.isEmpty, "must not signal a mismatched PID")
     }
 
     @Test func refusesWhenProcessAlreadyExited() {
-        let rec = Recorder(names: [:])
+        let rec = KillRecorder(names: [:])
         #expect(throws: KillError.processChanged(pid: 42, expected: "node", actual: nil)) {
-            try rec.killer.terminate(node)
+            try rec.killer.terminate(sampleListener)
         }
         #expect(rec.signals.isEmpty)
     }
 
     @Test func mapsErrnoToTypedErrors() {
         #expect(throws: KillError.notPermitted(pid: 42, processName: "node")) {
-            try Recorder(names: [42: "node"], signalResult: EPERM).killer.terminate(node)
+            try KillRecorder(names: [42: "node"], signalResult: EPERM).killer.terminate(sampleListener)
         }
         #expect(throws: KillError.noSuchProcess(pid: 42, processName: "node")) {
-            try Recorder(names: [42: "node"], signalResult: ESRCH).killer.terminate(node)
+            try KillRecorder(names: [42: "node"], signalResult: ESRCH).killer.terminate(sampleListener)
         }
         #expect(throws: KillError.failed(pid: 42, processName: "node", errno: EINVAL)) {
-            try Recorder(names: [42: "node"], signalResult: EINVAL).killer.terminate(node)
+            try KillRecorder(names: [42: "node"], signalResult: EINVAL).killer.terminate(sampleListener)
         }
     }
 
     @Test func isRunningRequiresMatchingName() {
-        let rec = Recorder(names: [42: "node"])
-        #expect(rec.killer.isRunning(node))
+        let rec = KillRecorder(names: [42: "node"])
+        #expect(rec.killer.isRunning(sampleListener))
         rec.setName("Safari", for: 42)
-        #expect(!rec.killer.isRunning(node))
+        #expect(!rec.killer.isRunning(sampleListener))
         rec.setName(nil, for: 42)
-        #expect(!rec.killer.isRunning(node))
+        #expect(!rec.killer.isRunning(sampleListener))
     }
 
     @Test func waitForExitReturnsTrueOnceGone() async {
-        let rec = Recorder(names: [42: "node"])
-        let waiter = Task { await rec.killer.waitForExit(of: node, timeout: .seconds(2), pollEvery: .milliseconds(10)) }
+        let rec = KillRecorder(names: [42: "node"])
+        let waiter = Task { await rec.killer.waitForExit(of: sampleListener, timeout: .seconds(2), pollEvery: .milliseconds(10)) }
         try? await Task.sleep(for: .milliseconds(30))
         rec.setName(nil, for: 42)
         #expect(await waiter.value == true)
     }
 
     @Test func waitForExitTimesOutWhileStillRunning() async {
-        let rec = Recorder(names: [42: "node"])
-        let exited = await rec.killer.waitForExit(of: node, timeout: .milliseconds(50), pollEvery: .milliseconds(10))
+        let rec = KillRecorder(names: [42: "node"])
+        let exited = await rec.killer.waitForExit(of: sampleListener, timeout: .milliseconds(50), pollEvery: .milliseconds(10))
         #expect(exited == false)
     }
 
