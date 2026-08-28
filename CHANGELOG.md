@@ -13,6 +13,7 @@ All notable user-facing changes to OpenPorts. Written for the people who use it 
 - Settings (⌘,): launch OpenPorts at login, and choose how often the list refreshes (1, 2, or 5 seconds).
 - Ignore ports or processes you don't care about from the right-click menu. Hidden rows are counted in the footer, where one click shows them again; manage the list in Settings.
 - Sort the list by port or by process name (Settings).
+- Every row now has a ⋯ button with the full set of actions, so you don't have to know to right-click.
 - Keyboard control: arrow keys move the selection, Return opens it in the browser, Delete kills it, and ⌘C copies its URL.
 - Optional count in the menu bar showing how many ports are listening (Settings). It updates every 10 seconds while the list is closed.
 - About section in Settings with the version, a Check for Updates button that opens the GitHub releases page, and a link to the source.

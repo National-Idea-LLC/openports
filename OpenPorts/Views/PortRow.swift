@@ -47,7 +47,7 @@ struct PortRow: View {
         .padding(.horizontal, 6)
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
-        .contextMenu { contextMenu }
+        .contextMenu { menuItems }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(accessibilityText))
         .accessibilityAction(named: Text("Open in Browser")) { model.open(listener) }
@@ -117,6 +117,24 @@ struct PortRow: View {
 
     private var hoverActions: some View {
         HStack(spacing: 4) {
+            Menu {
+                menuItems
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.caption.weight(.bold))
+                    .frame(width: 24, height: 24)
+                    .contentShape(Rectangle())
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .frame(width: 24, height: 24)
+            .foregroundStyle(.secondary)
+            // The borderless menu style drops the label's background, so the chip lives here.
+            .background(.quaternary.opacity(0.8), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .accessibilityLabel(Text("More actions for \(listener.processName) on port \(String(listener.port))"))
+            .help(Text("More actions"))
+
             RowAction(systemImage: "arrow.up.right", tint: .accentColor) {
                 model.open(listener)
             }
@@ -144,10 +162,10 @@ struct PortRow: View {
         }
     }
 
-    // MARK: Context menu
+    // MARK: Menu (shared by the ⋯ button and the right-click menu)
 
     @ViewBuilder
-    private var contextMenu: some View {
+    private var menuItems: some View {
         Button("Open in Browser", systemImage: "arrow.up.right.square") { model.open(listener) }
         Divider()
         Button("Copy URL", systemImage: "doc.on.doc") { model.copyURL(listener) }
