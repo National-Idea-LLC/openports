@@ -39,7 +39,7 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 
 - [x] Ignore list — hide ports/processes, "N hidden · Show" footer, manage in Settings — [E2-180](https://linear.app/ielyas/issue/E2-180) (In Review)
 - [x] Sort by port / process name (Settings picker, persisted) — [E2-181](https://linear.app/ielyas/issue/E2-181) (In Review)
-- [ ] Keyboard: ⌫ kills selected row, ⌘C copies URL, list focused on open — [E2-182](https://linear.app/ielyas/issue/E2-182)
+- [x] Keyboard: ⌫ kills selected row, ⌘C copies URL, list focused on open — [E2-182](https://linear.app/ielyas/issue/E2-182) (In Review)
 - [ ] Menu bar count badge (opt-in, slow background poll) — [E2-183](https://linear.app/ielyas/issue/E2-183)
 - [ ] "Check for Updates" → GitHub Releases + version row — [E2-184](https://linear.app/ielyas/issue/E2-184)
 - [x] Greyed rows for other users' processes — shipped in M1 (E2-176)
@@ -48,6 +48,7 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 
 <!-- Newest first. One dated entry per meaningful change. -->
 
+- **2026-08-28** — Keyboard navigation: list takes focus on open; ⏎ opens, ⌫ kills (own processes only, not while a kill is in flight), ⌘C copies the URL — via `openSelected`/`killSelected`/`copySelectedURL` model intents; 2 tests, 57 total (E2-182).
 - **2026-08-28** — Sort order: `SortOrder` (port | processName) persisted as `openports.sortOrder`, "Sort by" picker in Settings, case-insensitive name sort with port/PID tiebreak; 2 tests, 55 total (E2-181).
 - **2026-08-28** — M2 started; task list E2-180…E2-184. Ignore list shipped: context-menu Ignore Port / Ignore <process> / Unignore, persisted via `Preferences`, "N hidden · Show" footer toggle, dimmed ignored rows with eye.slash, "Everything is ignored." state, Ignored section in Settings with remove buttons; 5 tests (E2-180).
 - **2026-08-28** — Launch at Login via `SMAppService` behind `LoginItemManaging`; `SettingsModel` + `SettingsView` popover from the footer gear (⌘,): login toggle with approval/error handling, refresh interval 1/2/5 s applied on the next tick. 5 model tests + settings snapshot; 48 total. **M1 tasks complete** (E2-179).

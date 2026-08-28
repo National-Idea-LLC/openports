@@ -13,6 +13,7 @@ All notable user-facing changes to OpenPorts. Written for the people who use it 
 - Settings (⌘,): launch OpenPorts at login, and choose how often the list refreshes (1, 2, or 5 seconds).
 - Ignore ports or processes you don't care about from the right-click menu. Hidden rows are counted in the footer, where one click shows them again; manage the list in Settings.
 - Sort the list by port or by process name (Settings).
+- Keyboard control: arrow keys move the selection, Return opens it in the browser, Delete kills it, and ⌘C copies its URL.
 
 ### Changed
 

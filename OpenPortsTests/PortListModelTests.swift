@@ -215,6 +215,50 @@ struct PortListModelTests {
         #expect(makeModel(defaults: defaults).sortOrder == .processName, "restored on next launch")
     }
 
+    // MARK: keyboard intents
+
+    @Test func keyboardIntentsActOnTheVisibleSelection() async throws {
+        let actions = RecordingActions()
+        let kills = KillRecorder(names: [42: "node"])
+        kills.onSignal { pid, _ in kills.setName(nil, for: pid) }
+        let model = makeModel(kills: kills, actions: actions)
+        await model.refresh()
+
+        #expect(!model.openSelected())
+        #expect(!model.copySelectedURL())
+        #expect(!model.killSelected())
+
+        model.selection = sampleListener.id
+        #expect(model.openSelected())
+        #expect(model.copySelectedURL())
+        #expect(actions.opened.count == 1 && actions.copied == ["http://localhost:3000"])
+
+        model.filterText = "zzz" // selection no longer visible
+        #expect(model.selectedListener == nil)
+        #expect(!model.openSelected())
+        model.filterText = ""
+
+        #expect(model.killSelected())
+        try await Task.sleep(for: .milliseconds(150))
+        #expect(kills.signals.map(\.1) == [SIGTERM])
+    }
+
+    @Test func killSelectedRefusesOtherUsersRowsAndDoubleKills() async {
+        let root = "p1\nclaunchd\nu0\nf1\nPTCP\nn*:22\nTST=LISTEN\n" + sampleLsof
+        let kills = KillRecorder(names: [1: "launchd", 42: "node"])
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(root))), kills: kills)
+        await model.refresh()
+
+        model.selection = "1:22"
+        #expect(!model.killSelected(), "not our process")
+
+        model.selection = sampleListener.id
+        await model.kill(sampleListener) // stays .stillRunning (name never changes)
+        #expect(model.killState(for: sampleListener) == .stillRunning)
+        #expect(!model.killSelected(), "kill already in flight")
+        #expect(kills.signals.count == 1)
+    }
+
     @Test func openAndCopyGoThroughSystemActions() async {
         let actions = RecordingActions()
         let model = makeModel(actions: actions)

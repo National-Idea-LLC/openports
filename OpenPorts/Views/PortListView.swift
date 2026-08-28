@@ -6,6 +6,7 @@ struct PortListView: View {
     let settings: SettingsModel
 
     @State private var isShowingSettings = false
+    @FocusState private var isListFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -85,10 +86,13 @@ struct PortListView: View {
             }
         }
         .listStyle(.plain)
-        .onKeyPress(.return) {
-            guard let listener = selectedListener else { return .ignored }
-            model.open(listener)
-            return .handled
+        .focused($isListFocused)
+        .onAppear { isListFocused = true }
+        .onKeyPress(.return) { model.openSelected() ? .handled : .ignored }
+        .onKeyPress(.delete) { model.killSelected() ? .handled : .ignored }
+        .onKeyPress(characters: CharacterSet(charactersIn: "c"), phases: .down) { press in
+            guard press.modifiers == .command else { return .ignored }
+            return model.copySelectedURL() ? .handled : .ignored
         }
     }
 
@@ -168,10 +172,6 @@ struct PortListView: View {
     }
 
     // MARK: Helpers
-
-    private var selectedListener: Listener? {
-        model.filtered.first { $0.id == model.selection }
-    }
 
     private var hiddenText: String {
         model.showIgnored

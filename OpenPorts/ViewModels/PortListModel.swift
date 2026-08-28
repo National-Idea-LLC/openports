@@ -94,6 +94,11 @@ final class PortListModel {
 
     var isPolling: Bool { pollTask != nil }
 
+    /// The selected row, if it is currently visible.
+    var selectedListener: Listener? {
+        filtered.first { $0.id == selection }
+    }
+
     func killState(for listener: Listener) -> KillState? { killStates[listener.id] }
 
     // MARK: Refresh
@@ -166,6 +171,32 @@ final class PortListModel {
 
     func dismissKillError(for listener: Listener) {
         if case .failed = killStates[listener.id] { killStates[listener.id] = nil }
+    }
+
+    // MARK: Keyboard intents (act on the selection; return false when there is nothing to do)
+
+    @discardableResult
+    func openSelected() -> Bool {
+        guard let listener = selectedListener else { return false }
+        open(listener)
+        return true
+    }
+
+    @discardableResult
+    func copySelectedURL() -> Bool {
+        guard let listener = selectedListener else { return false }
+        copyURL(listener)
+        return true
+    }
+
+    /// SIGTERM to the selected row. Refuses rows the user can't kill or that already have a kill in flight.
+    @discardableResult
+    func killSelected() -> Bool {
+        guard let listener = selectedListener, listener.isOwnedByCurrentUser, killStates[listener.id] == nil else {
+            return false
+        }
+        Task { await kill(listener) }
+        return true
     }
 
     // MARK: Ignore list
