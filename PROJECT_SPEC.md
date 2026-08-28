@@ -227,7 +227,7 @@ Not applicable — no network API. Internal surface:
 
 ### Interaction details
 - Single click on a row **selects** it (highlight + reveals hover actions); it never opens the browser. Opening is explicit: the ↗ button, ⏎ on the selected row, or the context menu. Double-click is reserved (no action in MVP). *(Owner decision 2026-08-27, Open Question #3.)*
-- Kill button is a small ✕ that appears on hover; confirmation is *not* required for SIGTERM (fast path), but **is** required for SIGKILL via a two-step inline button.
+- Kill button is a small ✕ that appears on hover. **Every kill path confirms first** (owner decision 2026-08-28, overriding the original fast-path design): ✕, the Kill Process menu item, and ⌫ all arm an inline "Kill <process>?" with Kill / Cancel; Escape cancels. SIGKILL keeps its own two-step confirmation.
 - Escape closes the popover.
 
 ### Accessibility

@@ -63,6 +63,10 @@ struct SnapshotTests {
         await failing.refresh()
         let errorURL = try snapshot(PortListView(model: failing, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "error")
 
+        let confirming = await loadedModel(many)
+        confirming.requestKill(sampleListener)
+        let confirmURL = try snapshot(PortListView(model: confirming, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-confirm-kill")
+
         let ignoring = await loadedModel(many)
         ignoring.ignorePort(of: sampleListener)
         ignoring.ignoreProcess(of: Listener(port: 22, pid: 1, processName: "launchd", user: "root", addresses: ["*"], isOwnedByCurrentUser: false))
@@ -73,7 +77,7 @@ struct SnapshotTests {
         let settings = SettingsModel(loginItem: approval, preferences: Preferences(defaults: freshDefaults()))
         let settingsURL = try snapshot(SettingsView(settings: settings, model: ignoring).frame(width: 320), name: "settings", size: CGSize(width: 320, height: 560))
 
-        for url in [listURL, darkURL, stubbornURL, emptyURL, errorURL, ignoredURL, settingsURL] {
+        for url in [listURL, darkURL, stubbornURL, confirmURL, emptyURL, errorURL, ignoredURL, settingsURL] {
             let size = try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int ?? 0
             #expect(size > 1_000, "\(url.lastPathComponent) looks blank")
         }

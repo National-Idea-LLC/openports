@@ -61,13 +61,14 @@ struct PortRow: View {
         .accessibilityLabel(Text(accessibilityText))
         .accessibilityAction(named: Text("Open in Browser")) { model.open(listener) }
         .accessibilityAction(named: Text("Copy URL")) { model.copyURL(listener) }
-        .accessibilityAction(named: Text("Kill Process")) { Task { await model.kill(listener) } }
+        .accessibilityAction(named: Text("Kill Process")) { model.requestKill(listener) }
     }
 
     // MARK: LED
 
     private var ledColor: Color {
         switch killState {
+        case .confirming: .red
         case .terminating, .forcing: .orange
         case .stillRunning, .failed: .red
         case nil:
@@ -85,6 +86,23 @@ struct PortRow: View {
         case nil:
             if isHovering || isSelected {
                 hoverActions
+            }
+        case .confirming:
+            HStack(spacing: 8) {
+                Text("Kill \(listener.processName)?")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Button("Cancel") { model.cancelKill(listener) }
+                    .controlSize(.small)
+                    .keyboardShortcut(.cancelAction)
+                Button("Kill", role: .destructive) {
+                    Task { await model.kill(listener) }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+                .controlSize(.small)
+                .accessibilityLabel(Text("Confirm killing \(listener.processName) on port \(String(listener.port))"))
             }
         case .terminating:
             progress(Text("Killing…"))
@@ -151,7 +169,7 @@ struct PortRow: View {
             .help(Text("Open \(listener.localURLString)"))
 
             RowAction(systemImage: "xmark", tint: canKill ? .red : .secondary) {
-                Task { await model.kill(listener) }
+                model.requestKill(listener)
             }
             .disabled(!canKill)
             .accessibilityLabel(Text("Kill \(listener.processName) on port \(String(listener.port))"))
@@ -182,7 +200,7 @@ struct PortRow: View {
         Button("Copy PID", systemImage: "tag") { model.copyPID(listener) }
         Divider()
         Button("Kill Process", systemImage: "xmark.circle", role: .destructive) {
-            Task { await model.kill(listener) }
+            model.requestKill(listener)
         }
         .disabled(!canKill)
         Button("Force Kill", systemImage: "bolt.fill", role: .destructive) {

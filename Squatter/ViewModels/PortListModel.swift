@@ -3,6 +3,8 @@ import Observation
 
 /// Per-row progress of a kill request.
 enum KillState: Equatable, Sendable {
+    /// Kill was requested; waiting for the user to confirm before any signal is sent.
+    case confirming
     /// SIGTERM sent; waiting up to the grace period for the process to exit.
     case terminating
     /// Still alive after the grace period — the UI offers Force Kill.
@@ -193,6 +195,24 @@ final class PortListModel {
 
     // MARK: Kill
 
+    /// Arms the confirmation. Nothing is signalled until `confirmKill(_:)`.
+    func requestKill(_ listener: Listener) {
+        guard listener.isOwnedByCurrentUser, killStates[listener.id] == nil else { return }
+        killStates[listener.id] = .confirming
+    }
+
+    func cancelKill(_ listener: Listener) {
+        guard killStates[listener.id] == .confirming else { return }
+        killStates[listener.id] = nil
+    }
+
+    /// True while any row is waiting for confirmation — lets Escape cancel from the list.
+    var isAwaitingKillConfirmation: Bool { killStates.values.contains(.confirming) }
+
+    func cancelAllKillConfirmations() {
+        killStates = killStates.filter { $0.value != .confirming }
+    }
+
     func kill(_ listener: Listener) async {
         killStates[listener.id] = .terminating
         do {
@@ -242,13 +262,14 @@ final class PortListModel {
         return true
     }
 
-    /// SIGTERM to the selected row. Refuses rows the user can't kill or that already have a kill in flight.
+    /// Arms the kill confirmation for the selected row. Refuses rows the user can't kill
+    /// or that already have a kill in flight.
     @discardableResult
     func killSelected() -> Bool {
         guard let listener = selectedListener, listener.isOwnedByCurrentUser, killStates[listener.id] == nil else {
             return false
         }
-        Task { await kill(listener) }
+        requestKill(listener)
         return true
     }
 

@@ -258,9 +258,74 @@ struct PortListModelTests {
         #expect(!model.openSelected())
         model.filterText = ""
 
-        #expect(model.killSelected())
-        try await Task.sleep(for: .milliseconds(150))
+        #expect(model.killSelected(), "arms the confirmation")
+        #expect(model.killState(for: sampleListener) == .confirming)
+        #expect(kills.signals.isEmpty, "nothing is signalled until confirmed")
+        await model.kill(sampleListener)
         #expect(kills.signals.map(\.1) == [SIGTERM])
+    }
+
+    // MARK: kill confirmation
+
+    @Test func killPathsArmAConfirmationInsteadOfSignalling() async {
+        let kills = KillRecorder(names: [42: "node"])
+        let model = makeModel(kills: kills)
+        await model.refresh()
+
+        model.requestKill(sampleListener)
+        #expect(model.killState(for: sampleListener) == .confirming)
+        #expect(model.isAwaitingKillConfirmation)
+        #expect(kills.signals.isEmpty)
+
+        model.requestKill(sampleListener) // idempotent while armed
+        #expect(model.killState(for: sampleListener) == .confirming)
+
+        model.cancelKill(sampleListener)
+        #expect(model.killState(for: sampleListener) == nil)
+        #expect(!model.isAwaitingKillConfirmation)
+        #expect(kills.signals.isEmpty)
+    }
+
+    @Test func confirmingSendsSigtermAndEscapeCancelsEverything() async {
+        let two = sampleLsof + "p7\ncpostgres\nu501\nf1\nPTCP\nn127.0.0.1:5432\nTST=LISTEN\n"
+        let kills = KillRecorder(names: [42: "node", 7: "postgres"])
+        kills.onSignal { pid, _ in kills.setName(nil, for: pid) }
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(two))), kills: kills)
+        await model.refresh()
+
+        model.requestKill(sampleListener)
+        model.requestKill(model.listeners[1])
+        #expect(model.isAwaitingKillConfirmation)
+        model.cancelAllKillConfirmations()
+        #expect(!model.isAwaitingKillConfirmation)
+        #expect(kills.signals.isEmpty)
+
+        model.requestKill(sampleListener)
+        await model.kill(sampleListener)
+        #expect(kills.signals.map(\.1) == [SIGTERM])
+        #expect(model.killState(for: sampleListener) == nil)
+    }
+
+    @Test func confirmationIsRefusedForOtherUsersRows() async {
+        let root = "p1\nclaunchd\nu0\nf1\nPTCP\nn*:22\nTST=LISTEN\n"
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(root))), kills: KillRecorder(names: [1: "launchd"]))
+        await model.refresh()
+        let launchd = model.listeners[0]
+        model.requestKill(launchd)
+        #expect(model.killState(for: launchd) == nil)
+        #expect(!model.isAwaitingKillConfirmation)
+    }
+
+    @Test func armedConfirmationClearsWhenTheRowDisappears() async {
+        let runner = FakeRunner(.success(lsofResult(sampleLsof)))
+        let model = makeModel(runner: runner)
+        await model.refresh()
+        model.requestKill(sampleListener)
+        #expect(model.isAwaitingKillConfirmation)
+        await runner.set(.success(lsofResult("")))
+        await model.refresh()
+        #expect(model.killStates.isEmpty)
+        #expect(!model.isAwaitingKillConfirmation)
     }
 
     @Test func killSelectedRefusesOtherUsersRowsAndDoubleKills() async {
@@ -273,6 +338,7 @@ struct PortListModelTests {
         #expect(!model.killSelected(), "not our process")
 
         model.selection = sampleListener.id
+        model.requestKill(sampleListener)
         await model.kill(sampleListener) // stays .stillRunning (name never changes)
         #expect(model.killState(for: sampleListener) == .stillRunning)
         #expect(!model.killSelected(), "kill already in flight")

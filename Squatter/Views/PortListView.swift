@@ -100,6 +100,11 @@ struct PortListView: View {
         .environment(\.defaultMinListRowHeight, 24)
         .focused($isListFocused)
         .onAppear { isListFocused = true }
+        .onKeyPress(.escape) {
+            guard model.isAwaitingKillConfirmation else { return .ignored }
+            model.cancelAllKillConfirmations()
+            return .handled
+        }
         .onKeyPress(.return) { model.openSelected() ? .handled : .ignored }
         .onKeyPress(.delete) { model.killSelected() ? .handled : .ignored }
         .onKeyPress(characters: CharacterSet(charactersIn: "c"), phases: .down) { press in
