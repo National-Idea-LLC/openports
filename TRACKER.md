@@ -9,8 +9,8 @@ Mirrored in Linear: [OpenPorts project](https://linear.app/ielyas/project/openpo
 | Phase | Scope | Status |
 |-------|-------|--------|
 | M0 | Foundation — spec, rules, Xcode project scaffold, `.gitignore`, CI skeleton | ✅ Done (2026-08-27) |
-| M1 | P0 core — `LsofParser` + tests, `PortScanner` actor, `MenuBarExtra` list, open/copy/kill, refresh, empty/error states, Launch at Login, filter | 🔄 In progress |
-| M2 | P1 polish — ignore list, sort, greyed root-owned rows, keyboard nav, menu bar count | ⬜ Not started |
+| M1 | P0 core — `LsofParser` + tests, `PortScanner` actor, `MenuBarExtra` list, open/copy/kill, refresh, empty/error states, Launch at Login, filter | ✅ Done (2026-08-28) |
+| M2 | P1 polish — ignore list, sort, greyed root-owned rows, keyboard nav, menu bar count | 🔄 In progress |
 | M3 | Release — Developer ID signing, notarization, GitHub Release, README | ⬜ Not started |
 
 Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
@@ -33,12 +33,13 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 - [x] `PortListModel` (`@MainActor @Observable`) — poll every 2 s while popover visible, filter, kill flow — [E2-169](https://linear.app/ielyas/issue/E2-169) (In Review)
 - [x] `PortListView` / `PortRow` — list, selection, ↗ open, copy URL/port/PID, kill, context menu — [E2-176](https://linear.app/ielyas/issue/E2-176) (In Review)
 - [x] Empty and error states — E2-176
-- [ ] Launch at Login (`SMAppService`) + ⌘Q
+- [x] Launch at Login (`SMAppService`) + settings popover (refresh interval) + ⌘Q — [E2-179](https://linear.app/ielyas/issue/E2-179) (In Review)
 
 ## Dev changelog
 
 <!-- Newest first. One dated entry per meaningful change. -->
 
+- **2026-08-28** — Launch at Login via `SMAppService` behind `LoginItemManaging`; `SettingsModel` + `SettingsView` popover from the footer gear (⌘,): login toggle with approval/error handling, refresh interval 1/2/5 s applied on the next tick. 5 model tests + settings snapshot; 48 total. **M1 tasks complete** (E2-179).
 - **2026-08-28** — Popover UI: `PortListView` (filter, list with selection, ⏎ opens, footer refresh/count/quit, loading/empty/filter-empty/error states, stale-list error banner) and `PortRow` (hover ↗/✕, greyed other-user rows, inline Killing…/Still running → Force Kill/error, context menu, accessibility actions). Offscreen snapshot test renders all states to PNG (E2-176).
 - **2026-08-28** — `PortListModel` (`@MainActor @Observable`): start/stop polling, refresh with last-good list + error, filter over port/name/PID, kill → 2 s grace → Force Kill offer, open/copy via `SystemActions` (AppKit behind a protocol); `Preferences` + `DefaultsKeys`; shared test doubles; 12 new tests, 42 total (E2-169).
 - **2026-08-27** — `ProcessKiller`: `kill(2)` SIGTERM/SIGKILL guarded by a `proc_name` re-check of the PID (verified `proc_name` == `lsof +c0` for live processes), typed `KillError`, `waitForExit` poll for the Force Kill offer; 9 tests incl. a real child-process kill (E2-168).

@@ -86,3 +86,33 @@ func freshDefaults(_ name: String = #function) -> UserDefaults {
     defaults.removePersistentDomain(forName: suite)
     return defaults
 }
+
+/// Scripted login item: flips status on register/unregister, or throws when told to.
+@MainActor
+final class FakeLoginItem: LoginItemManaging {
+    struct Failure: LocalizedError { var errorDescription: String? { "launchd said no." } }
+
+    var status: LoginItemStatus
+    var shouldFail = false
+    /// Status to adopt after a successful `register()` (e.g. `.requiresApproval`).
+    var statusAfterRegister: LoginItemStatus = .enabled
+    private(set) var registerCalls = 0
+    private(set) var unregisterCalls = 0
+    private(set) var openedSettings = 0
+
+    init(status: LoginItemStatus = .disabled) { self.status = status }
+
+    func register() throws {
+        registerCalls += 1
+        if shouldFail { throw Failure() }
+        status = statusAfterRegister
+    }
+
+    func unregister() throws {
+        unregisterCalls += 1
+        if shouldFail { throw Failure() }
+        status = .disabled
+    }
+
+    func openSystemSettings() { openedSettings += 1 }
+}

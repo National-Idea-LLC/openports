@@ -3,6 +3,9 @@ import SwiftUI
 /// Popover root: search, list (or state view), footer. Binds to `PortListModel`; no logic here.
 struct PortListView: View {
     @Bindable var model: PortListModel
+    let settings: SettingsModel
+
+    @State private var isShowingSettings = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -121,6 +124,18 @@ struct PortListView: View {
             Spacer()
 
             Button {
+                isShowingSettings.toggle()
+            } label: {
+                Image(systemName: "gearshape")
+            }
+            .keyboardShortcut(",")
+            .accessibilityLabel(Text("Settings"))
+            .help(Text("Settings (⌘,)"))
+            .popover(isPresented: $isShowingSettings, arrowEdge: .bottom) {
+                SettingsView(settings: settings)
+            }
+
+            Button {
                 // AppKit: SwiftUI has no cross-platform quit API.
                 NSApp.terminate(nil)
             } label: {
@@ -179,5 +194,5 @@ private struct StateView<Content: View>: View {
 }
 
 #Preview("Empty") {
-    PortListView(model: PortListModel())
+    PortListView(model: PortListModel(), settings: SettingsModel())
 }

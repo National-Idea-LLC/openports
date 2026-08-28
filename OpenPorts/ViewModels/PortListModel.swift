@@ -71,13 +71,14 @@ final class PortListModel {
 
     /// Scans immediately, then every `refreshInterval` seconds until `stopPolling()`.
     /// Call from `onAppear`; polling must not run while the popover is closed.
+    /// The interval is re-read each tick so a settings change applies without restarting.
     func startPolling() {
         guard pollTask == nil else { return }
-        let interval = Duration.seconds(preferences.refreshInterval)
         pollTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
                 await refresh()
+                let interval = Duration.seconds(preferences.refreshInterval)
                 do { try await Task.sleep(for: interval) } catch { return }
             }
         }
