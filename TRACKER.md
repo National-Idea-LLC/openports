@@ -53,8 +53,9 @@ Status legend: ⬜ Not started · 🔄 In progress · ✅ Done
 - [x] Notarization credentials stored (keychain profile `squatter`)
 - [x] Notarize + staple — `spctl` reports `accepted / source=Notarized Developer ID`
 - [x] README screenshots + install instructions
-- [ ] Tag `v0.1.0`, move CHANGELOG `[Unreleased]` → `[0.1.0]`, publish GitHub Release with the DMG
-- [ ] Publish the Homebrew cask (fill sha256, open tap/homebrew-cask PR)
+- [x] Tag `v0.1.0`, move CHANGELOG `[Unreleased]` → `[0.1.0]`, publish GitHub Release with the DMG — shipped, and v0.1.1 and v0.1.2 since
+- [x] Publish the Homebrew cask — [`National-Idea-LLC/homebrew-tap`](https://github.com/National-Idea-LLC/homebrew-tap) is live and is the only copy of the cask — [E2-219](https://linear.app/ielyas/issue/E2-219) (In Review)
+- [ ] Submit to `homebrew/cask` core so `brew install --cask squatter` needs no tap — blocked on Homebrew's notability requirements (~75 stars / 30 forks)
 - [ ] Manual check: Launch at Login toggle against the signed build
 
 ## Dev changelog
