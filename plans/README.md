@@ -23,6 +23,8 @@ each plan so an executor never has to go looking):
 | 002 | Put the `lsof` subprocess behind a testable seam and cover it with tests | P2 | M | — | DONE (reviewed; scope grew, see note) |
 | 003 | Stop a stuck `lsof` from wedging the app forever | P2 | S | 002 | DONE (reviewed) |
 | 004 | Make `project.yml` provably the source of truth for the Xcode project | P2 | S | — | DONE (reviewed) |
+| 005 | Staple the notarization ticket to the app, not just the DMG | P1 | S | — | TODO |
+| 006 | Make the Homebrew cask actually installable | P1 | M | — | TODO (step 1 needs an owner decision) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with
 one-line rationale).
@@ -79,6 +81,40 @@ per-byte read and the "concurrent drain is fine" conclusion. Both were reached b
 the code and measuring real `lsof` output (~1.2 KB), which never approaches the threshold
 where the bug lives. **Left in place deliberately, as a record of how the audit got it
 wrong**: only a test with a deliberately oversized payload found it.
+
+## Second batch — distribution (planned 2026-08-28, against `721b361`)
+
+Plans 005 and 006 come from testing the v0.1.1 release end to end, after plans 001-004 had
+shipped. Neither was visible from reading the source: both were found by installing the
+released artifact the way a user would.
+
+- **005 and 006 are independent** of each other and of everything above. 005 is a one-file
+  script change. 006 is mostly blocked on an owner decision.
+- **Neither is fixed by a rebuild alone.** 005 changes how future releases are built, so it
+  only takes effect on the next one. The already-published v0.1.1 DMG stays unstapled at the
+  app level until a 0.1.2 is cut.
+- **006 step 1 is an owner decision** — create a `homebrew-tap` repo, serve the tap from this
+  repo, or drop the cask. An executor must not choose. The deprecated-syntax fix (step 2) is
+  safe to land on its own meanwhile.
+
+### What the v0.1.1 release test found
+
+Installed the published DMG through Homebrew, from a scratch local tap, and checked what a
+real user would get:
+
+- **The advertised install command cannot work.** `README.md:35` says
+  `brew install --cask National-Idea-LLC/tap/squatter`; `National-Idea-LLC/homebrew-tap` does
+  not exist, and Homebrew refuses a cask outside a tap. Broken for every user since the
+  README was written. → plan 006
+- **Only the DMG is stapled, not the app.** `stapler validate` on the installed app: *"does
+  not have a ticket stapled to it."* It passed Gatekeeper only because the test machine could
+  reach Apple's notary service; an offline first launch would be blocked. → plan 005
+- **The cask warns on every operation** — deprecated `depends_on macos:` string form. → plan 006 step 2
+
+What was *not* wrong, and is worth recording: the cask's `version` and `sha256` are correct
+(verified by downloading the published asset and comparing hashes), Homebrew's own checksum
+check passed, the app installed at 0.1.1, and `spctl` reported
+`accepted, source=Notarized Developer ID`. The artifact is sound; its distribution is not.
 
 ## Dependency notes
 
