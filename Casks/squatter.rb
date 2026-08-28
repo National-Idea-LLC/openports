@@ -8,7 +8,7 @@ cask "squatter" do
   desc "Menu bar app that shows which process is listening on each port"
   homepage "https://github.com/National-Idea-LLC/squatter"
 
-  depends_on macos: ">= :sequoia"
+  depends_on macos: :sequoia
 
   app "Squatter.app"
 

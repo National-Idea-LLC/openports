@@ -64,6 +64,19 @@ if codesign -d --entitlements - "$EXPORT/$APP" 2>/dev/null | grep -q "app-sandbo
   echo "App Sandbox must stay off (Squatter needs kill(2))"; exit 1
 fi
 
+if [[ "$NOTARIZE" == true ]]; then
+  echo "==> Notarize app"
+  # The ticket must be stapled to the app itself, not only to the DMG: stapling does not
+  # follow a bundle that is copied out of the disk image. Without this, `brew install
+  # --cask` (which extracts the app) leaves an unstapled app that only passes Gatekeeper
+  # on a machine that can reach Apple's notary service.
+  ditto -c -k --keepParent "$EXPORT/$APP" "$BUILD/Squatter-app.zip"
+  xcrun notarytool submit "$BUILD/Squatter-app.zip" --keychain-profile "$KEYCHAIN_PROFILE" --wait
+  xcrun stapler staple "$EXPORT/$APP"
+  xcrun stapler validate "$EXPORT/$APP"
+  rm -f "$BUILD/Squatter-app.zip"
+fi
+
 echo "==> DMG"
 STAGE="$BUILD/dmg"
 mkdir -p "$STAGE"

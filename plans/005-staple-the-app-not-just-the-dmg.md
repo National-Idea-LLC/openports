@@ -165,8 +165,10 @@ No edit should be needed — the existing `cp -R "$EXPORT/$APP" "$STAGE/"` alrea
 **Verify by reading**: confirm the `cp -R "$EXPORT/$APP" "$STAGE/"` line appears **after**
 your new block. If it does not, you inserted the block in the wrong place — move it.
 
-`grep -n 'Notarize app\|cp -R "$EXPORT/$APP"\|==> DMG' scripts/release.sh` → three lines, in
-that order.
+`grep -n 'Notarize app\|cp -R "\$EXPORT/\$APP"\|==> DMG' scripts/release.sh` → three lines, in
+that order. **Escape the `$`** — unescaped inside the double quotes the shell expands
+`$EXPORT` and `$APP` to empty strings and the `cp` line silently never matches, making a
+correct edit look like a failed one.
 
 ### Step 3: Leave the DMG notarization exactly as it is
 
@@ -208,8 +210,8 @@ Machine-checkable. ALL must hold:
 - [ ] `bash -n scripts/release.sh` exits 0
 - [ ] `grep -c "xcrun stapler staple" scripts/release.sh` → `2`
 - [ ] `grep -c "ditto -c -k --keepParent" scripts/release.sh` → `1`
-- [ ] `grep -n 'Notarize app\|cp -R "$EXPORT/$APP"\|==> DMG' scripts/release.sh` returns three
-      lines in that order
+- [ ] `grep -n 'Notarize app\|cp -R "\$EXPORT/\$APP"\|==> DMG' scripts/release.sh` returns three
+      lines in that order (escape the `$`, or the `cp` line will not match)
 - [ ] `grep -c "staples the app bundle" TRACKER.md` → `1`
 - [ ] `git status --porcelain` lists only `scripts/release.sh` and `TRACKER.md`, nothing staged
       or committed

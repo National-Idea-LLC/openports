@@ -23,8 +23,8 @@ each plan so an executor never has to go looking):
 | 002 | Put the `lsof` subprocess behind a testable seam and cover it with tests | P2 | M | — | DONE (reviewed; scope grew, see note) |
 | 003 | Stop a stuck `lsof` from wedging the app forever | P2 | S | 002 | DONE (reviewed) |
 | 004 | Make `project.yml` provably the source of truth for the Xcode project | P2 | S | — | DONE (reviewed) |
-| 005 | Staple the notarization ticket to the app, not just the DMG | P1 | S | — | TODO |
-| 006 | Make the Homebrew cask actually installable | P1 | M | — | TODO (step 1 decided 2026-08-29 → create `homebrew-tap`; repo not yet published) |
+| 005 | Staple the notarization ticket to the app, not just the DMG | P1 | S | — | DONE (script changed; proof pending the next `release.sh --notarize` run) |
+| 006 | Make the Homebrew cask actually installable | P1 | M | — | DONE (tap published and install verified end to end) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with
 one-line rationale).
@@ -118,6 +118,36 @@ What was *not* wrong, and is worth recording: the cask's `version` and `sha256` 
 (verified by downloading the published asset and comparing hashes), Homebrew's own checksum
 check passed, the app installed at 0.1.1, and `spctl` reported
 `accepted, source=Notarized Developer ID`. The artifact is sound; its distribution is not.
+
+### Execution record — 2026-08-29
+
+Both plans executed directly (no executor subagent — each was a single-file change).
+
+| Plan | What landed | Verification |
+|------|-------------|--------------|
+| 005 | `scripts/release.sh` gained a `==> Notarize app` stage before `==> DMG`: `ditto -c -k --keepParent` → `notarytool submit` → `stapler staple "$EXPORT/$APP"`. The DMG block is unchanged; two submissions per release. | `bash -n` clean; `stapler staple` ×2; ordering 68 → 80 → 83, so the app is stapled before `hdiutil create`. **End-to-end unproven** — needs a real `release.sh --notarize`. |
+| 006 | `National-Idea-LLC/homebrew-tap` published (public: cask, MIT licence, README with the sha256 refresh procedure). `depends_on macos:` moved to the symbol form in both repos. | `brew install --cask National-Idea-LLC/tap/squatter` → 0.1.1 in `/Applications`, `spctl: accepted, source=Notarized Developer ID`, **zero deprecation warnings**. Machine restored: uninstalled and untapped. |
+
+**Plan defect found during execution** (one, in 005): step 2's ordering-check command wrote
+`grep -n '...cp -R "$EXPORT/$APP"...'` with the `$` unescaped inside double quotes, so the
+shell expanded both variables to empty and the `cp` line never matched — a correct edit looks
+like a failed one. Same class as the two grep bugs in plan 001. The plan is now fixed. **Any
+future plan whose verification greps shell source must escape `$`.**
+
+**Deviation from plan 006**: it said `CHANGELOG.md` must not change, on the grounds that
+packaging is not user-visible. That was right while the fix was only a deprecation warning;
+it stopped being right once the tap went live, because a Homebrew install path that works is
+something users can see and use. Both `[Unreleased]` entries were added deliberately.
+
+**What is still not true**: the shipped v0.1.1 app remains unstapled —
+`stapler validate /Applications/Squatter.app` still reports no ticket after installing from
+the live tap. 005 changes how releases are *built*, so only 0.1.2 onward carries an app-level
+ticket. Until then, a first launch on an offline Mac is still blocked.
+
+**New follow-up created by 006**: `Casks/squatter.rb` now exists in two repos and must be
+bumped in both on every release. This is the drift risk the plan warned about, and it is now
+live rather than hypothetical — it makes the tag-triggered release workflow (E2-188) load
+bearing rather than a nicety.
 
 ## Dependency notes
 
