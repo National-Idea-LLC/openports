@@ -61,4 +61,29 @@ struct LsofRunnerTests {
         #expect(LsofRunner.executablePath == "/usr/sbin/lsof")
         #expect(LsofRunner.arguments == ["-nP", "-iTCP", "-sTCP:LISTEN", "+c0", "-F", "pcunPT"])
     }
+
+    // MARK: watchdog
+
+    @Test func aStuckChildIsKilledAndReportedAsTimedOut() async {
+        let runner = ProcessRunner(executablePath: "/bin/sleep", arguments: ["5"], timeout: .milliseconds(200))
+        let clock = ContinuousClock()
+        let started = clock.now
+        await #expect(throws: ScanError.timedOut) { try await runner.run() }
+        // The child sleeps for 5s. Returning early is the proof it was actually killed:
+        // had it survived, its pipes would still be open and `run()` would still be draining.
+        #expect(clock.now - started < .seconds(2))
+    }
+
+    @Test func aFastCommandIsUnaffectedByAGenerousTimeout() async throws {
+        let runner = ProcessRunner(executablePath: "/bin/echo", arguments: ["ok"], timeout: .seconds(5))
+        let result = try await runner.run()
+        #expect(result.exitCode == 0)
+        #expect(String(data: result.stdout, encoding: .utf8) == "ok\n")
+    }
+
+    @Test func timeoutErrorSaysWhatWhyAndNext() {
+        let message = ScanError.timedOut.errorDescription ?? ""
+        #expect(message.contains("didn't respond"))
+        #expect(message.contains("Try refreshing"))
+    }
 }

@@ -13,6 +13,7 @@ All notable user-facing changes to Squatter. Written for the people who use it â
 
 ### Fixed
 - Squatter no longer freezes on machines with a very large number of listening ports.
+- If the system tool Squatter uses to read ports ever stops responding, the list now shows an error you can retry instead of spinning forever.
 
 ### Removed
 

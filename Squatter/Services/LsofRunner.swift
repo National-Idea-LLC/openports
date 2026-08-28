@@ -1,4 +1,6 @@
+import Darwin
 import Foundation
+import Synchronization
 
 /// Captured result of a finished child process.
 struct CommandResult: Sendable, Equatable {
@@ -18,6 +20,8 @@ enum ScanError: Error, Equatable, Sendable, LocalizedError {
     case launchFailed(String)
     case nonZeroExit(code: Int32, stderr: String)
     case outputNotUTF8
+    /// The child never exited within its budget and was killed.
+    case timedOut
 
     var errorDescription: String? {
         switch self {
@@ -29,6 +33,8 @@ enum ScanError: Error, Equatable, Sendable, LocalizedError {
             String(localized: "lsof exited with code \(code). \(stderr.isEmpty ? "" : stderr) Try refreshing.")
         case .outputNotUTF8:
             String(localized: "lsof returned output Squatter couldn't read. Try refreshing.")
+        case .timedOut:
+            String(localized: "lsof didn't respond and was stopped. A stalled network or disk mount can cause this. Try refreshing.")
         }
     }
 }
@@ -39,8 +45,13 @@ enum ScanError: Error, Equatable, Sendable, LocalizedError {
 /// user input: in production the only caller is `LsofRunner`, which supplies its own
 /// constants. Nothing here parses a command line or spawns a shell.
 struct ProcessRunner: Sendable {
+    /// Generous next to a measured ~40 ms scan: this is a deadlock backstop, not a
+    /// performance budget, and must never fire on a merely busy machine.
+    static let defaultTimeout: Duration = .seconds(10)
+
     let executablePath: String
     let arguments: [String]
+    var timeout: Duration = ProcessRunner.defaultTimeout
 
     func run() async throws -> CommandResult {
         // Reused from the one-subprocess world: the app only ever runs `lsof`, so a missing
@@ -73,6 +84,20 @@ struct ProcessRunner: Sendable {
             throw ScanError.launchFailed(error.localizedDescription)
         }
 
+        // Nothing else bounds this call: if the child never exits, the drains below never
+        // reach EOF, `PortScanner.inFlight` is never cleared, and every later scan — Refresh
+        // included — joins the same dead task. Kill the child so the pipes close.
+        let timedOut = Mutex(false)
+        let watchdog = Task {
+            try? await Task.sleep(for: timeout)
+            guard !Task.isCancelled, process.isRunning else { return }
+            timedOut.withLock { $0 = true }
+            process.terminate()
+            try? await Task.sleep(for: .milliseconds(500))
+            if process.isRunning { Darwin.kill(process.processIdentifier, SIGKILL) }
+        }
+        defer { watchdog.cancel() }
+
         // Drain both pipes on separate threads so a large listing can't fill a pipe and
         // stall the child. See readToEnd — doing this with FileHandle.bytes deadlocks.
         async let stdout = Self.readToEnd(stdoutPipe.fileHandleForReading)
@@ -80,6 +105,7 @@ struct ProcessRunner: Sendable {
         let (out, err) = try await (stdout, stderr)
         await exited.value
 
+        if timedOut.withLock({ $0 }) { throw ScanError.timedOut }
         return CommandResult(stdout: out, stderr: err, exitCode: process.terminationStatus)
     }
 
