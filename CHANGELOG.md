@@ -7,6 +7,7 @@ All notable user-facing changes to Squatter. Written for the people who use it â
 ### Added
 
 ### Changed
+- The row under your pointer is now highlighted, so it's obvious which port the buttons act on.
 
 ### Fixed
 

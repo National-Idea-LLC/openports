@@ -6,6 +6,7 @@ struct PortRow: View {
     let listener: Listener
 
     @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isSelected: Bool { model.selection == listener.id }
     private var killState: KillState? { model.killState(for: listener) }
@@ -45,8 +46,16 @@ struct PortRow: View {
         }
         .padding(.vertical, 5)
         .padding(.horizontal, 6)
+        .background {
+            // Selection already draws its own highlight; this is only the hover cue.
+            if isHovering && !isSelected {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(.quaternary.opacity(0.55))
+            }
+        }
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isHovering)
         .contextMenu { menuItems }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(accessibilityText))
