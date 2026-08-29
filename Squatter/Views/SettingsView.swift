@@ -71,33 +71,6 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
             Section {
-                LabeledContent("Version", value: settings.appVersion)
-                LabeledContent {
-                    Button("Check for Updates") { settings.checkForUpdates() }
-                        .controlSize(.small)
-                } label: {
-                    Text("Updates")
-                }
-                LabeledContent {
-                    Button("Report a Bug") { settings.reportBug() }
-                        .controlSize(.small)
-                } label: {
-                    Text("Something broken?")
-                }
-                LabeledContent {
-                    Button("View Source") { settings.openSource() }
-                        .controlSize(.small)
-                } label: {
-                    Text("Open source, MIT")
-                }
-            } header: {
-                Text("About")
-            } footer: {
-                Text("Squatter never connects to the internet on its own. Checking for updates or reporting a bug opens GitHub in your browser.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            Section {
                 LabeledContent("Ignore these ports") {
                     HStack(spacing: 6) {
                         TextField(String(localized: "3000, 5173"), text: $portsToAdd)
@@ -125,6 +98,33 @@ struct SettingsView: View {
                 Text("Ignored")
             } footer: {
                 Text("Separate ports with a comma, a space, or a new line. Right-click any row in the list to ignore it by process name.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
+                LabeledContent("Version", value: settings.appVersion)
+                LabeledContent {
+                    Button("Check for Updates") { settings.checkForUpdates() }
+                        .controlSize(.small)
+                } label: {
+                    Text("Updates")
+                }
+                LabeledContent {
+                    Button("Report a Bug") { settings.reportBug() }
+                        .controlSize(.small)
+                } label: {
+                    Text("Something broken?")
+                }
+                LabeledContent {
+                    Button("View Source") { settings.openSource() }
+                        .controlSize(.small)
+                } label: {
+                    Text("Open source, MIT")
+                }
+            } header: {
+                Text("About")
+            } footer: {
+                Text("Squatter never connects to the internet on its own. Checking for updates or reporting a bug opens GitHub in your browser.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

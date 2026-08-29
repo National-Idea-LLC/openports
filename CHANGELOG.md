@@ -12,6 +12,7 @@ All notable user-facing changes to Squatter. Written for the people who use it â
 - Settings has a Report a Bug button that opens a new issue with your Squatter and macOS versions already filled in.
 
 ### Changed
+- Settings now lists the ignore list before the About section, so the things you actually adjust come before the version and links.
 
 ### Fixed
 - The "Hide ports above" field in Settings now looks like a field you can type in, instead of plain text.
