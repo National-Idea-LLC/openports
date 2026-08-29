@@ -9,6 +9,7 @@ All notable user-facing changes to Squatter. Written for the people who use it â
 ### Changed
 
 ### Fixed
+- The address on each row is readable again. It was drawn in the accent colour, which washed out against the translucent panel on macOS 26 â€” how readable it was depended on your wallpaper. It now uses the same colour as the process name above it and is underlined, so it stays legible in light and dark mode over anything.
 
 ### Removed
 

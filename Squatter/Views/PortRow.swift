@@ -405,10 +405,15 @@ private struct URLLine: View {
                 .font(.caption2.monospaced())
                 .lineLimit(1)
                 .truncationMode(.middle)
-                // Underline only on hover: a permanently underlined line in every row turns the
-                // list into a wall of rules.
-                .underline(isHovering)
-                .foregroundStyle(isIgnored ? AnyShapeStyle(.secondary) : AnyShapeStyle(.tint))
+                // The underline, not the colour, is what marks this as a link. `.tint` was tried
+                // and reverted: on Liquid Glass the panel's luminance comes from whatever is
+                // behind the window, so an accent blue that reads fine on white washes out over
+                // a dark wallpaper. `.primary` is the colour the process name above already
+                // uses, so it is legible in both appearances over any backdrop.
+                .underline()
+                .foregroundStyle(isIgnored ? AnyShapeStyle(.secondary) : AnyShapeStyle(.primary))
+                // Hover still gives feedback, just without carrying the affordance alone.
+                .opacity(isHovering ? 1 : 0.75)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
