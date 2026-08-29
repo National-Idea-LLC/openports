@@ -10,7 +10,7 @@ struct DockerProbeTests {
 
         let db = try #require(containers[5432])
         #expect(db.name == "api-db-1")
-        #expect(db.image == "postgres:16")
+        #expect(db.image == "redis:7-alpine")
         #expect(db.containerPort == 5432)
 
         let cache = try #require(containers[6380])

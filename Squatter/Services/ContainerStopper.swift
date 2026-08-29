@@ -28,10 +28,15 @@ private struct StopRunner: CommandRunning {
 /// only ever calls `kill(2)`, and this one only ever runs one fixed subprocess. **Stop only**
 /// — never removes, force-kills, or restarts a container, and never discards its state.
 struct ContainerStopper: Sendable {
-    /// `--time 5`: SIGTERM, then SIGKILL after five seconds. Docker's default is ten, which
-    /// is a long time to watch a spinner.
-    static func arguments(id: String) -> [String] { ["stop", "--time", "5", id] }
-    /// Long enough to cover `--time 5` plus Docker's own overhead, well short of forever.
+    /// `-t 5`: SIGTERM, then SIGKILL after five seconds. Docker's default is ten, which is a
+    /// long time to watch a spinner. Short `-t`, not `--timeout` or `--time`: `-t` has been
+    /// valid since Docker 1.x and is still canonical, `--timeout` is a recent spelling, and
+    /// `--time` (what an older Squatter used here) is what older engines called it and is
+    /// now deprecated — printing `Flag --time has been deprecated, use --timeout instead` on
+    /// stdout on Docker Desktop 4.88.1 / engine 29.7.2. `-t` is the one spelling verified to
+    /// work cleanly on both old and new engines, and Squatter cannot know which the user has.
+    static func arguments(id: String) -> [String] { ["stop", "-t", "5", id] }
+    /// Long enough to cover `-t 5` plus Docker's own overhead, well short of forever.
     static let timeout: Duration = .seconds(20)
 
     /// Only lowercase hex, 12-64 characters — the exact shape of a Docker container ID.

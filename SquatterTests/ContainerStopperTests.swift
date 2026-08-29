@@ -17,7 +17,7 @@ struct ContainerStopperTests {
     }
 
     @Test func stopBuildsTheExactArgv() {
-        #expect(ContainerStopper.arguments(id: "aa11bb22cc33") == ["stop", "--time", "5", "aa11bb22cc33"])
+        #expect(ContainerStopper.arguments(id: "aa11bb22cc33") == ["stop", "-t", "5", "aa11bb22cc33"])
     }
 
     @Test func invalidIDNeverRunsAnything() async {
