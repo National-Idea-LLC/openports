@@ -30,6 +30,11 @@ each plan so an executor never has to go looking):
 | 009 | Hide ports above a threshold with one switch | P2 | M | — | DONE (reviewed; `worktree-agent-a3b8fc74b0cf93503`, commits `1fb5ab6`+`ad6cc50`, 93 tests) |
 | 010 | Let the ignore list be typed into, not just right-clicked into | P3 | S | — | DONE (reviewed; same worktree, commit `9ae1490`, 100 tests) |
 | 011 | Add a "Report a Bug" link to Settings | P3 | S | — | DONE (reviewed; worktree `worktree-agent-a82dbab60fc874d21`, commit `57e4bfc`, 86 tests) |
+| 012 | Make the snapshot tests assert rendered dimensions, so they can fail (E2-226) | P2 | S | — | DONE (reviewed; commit `d6d1ace`, merged in `d435add`, 123 tests) |
+
+**All eleven are merged into `main` and re-verified at commit `02b3a9c` on 2026-08-29** —
+see "Reconciliation — 2026-08-29" at the end of this file for what was checked and what is
+still open.
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with
 one-line rationale).
@@ -382,3 +387,141 @@ Raised during the audit and left for the owner to weigh:
   binary, the process spawn, and everything plan 003 defends against. Roughly 150 lines of
   `libproc`, and `LsofParser`'s fixture tests would be replaced by a different seam. Worth it
   only if the goal is an app with no external moving parts.
+
+## Reconciliation — 2026-08-29 (against `02b3a9c`, 123 tests green)
+
+Every plan in this file is DONE and merged; nothing is TODO, BLOCKED or IN PROGRESS. Each
+plan's cheap done criteria were re-run against `main` at `02b3a9c` rather than trusted from
+the execution records above.
+
+**Verified on HEAD:**
+
+| Plan | Check re-run | Result |
+|------|--------------|--------|
+| 001 | `requestForceKill` arms a confirmation; `PortRow` calls it, not `forceKill`, from the menu | holds (`PortListModel.swift:267`, `PortRow.swift:311`) |
+| 002 | `ProcessRunner` seam + `SquatterTests/LsofRunnerTests.swift` compiled into the target | holds (`LsofRunner.swift:47`) |
+| 003 | `timeout` on `ProcessRunner`, defaulted | holds (`LsofRunner.swift:54`, `:96`) |
+| 004 | `project-sync` job in CI; `release.sh` regenerates before archiving | holds (`ci.yml:41`) |
+| 005 | `==> Notarize app` stage stapling the app before the DMG is built | holds (`release.sh:68-76`); proven end to end in v0.1.2 |
+| 006 | no `Casks/` in this repo, README points at the live tap | holds; tap is the single source of truth |
+| 007 | `ContainerRef`, `DockerProbe.swift` | holds |
+| 008 | `ContainerStopper.arguments(id:)` uses `-t`, not the deprecated `--time` | holds (`ContainerStopper.swift:38`) |
+| 009 | `squatter.hideHighPorts` / `squatter.highPortThreshold` keys, clamped read | holds (`Preferences.swift:11-91`) |
+| 010 | `PortListModel.addIgnoredPorts(from:)` | holds (`PortListModel.swift:422`) |
+| 011 | Report a Bug button wired to `SettingsModel.reportBug()` | holds (`SettingsView.swift:113`) |
+
+Full suite: **123 tests in 11 suites, zero failures** on `02b3a9c`. Working tree clean.
+
+**Resolved since the batch was written:**
+
+- `.claude/` is now in `.gitignore`, closing the worktree-scratch follow-up.
+- The below-the-fold Settings question was answered on 2026-08-29 by `3b3b158` (Ignored moved
+  above About). Partially: the section moved fifth → fourth and still needs a scroll in the
+  fixed 320x480 window, so the underlying discoverability decision (taller window vs. merging
+  "Hide high ports" into "Ignored") is still open, and `TRACKER.md` says so.
+- The three executor worktrees (`agent-a3b8fc74b0cf93503`, `agent-a7b617c817641c952`,
+  `agent-a82dbab60fc874d21`) are clean and fully merged into `main`, as is
+  `integration/features-007-011`. They are safe to prune whenever the owner wants; nothing
+  in this file depends on them any more.
+
+**Still open, carried forward:**
+
+1. ~~**No Linear issue exists for plans 007-011.**~~ **Closed 2026-08-29 during this
+   reconciliation** — the project's newest issue had been `E2-219` (plan 006), leaving five
+   TRACKER entries plus the settings reorder untracked, against golden rule #8. Six issues
+   created on owner instruction, all **In Review** (never Done), milestone `M3 — Release`
+   since that is the phase the board is in:
+
+   | Issue | Covers |
+   |-------|--------|
+   | `E2-220` | plan 007 — Docker-published ports showed as `com.docker.backend` |
+   | `E2-221` | plan 008 — killing a Docker row took down Docker's networking |
+   | `E2-222` | plan 009 — hide ports above a threshold |
+   | `E2-223` | plan 010 — a port could only be ignored while it was listening |
+   | `E2-224` | plan 011 — nothing in the app pointed at the issue tracker |
+   | `E2-225` | commit `3b3b158` — ignore list before About |
+
+   **Owner follow-up:** `TRACKER.md` still has no `E2-…` links for any of these. Every other
+   task line in that file carries one; these six do not, because the advisor does not edit
+   tracker files. Adding the links is a one-line-per-entry edit.
+2. **Stop Container has still never been clicked in the running app.** Everything beneath
+   the UI is verified against a real daemon (parser on real `docker ps` output, real `lsof`
+   shape, real `docker stop`), but the SwiftUI wiring is tested only offscreen. Open box in
+   `TRACKER.md`.
+3. **Launch at Login against the signed build** — the older open manual check, unchanged.
+4. **`CHANGELOG.md` `[Unreleased]` now holds five Added, one Changed and one Fixed bullet**,
+   all merged and none released. A 0.2.0 is due; that is a release gate, owner's call.
+
+**One `TRACKER.md` inaccuracy found while reconciling:** the last open manual-check box reads
+"`docker stop` has never run against a real daemon either". That was true when written and is
+no longer — the 2026-08-29 real-daemon session ran `docker stop` against Docker Desktop
+4.88.1 and it released the port in 0.22 s, which the ticked box directly above records. Only
+the *UI path* is unverified. Left for the owner to correct, since the advisor does not edit
+source or tracker files.
+
+### Execution record — plan 012, 2026-08-29
+
+Executed by a dispatched executor subagent in an isolated worktree
+(`worktree-agent-aaa23cb69ddbb4925`, commit `d6d1ace`), reviewed by the advisor.
+**Not merged** — the work sits on the worktree branch; merging is the owner's call.
+
+Diff is two files, 17 insertions, 3 deletions: `SquatterTests/SnapshotTests.swift` (two
+`#expect`s inside the shared `snapshot()` helper, the corrected doc comment, and the settings
+snapshot's requested height 560 → 480) and a dated `TRACKER.md` entry. `CHANGELOG.md`
+untouched, correctly — tests are TRACKER-only.
+
+**Verified independently by the advisor, not taken from the executor's report:**
+
+- Full suite re-run in the worktree: `** TEST SUCCEEDED **`, 123 tests in 11 suites — the
+  same count as the baseline, as the plan required.
+- Every grep-based done criterion re-run: one `backingScaleFactor`, zero `canary`, zero
+  `height: 560`, the `looks blank` byte check still present, the false "Not an assertion on
+  pixels" comment gone.
+- **The canary was re-run by the advisor**, not merely believed. A fresh
+  `Color.red.frame(width: 360, height: 2000)` snapshot named `reviewcanary` was added, the
+  suite run, and the file reverted. Both new assertions fired and named the snapshot:
+
+  ```
+  reviewcanary escaped its frame: laid out 360.0x2000.0 pt, asked for 360.0x460.0 pt
+  reviewcanary rendered 720x4000 px, expected 720x920 px at 2.0x
+  ** TEST FAILED **
+  ```
+
+  That is the whole point of this plan discharged: the snapshot layer can now fail, and the
+  proof is reproducible rather than asserted.
+
+No plan defects were found during execution — a first for this repo, where every previous
+batch caught at least one (two case-sensitive/unescaped greps, a fixture that encoded a shape
+Docker never emits, a test-isolation hazard). The advisor's pre-hand-off measurements
+(`list.png` 720x920, `settings.png` 640x960) are the likely reason: the two facts that would
+otherwise have been guessed were checked first.
+
+One incidental whitespace change, disclosed by the executor: removing the canary collapsed a
+pre-existing double blank line above the byte-count loop to one. In scope, harmless.
+
+**Both follow-ups closed on 2026-08-29:** merged into `main` as `d435add` (`--no-ff`, house
+style), suite re-run on the merged tree — 123 tests, zero failures — and filed as
+[`E2-226`](https://linear.app/ielyas/issue/E2-226) (In Review, milestone M3). Not pushed.
+
+### New finding — now plan 012
+
+- **The settings snapshot test cannot fail.** `SquatterTests/SnapshotTests.swift:122-123`
+  asserts only `size > 1_000` bytes on the rendered PNG. On 2026-08-29 that assertion passed
+  against a completely broken layout — the `Form` closed early, `.formStyle`/`.frame` attached
+  to the wrong view, and the window rendered 320x3294 ungrouped — and only a human opening the
+  image caught it. Every snapshot in the suite is guarded by the same byte-count check, so the
+  whole snapshot layer is currently decorative. Asserting the image dimensions (and, for the
+  settings window, that it matches the fixed 320x480 the spec mandates) would have failed
+  loudly. Small, contained, and the one gap this reconciliation found that is worth a plan.
+
+  **Written up as `plans/012-assert-snapshot-dimensions.md`** (drafted by a Fable 5 agent,
+  reviewed and hardened by the advisor). It asserts `host.bounds.size` against the requested
+  size and the PNG's pixel dimensions against points x `window.backingScaleFactor`, keeps the
+  byte check, pins the settings snapshot to the real fixed 320x480, and — the part that makes
+  it worth doing — requires the executor to *watch the new assertion fail* against a
+  deliberately oversized canary view before finishing. Two of its premises were measured
+  rather than assumed before hand-off: `list.png` is 720x920 px for a 360x460 pt request
+  (so pixels = points x 2), and `settings.png` is 640x960 px = 320x480 pt against a 320x560
+  request — proof that `host.bounds` follows the content, which is the mechanism behind the
+  original 320x3294 bug and the reason the canary should fire. Nothing depends on it and
+  nothing it touches is user-visible; it is executable now.
