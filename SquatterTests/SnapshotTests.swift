@@ -5,7 +5,8 @@ import Testing
 @testable import Squatter
 
 /// Renders the popover in a real (offscreen) window and writes PNGs for eyeballing.
-/// Not an assertion on pixels — a build-time sanity check that the views lay out.
+/// Asserts each render fills exactly the frame it was asked for (a view that escapes its
+/// frame fails by name) and is not blank; pixel *content* is still eyeball-only.
 @MainActor
 struct SnapshotTests {
     private static let outputDirectory = URL(filePath: NSTemporaryDirectory()).appending(path: "squatter-snapshots")
@@ -21,8 +22,21 @@ struct SnapshotTests {
         window.makeKeyAndOrderFront(nil)
         RunLoop.current.run(until: Date().addingTimeInterval(0.05))
         host.layoutSubtreeIfNeeded()
+        // A view that escapes its frame must fail here, by name. The 2026-08-29 settings
+        // regression rendered 320x3294 instead of 320x480 and sailed past the byte check.
+        #expect(
+            host.bounds.size == size,
+            "\(name) escaped its frame: laid out \(host.bounds.width)x\(host.bounds.height) pt, asked for \(size.width)x\(size.height) pt"
+        )
         let rep = try #require(host.bitmapImageRepForCachingDisplay(in: host.bounds))
         host.cacheDisplay(in: host.bounds, to: rep)
+        let scale = window.backingScaleFactor
+        let expectedWidth = Int((size.width * scale).rounded())
+        let expectedHeight = Int((size.height * scale).rounded())
+        #expect(
+            rep.pixelsWide == expectedWidth && rep.pixelsHigh == expectedHeight,
+            "\(name) rendered \(rep.pixelsWide)x\(rep.pixelsHigh) px, expected \(expectedWidth)x\(expectedHeight) px at \(scale)x"
+        )
         let png = try #require(rep.representation(using: .png, properties: [:]))
         try FileManager.default.createDirectory(at: Self.outputDirectory, withIntermediateDirectories: true)
         let url = Self.outputDirectory.appending(path: "\(name).png")
@@ -101,7 +115,7 @@ struct SnapshotTests {
         ignoring.hideHighPorts = true
         let approval = FakeLoginItem(status: .requiresApproval)
         let settings = SettingsModel(loginItem: approval, preferences: Preferences(defaults: freshDefaults()))
-        let settingsURL = try snapshot(SettingsView(settings: settings, model: ignoring).frame(width: 320), name: "settings", size: CGSize(width: 320, height: 560))
+        let settingsURL = try snapshot(SettingsView(settings: settings, model: ignoring).frame(width: 320), name: "settings", size: CGSize(width: 320, height: 480))
 
         // A container-published port should show the container's name and image, not the
         // Docker Desktop proxy process that actually owns the socket.
@@ -116,7 +130,6 @@ struct SnapshotTests {
         let containerRow = try #require(dockerModel.listeners.first { $0.container != nil })
         dockerModel.requestStopContainer(containerRow)
         let confirmStopURL = try snapshot(PortListView(model: dockerModel, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-confirm-stop")
-
 
         for url in [listURL, darkURL, stubbornURL, confirmURL, forceConfirmURL, emptyURL, errorURL, ignoredURL, highPortsURL, settingsURL, dockerURL, confirmStopURL] {
             let size = try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int ?? 0
