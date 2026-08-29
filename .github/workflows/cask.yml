@@ -15,7 +15,11 @@ on:
     inputs:
       tag:
         description: "Release tag to publish to the tap (e.g. v0.1.2)"
-        required: true
+        required: false
+      verify_auth:
+        description: "Prove TAP_TOKEN can write to the tap, without touching the cask"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -25,8 +29,67 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # A no-op bump proves nothing: when the cask already carries the released version the
+  # bump job exits before it ever writes, and the clone that precedes it succeeds even with
+  # a junk token because the tap is public. That is exactly how a missing TAP_TOKEN stayed
+  # invisible for two releases. This job exercises the two permissions for real -- push a
+  # branch (Contents: write), open a PR (Pull requests: write) -- then closes the PR rather
+  # than merging it and deletes the branch, so main and the cask are never touched.
+  verify-credential:
+    name: Prove TAP_TOKEN can write to the tap
+    if: ${{ inputs.verify_auth }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Push a scratch branch and open a throwaway PR
+        env:
+          GH_TOKEN: ${{ secrets.TAP_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAP=National-Idea-LLC/homebrew-tap
+          BRANCH="auth-probe/$GITHUB_RUN_ID"
+          echo "BRANCH=$BRANCH" >> "$GITHUB_ENV"
+
+          [ -n "$GH_TOKEN" ] || { echo "TAP_TOKEN is empty or unset — the secret is missing."; exit 1; }
+
+          git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/$TAP.git" tap
+          cd tap
+          git switch -c "$BRANCH"
+
+          # A PR needs a diff, so write a throwaway file. Never Casks/, so a mistake here
+          # cannot produce a shippable-looking cask change.
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > .tap-auth-probe
+          git add .tap-auth-probe
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -qm "Probe TAP_TOKEN write access (run $GITHUB_RUN_ID)"
+
+          git push -q origin "$BRANCH"
+          echo "Contents: write — OK (branch pushed)"
+
+          PR=$(gh pr create --repo "$TAP" --base main --head "$BRANCH" \
+                --title "TAP_TOKEN write probe (run $GITHUB_RUN_ID)" \
+                --body "Automated credential check. Closed without merging; the branch is deleted straight after." \
+                | grep -oE '[0-9]+$')
+          echo "PR=$PR" >> "$GITHUB_ENV"
+          echo "Pull requests: write — OK (opened #$PR)"
+
+      # always(), so a failure part-way through still cleans up after itself rather than
+      # leaving a probe branch and an open PR on a public tap.
+      - name: Close the PR and delete the branch
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.TAP_TOKEN }}
+        run: |
+          set -uo pipefail
+          TAP=National-Idea-LLC/homebrew-tap
+          [ -n "${PR:-}" ] && gh pr close "$PR" --repo "$TAP" --comment "Probe complete." || true
+          [ -n "${BRANCH:-}" ] && gh api -X DELETE "repos/$TAP/git/refs/heads/$BRANCH" || true
+          echo "Cleaned up. main and Casks/squatter.rb were never touched."
+
   bump:
     name: Verify the build, then bump the cask
+    if: ${{ !inputs.verify_auth }}
     runs-on: macos-26
     timeout-minutes: 20
     steps:
