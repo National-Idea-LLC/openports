@@ -4,7 +4,7 @@ import Testing
 
 struct PortScannerTests {
     @Test func parsesRunnerOutput() async throws {
-        let scanner = PortScanner(runner: FakeRunner(.success(lsofResult(sampleLsof))), currentUID: 501, userName: testUserName)
+        let scanner = PortScanner(runner: FakeRunner(.success(lsofResult(sampleLsof))), currentUID: 501, userName: testUserName, docker: nil)
         let listeners = try await scanner.scan()
         #expect(listeners.map(\.port) == [3000])
         #expect(listeners[0].isOwnedByCurrentUser)
@@ -12,7 +12,7 @@ struct PortScannerTests {
 
     @Test func concurrentScansCoalesceIntoOneLaunch() async throws {
         let runner = FakeRunner(.success(lsofResult(sampleLsof)), delay: .milliseconds(150))
-        let scanner = PortScanner(runner: runner, currentUID: 501, userName: testUserName)
+        let scanner = PortScanner(runner: runner, currentUID: 501, userName: testUserName, docker: nil)
 
         let results = try await withThrowingTaskGroup(of: [Listener].self) { group in
             for _ in 0..<5 { group.addTask { try await scanner.scan() } }
@@ -26,7 +26,7 @@ struct PortScannerTests {
 
     @Test func sequentialScansLaunchAgain() async throws {
         let runner = FakeRunner(.success(lsofResult(sampleLsof)))
-        let scanner = PortScanner(runner: runner, currentUID: 501, userName: testUserName)
+        let scanner = PortScanner(runner: runner, currentUID: 501, userName: testUserName, docker: nil)
         _ = try await scanner.scan()
         _ = try await scanner.scan()
         #expect(await runner.launches == 2)
@@ -34,7 +34,7 @@ struct PortScannerTests {
 
     @Test func runnerErrorsPropagateAndDoNotStickTheActor() async throws {
         let runner = FakeRunner(.failure(.launchFailed("boom")))
-        let scanner = PortScanner(runner: runner, currentUID: 501, userName: testUserName)
+        let scanner = PortScanner(runner: runner, currentUID: 501, userName: testUserName, docker: nil)
         await #expect(throws: ScanError.launchFailed("boom")) { try await scanner.scan() }
         await #expect(throws: ScanError.launchFailed("boom")) { try await scanner.scan() }
         #expect(await runner.launches == 2)

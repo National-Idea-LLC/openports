@@ -12,7 +12,7 @@ struct PortListModelTests {
         badgeInterval: Duration = .milliseconds(100)
     ) -> PortListModel {
         PortListModel(
-            scanner: PortScanner(runner: runner, currentUID: 501, userName: testUserName),
+            scanner: PortScanner(runner: runner, currentUID: 501, userName: testUserName, docker: nil),
             killer: kills.killer,
             actions: actions,
             preferences: Preferences(defaults: defaults),
@@ -533,7 +533,7 @@ struct PreferencesTests {
         let defaults = freshDefaults()
         #expect(Preferences(defaults: defaults).dockerIntegration, "on by default: nothing runs without a docker CLI anyway")
         let model = PortListModel(
-            scanner: PortScanner(runner: FakeRunner(.success(lsofResult(sampleLsof))), currentUID: 501, userName: testUserName),
+            scanner: PortScanner(runner: FakeRunner(.success(lsofResult(sampleLsof))), currentUID: 501, userName: testUserName, docker: nil),
             killer: KillRecorder(names: [:]).killer,
             actions: RecordingActions(),
             preferences: Preferences(defaults: defaults)

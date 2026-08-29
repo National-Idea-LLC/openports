@@ -36,11 +36,7 @@ struct SnapshotTests {
         docker: DockerProbe? = nil
     ) async -> PortListModel {
         let runner = FakeRunner(.success(lsofResult(lsof)))
-        let scanner = if let docker {
-            PortScanner(runner: runner, currentUID: 501, userName: testUserName, docker: docker)
-        } else {
-            PortScanner(runner: runner, currentUID: 501, userName: testUserName)
-        }
+        let scanner = PortScanner(runner: runner, currentUID: 501, userName: testUserName, docker: docker)
         let model = PortListModel(
             scanner: scanner,
             killer: kills.killer,
@@ -69,7 +65,7 @@ struct SnapshotTests {
         let emptyURL = try snapshot(PortListView(model: empty, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "empty")
 
         let failing = PortListModel(
-            scanner: PortScanner(runner: FakeRunner(.failure(.lsofNotFound(path: "/usr/sbin/lsof"))), currentUID: 501),
+            scanner: PortScanner(runner: FakeRunner(.failure(.lsofNotFound(path: "/usr/sbin/lsof"))), currentUID: 501, docker: nil),
             killer: KillRecorder(names: [:]).killer,
             actions: RecordingActions(),
             preferences: Preferences(defaults: freshDefaults())
