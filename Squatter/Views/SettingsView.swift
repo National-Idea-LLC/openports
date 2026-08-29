@@ -52,6 +52,12 @@ struct SettingsView: View {
                     Text("Updates")
                 }
                 LabeledContent {
+                    Button("Report a Bug") { settings.reportBug() }
+                        .controlSize(.small)
+                } label: {
+                    Text("Something broken?")
+                }
+                LabeledContent {
                     Button("View Source") { settings.openSource() }
                         .controlSize(.small)
                 } label: {
@@ -60,7 +66,7 @@ struct SettingsView: View {
             } header: {
                 Text("About")
             } footer: {
-                Text("Squatter never connects to the internet on its own. Checking for updates opens GitHub in your browser.")
+                Text("Squatter never connects to the internet on its own. Checking for updates or reporting a bug opens GitHub in your browser.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

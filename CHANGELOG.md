@@ -5,6 +5,7 @@ All notable user-facing changes to Squatter. Written for the people who use it â
 ## [Unreleased]
 
 ### Added
+- Settings has a Report a Bug button that opens a new issue with your Squatter and macOS versions already filled in.
 
 ### Changed
 
