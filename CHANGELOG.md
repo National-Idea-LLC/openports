@@ -5,6 +5,18 @@ All notable user-facing changes to Squatter. Written for the people who use it �
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [0.3.0] - 2026-08-29
+
+A new app icon drawn for the way macOS renders icons now, the Liquid Glass look on macOS 26, and each row spells out its address so you can click straight through to it.
+
+### Added
 - Every row now shows its address — `http://localhost:3000` — on its own line, so you can read it without hovering. Click it to open in your browser, same as the ↗ button.
 
 ### Changed
@@ -15,8 +27,6 @@ All notable user-facing changes to Squatter. Written for the people who use it �
 - The tooltips on each row's buttons now appear quickly enough to actually read. They were on the system's two-second delay, but the ⋯, ↗ and ✕ buttons only exist while you're hovering the row — so the tip usually arrived after you'd moved on, or never showed at all.
 - Settings is easier to read: the explanations under each group are darker and now say what they are about instead of starting mid-sentence.
 - The refresh icon in the footer no longer blinks every couple of seconds. It only spins when you ask for a refresh — the list and the counts still update on their own in the background, as before.
-
-### Removed
 
 ## [0.2.0] - 2026-08-29
 
