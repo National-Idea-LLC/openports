@@ -51,6 +51,7 @@ struct SettingsView: View {
                         value: $model.highPortThreshold,
                         format: .number.grouping(.never)
                     )
+                    .textFieldStyle(.roundedBorder)
                     .labelsHidden()
                     .multilineTextAlignment(.trailing)
                     .frame(width: 64)
