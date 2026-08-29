@@ -19,6 +19,7 @@ Applies to all user-facing text: buttons, menu items, context menus, tooltips, s
 - Verb + object: "Kill Process", "Copy Port", "Ignore Port" — never "OK", "Submit", or bare "Kill".
 - Destructive actions name the consequence and use `role: .destructive` ("Force Kill node", not "Confirm").
 - The destructive verb is **Kill** — it matches developer vocabulary and both reference apps. Do not soften to "Stop" or "End".
+- The exception is Docker containers, which are stopped, not killed: the button is **Stop Container** and the in-flight state is "Stopping…". Killing Docker's proxy process is a different, wrong action.
 
 ## Errors
 

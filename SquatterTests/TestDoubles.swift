@@ -70,6 +70,52 @@ final class KillRecorder: Sendable {
     }
 }
 
+/// Records the container IDs a stop would have used, and serves a scripted result.
+/// `dockerAvailable = false` mimics `DockerProbe.findExecutable()` finding nothing.
+final class StopRecorder: Sendable {
+    private struct State {
+        var launches: [String] = []
+        var result: Result<CommandResult, ScanError>
+        var dockerAvailable = true
+    }
+    private let state: Mutex<State>
+    private let delay: Duration
+
+    init(
+        result: Result<CommandResult, ScanError> = .success(CommandResult(stdout: Data(), stderr: Data(), exitCode: 0)),
+        dockerAvailable: Bool = true,
+        delay: Duration = .zero
+    ) {
+        state = Mutex(State(result: result, dockerAvailable: dockerAvailable))
+        self.delay = delay
+    }
+
+    var launches: [String] { state.withLock { $0.launches } }
+    func set(_ result: Result<CommandResult, ScanError>) { state.withLock { $0.result = result } }
+    func setDockerAvailable(_ available: Bool) { state.withLock { $0.dockerAvailable = available } }
+
+    var stopper: ContainerStopper {
+        ContainerStopper(makeRunner: { [self] id in
+            guard state.withLock({ $0.dockerAvailable }) else { return nil }
+            return StopRunnerRecording(id: id, delay: delay, recorder: self)
+        })
+    }
+
+    fileprivate func recordLaunch(_ id: String) throws -> CommandResult {
+        try state.withLock { $0.launches.append(id); return $0.result }.get()
+    }
+}
+
+private struct StopRunnerRecording: CommandRunning {
+    let id: String
+    let delay: Duration
+    let recorder: StopRecorder
+    func run() async throws -> CommandResult {
+        if delay > .zero { try await Task.sleep(for: delay) }
+        return try recorder.recordLaunch(id)
+    }
+}
+
 /// Captures what the model asked the OS to do.
 @MainActor
 final class RecordingActions: SystemActions {

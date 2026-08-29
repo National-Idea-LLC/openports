@@ -104,7 +104,12 @@ struct SnapshotTests {
         let dockerModel = await loadedModel("p600\nccom.docker.backend\nu501\nf1\nPTCP\nn*:5432\nTST=LISTEN\n", docker: dockerProbe)
         let dockerURL = try snapshot(PortListView(model: dockerModel, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-docker")
 
-        for url in [listURL, darkURL, stubbornURL, confirmURL, forceConfirmURL, emptyURL, errorURL, ignoredURL, settingsURL, dockerURL] {
+        // Stop Container's confirmation must not truncate its buttons any more than Kill's does.
+        let containerRow = try #require(dockerModel.listeners.first { $0.container != nil })
+        dockerModel.requestStopContainer(containerRow)
+        let confirmStopURL = try snapshot(PortListView(model: dockerModel, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-confirm-stop")
+
+        for url in [listURL, darkURL, stubbornURL, confirmURL, forceConfirmURL, emptyURL, errorURL, ignoredURL, settingsURL, dockerURL, confirmStopURL] {
             let size = try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int ?? 0
             #expect(size > 1_000, "\(url.lastPathComponent) looks blank")
         }

@@ -22,6 +22,32 @@ struct PortListModelTests {
         )
     }
 
+    /// A loaded model with one row Squatter mapped to a Docker container (`api-db-1` on
+    /// 5432, from the plan 007 fixture), for the Stop Container tests below.
+    private func makeContainerModel(
+        stop: StopRecorder = StopRecorder(),
+        kills: KillRecorder = KillRecorder(names: [600: "com.docker.backend", 42: "node"]),
+        lsof: String = "p600\nccom.docker.backend\nu501\nf1\nPTCP\nn*:5432\nTST=LISTEN\n"
+    ) async throws -> PortListModel {
+        let url = try #require(Bundle(for: Anchor.self).url(forResource: "docker-ps-sample", withExtension: "txt"))
+        let dockerFixture = try String(contentsOf: url, encoding: .utf8)
+        let docker = DockerProbe(runner: FakeRunner(.success(lsofResult(dockerFixture))), executablePath: "/test/docker")
+        await docker.refreshNow()
+        let scanner = PortScanner(runner: FakeRunner(.success(lsofResult(lsof))), currentUID: 501, userName: testUserName, docker: docker)
+        let model = PortListModel(
+            scanner: scanner,
+            killer: kills.killer,
+            stopper: stop.stopper,
+            actions: RecordingActions(),
+            preferences: Preferences(defaults: freshDefaults()),
+            forceKillGrace: .milliseconds(60),
+            forceKillWait: .milliseconds(60),
+            badgeInterval: .milliseconds(100)
+        )
+        await model.refresh()
+        return model
+    }
+
     @Test func refreshLoadsListeners() async {
         let model = makeModel()
         #expect(!model.hasLoaded)
@@ -335,6 +361,98 @@ struct PortListModelTests {
         #expect(model.killState(for: postgres) == .confirming)
     }
 
+    // MARK: Stop Container
+
+    @Test func stopContainerArmsAConfirmationInsteadOfRunningDocker() async throws {
+        let stop = StopRecorder()
+        let model = try await makeContainerModel(stop: stop)
+        let container = try #require(model.listeners.first { $0.container != nil })
+
+        model.requestStopContainer(container)
+        #expect(model.killState(for: container) == .confirmingStop)
+        #expect(model.isAwaitingKillConfirmation)
+        #expect(stop.launches.isEmpty)
+    }
+
+    @Test func confirmedStopRunsDockerStopOnceAndRefreshes() async throws {
+        let stop = StopRecorder()
+        let model = try await makeContainerModel(stop: stop)
+        let container = try #require(model.listeners.first { $0.container != nil })
+        let containerID = try #require(container.container?.id)
+
+        model.requestStopContainer(container)
+        await model.stopContainer(container)
+
+        #expect(stop.launches == [containerID])
+        #expect(model.killState(for: container) == nil)
+    }
+
+    @Test func containerRowsCannotArmAProcessKill() async throws {
+        let kills = KillRecorder(names: [600: "com.docker.backend"])
+        let model = try await makeContainerModel(kills: kills)
+        let container = try #require(model.listeners.first { $0.container != nil })
+
+        model.requestKill(container)
+        #expect(model.killState(for: container) == nil)
+        model.requestForceKill(container)
+        #expect(model.killState(for: container) == nil)
+        #expect(kills.signals.isEmpty)
+    }
+
+    @Test func nonContainerRowsCannotArmAStop() async {
+        let model = makeModel()
+        await model.refresh()
+        model.requestStopContainer(sampleListener)
+        #expect(model.killState(for: sampleListener) == nil)
+    }
+
+    @Test func escapeCancelsAnArmedStop() async throws {
+        let stop = StopRecorder(delay: .milliseconds(150))
+        let model = try await makeContainerModel(stop: stop)
+        let container = try #require(model.listeners.first { $0.container != nil })
+
+        model.requestStopContainer(container)
+        #expect(model.killState(for: container) == .confirmingStop)
+
+        let inFlight = Task { await model.stopContainer(container) }
+        try await Task.sleep(for: .milliseconds(30))
+        #expect(model.killState(for: container) == .stopping)
+
+        model.cancelAllKillConfirmations()
+        #expect(model.killState(for: container) == .stopping, "an in-flight stop survives cancellation")
+
+        await inFlight.value
+        #expect(model.killState(for: container) == nil)
+    }
+
+    @Test func stopFailureSurfacesTheMessageAndIsDismissable() async throws {
+        let stop = StopRecorder(result: .success(CommandResult(
+            stdout: Data(),
+            stderr: Data("Error response from daemon: No such container".utf8),
+            exitCode: 1
+        )))
+        let model = try await makeContainerModel(stop: stop)
+        let container = try #require(model.listeners.first { $0.container != nil })
+
+        await model.stopContainer(container)
+        guard case .failed(let message)? = model.killState(for: container) else {
+            Issue.record("expected .failed, got \(String(describing: model.killState(for: container)))")
+            return
+        }
+        #expect(message.contains("No such container"))
+        model.dismissKillError(for: container)
+        #expect(model.killState(for: container) == nil)
+    }
+
+    @Test func deleteKeyArmsStopOnAContainerRow() async throws {
+        let model = try await makeContainerModel()
+        let container = try #require(model.listeners.first { $0.container != nil })
+        model.selection = container.id
+
+        #expect(model.killSelected())
+        #expect(model.killState(for: container) == .confirmingStop)
+    }
+
     @Test func confirmationIsRefusedForOtherUsersRows() async {
         let root = "p1\nclaunchd\nu0\nf1\nPTCP\nn*:22\nTST=LISTEN\n"
         let model = makeModel(runner: FakeRunner(.success(lsofResult(root))), kills: KillRecorder(names: [1: "launchd"]))
@@ -578,3 +696,5 @@ struct PreferencesTests {
         }
     }
 }
+
+private final class Anchor {}

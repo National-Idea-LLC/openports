@@ -70,7 +70,7 @@ Developers running multiple local servers (Vite, Next, Rails, Docker, Postgres, 
 - [ ] **Sparkle-free updates**: "Check for updates" links to the GitHub releases page (no auto-updater in MVP).
 
 ### P2 — Nice to Have
-- [x] **Docker awareness (annotation half)**: ports published by a Docker container show its name and image (`docker ps --no-trunc --format json`), read-only. "Stop container" instead of kill is still pending (plan 008).
+- [x] **Docker awareness**: ports published by a Docker container show its name and image (`docker ps --no-trunc --format json`) and offer **Stop Container** (`docker stop`) instead of Kill/Force Kill.
 - [ ] **Native detection** (`proc_listpids` + `proc_pidfdinfo(PROC_PIDFDSOCKETINFO)`) replacing the `lsof` subprocess.
 - [ ] **UDP listeners** toggle.
 - [ ] **Custom URL scheme/host per port** (e.g. open `https://` or a `.local` host).
