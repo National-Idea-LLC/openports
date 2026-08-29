@@ -529,6 +529,20 @@ struct PreferencesTests {
         #expect(prefs.showCountInMenuBar)
     }
 
+    @Test func dockerIntegrationDefaultsOnAndPersists() {
+        let defaults = freshDefaults()
+        #expect(Preferences(defaults: defaults).dockerIntegration, "on by default: nothing runs without a docker CLI anyway")
+        let model = PortListModel(
+            scanner: PortScanner(runner: FakeRunner(.success(lsofResult(sampleLsof))), currentUID: 501, userName: testUserName),
+            killer: KillRecorder(names: [:]).killer,
+            actions: RecordingActions(),
+            preferences: Preferences(defaults: defaults)
+        )
+        #expect(model.dockerIntegration)
+        model.dockerIntegration = false
+        #expect(Preferences(defaults: defaults).dockerIntegration == false)
+    }
+
     @Test func refreshIntervalIsClamped() {
         let prefs = Preferences(defaults: freshDefaults())
         prefs.refreshInterval = 0.01

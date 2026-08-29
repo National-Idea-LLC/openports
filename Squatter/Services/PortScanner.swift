@@ -8,25 +8,34 @@ actor PortScanner {
     private let runner: any CommandRunning
     private let currentUID: uid_t
     private let userName: UserNameResolver
+    private let docker: DockerProbe?
     private var inFlight: Task<[Listener], any Error>?
 
     init(
         runner: any CommandRunning = LsofRunner(),
         currentUID: uid_t = getuid(),
-        userName: @escaping UserNameResolver = LsofParser.defaultUserName
+        userName: @escaping UserNameResolver = LsofParser.defaultUserName,
+        docker: DockerProbe? = DockerProbe()
     ) {
         self.runner = runner
         self.currentUID = currentUID
         self.userName = userName
+        self.docker = docker
     }
+
+    /// Forwarded from the Docker Integration setting.
+    func setDockerEnabled(_ enabled: Bool) async { await docker?.setEnabled(enabled) }
 
     func scan() async throws -> [Listener] {
         if let inFlight {
             return try await inFlight.value
         }
-        let task = Task { [runner, currentUID, userName] in
-            let result = try await runner.run()
-            return try Self.listeners(from: result, currentUID: currentUID, userName: userName)
+        let task = Task { [runner, currentUID, userName, docker] in
+            let listeners = try Self.listeners(from: try await runner.run(), currentUID: currentUID, userName: userName)
+            guard let docker else { return listeners }
+            let containers = await docker.snapshot()
+            guard !containers.isEmpty else { return listeners }
+            return listeners.map { $0.withContainer(containers[$0.port]) }
         }
         inFlight = task
         defer { inFlight = nil }

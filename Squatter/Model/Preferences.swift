@@ -7,6 +7,7 @@ enum DefaultsKeys {
     static let ignoredPorts = "squatter.ignoredPorts"
     static let ignoredProcessNames = "squatter.ignoredProcessNames"
     static let sortOrder = "squatter.sortOrder"
+    static let dockerIntegration = "squatter.dockerIntegration"
 }
 
 /// How the list is ordered. Raw values are persisted — don't rename.
@@ -57,5 +58,15 @@ struct Preferences {
     var showCountInMenuBar: Bool {
         get { defaults.bool(forKey: DefaultsKeys.showCountInMenuBar) }
         nonmutating set { defaults.set(newValue, forKey: DefaultsKeys.showCountInMenuBar) }
+    }
+
+    /// On by default: with no Docker CLI installed nothing is ever spawned, so the cost of
+    /// leaving it on is zero. Off is the escape hatch for anyone who wants no second process.
+    var dockerIntegration: Bool {
+        get {
+            guard defaults.object(forKey: DefaultsKeys.dockerIntegration) != nil else { return true }
+            return defaults.bool(forKey: DefaultsKeys.dockerIntegration)
+        }
+        nonmutating set { defaults.set(newValue, forKey: DefaultsKeys.dockerIntegration) }
     }
 }

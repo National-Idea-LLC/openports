@@ -61,10 +61,7 @@ struct PortRow: View {
 
     private var details: some View {
         VStack(alignment: .leading, spacing: 1) {
-            Text(listener.processName)
-                .font(.callout.weight(.medium))
-                .lineLimit(1)
-                .foregroundStyle(isIgnored ? .secondary : .primary)
+            titleLine
             if let confirmationPrompt {
                 // The name above already says which process; this line asks, so the buttons
                 // never have to compete with a long name for width.
@@ -73,8 +70,14 @@ struct PortRow: View {
                     .foregroundStyle(.red)
             } else {
                 HStack(spacing: 6) {
-                    Text(verbatim: "PID \(listener.pid)")
-                        .monospacedDigit()
+                    if let container = listener.container {
+                        // The PID of com.docker.backend is the same for every container row
+                        // and tells the user nothing; the image tells them what it is.
+                        Text(verbatim: container.image)
+                    } else {
+                        Text(verbatim: "PID \(listener.pid)")
+                            .monospacedDigit()
+                    }
                     ForEach(listener.addresses.sorted(), id: \.self) { address in
                         AddressChip(address: address)
                     }
@@ -84,6 +87,27 @@ struct PortRow: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var titleLine: some View {
+        if let container = listener.container {
+            HStack(spacing: 4) {
+                Image(systemName: "shippingbox.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .help(Text("Published by Docker container \(container.name) → port \(String(container.containerPort))"))
+                Text(listener.displayName)
+                    .font(.callout.weight(.medium))
+                    .lineLimit(1)
+                    .foregroundStyle(isIgnored ? .secondary : .primary)
+            }
+        } else {
+            Text(listener.processName)
+                .font(.callout.weight(.medium))
+                .lineLimit(1)
+                .foregroundStyle(isIgnored ? .secondary : .primary)
         }
     }
 
@@ -260,7 +284,11 @@ struct PortRow: View {
     // MARK: Text
 
     private var accessibilityText: String {
-        var text = String(localized: "\(listener.processName) on port \(String(listener.port)), PID \(String(listener.pid))")
+        var text = if let container = listener.container {
+            String(localized: "\(container.name), Docker container from \(container.image), on port \(String(listener.port))")
+        } else {
+            String(localized: "\(listener.processName) on port \(String(listener.port)), PID \(String(listener.pid))")
+        }
         if !canKill { text += String(localized: ", owned by \(listener.user)") }
         if isIgnored { text += String(localized: ", ignored") }
         return text

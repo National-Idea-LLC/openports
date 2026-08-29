@@ -30,9 +30,19 @@ struct SnapshotTests {
         return url
     }
 
-    private func loadedModel(_ lsof: String, kills: KillRecorder = KillRecorder(names: [42: "node", 7: "postgres", 1: "launchd"])) async -> PortListModel {
+    private func loadedModel(
+        _ lsof: String,
+        kills: KillRecorder = KillRecorder(names: [42: "node", 7: "postgres", 1: "launchd"]),
+        docker: DockerProbe? = nil
+    ) async -> PortListModel {
+        let runner = FakeRunner(.success(lsofResult(lsof)))
+        let scanner = if let docker {
+            PortScanner(runner: runner, currentUID: 501, userName: testUserName, docker: docker)
+        } else {
+            PortScanner(runner: runner, currentUID: 501, userName: testUserName)
+        }
         let model = PortListModel(
-            scanner: PortScanner(runner: FakeRunner(.success(lsofResult(lsof))), currentUID: 501, userName: testUserName),
+            scanner: scanner,
             killer: kills.killer,
             actions: RecordingActions(),
             preferences: Preferences(defaults: freshDefaults())
@@ -89,10 +99,21 @@ struct SnapshotTests {
         let settings = SettingsModel(loginItem: approval, preferences: Preferences(defaults: freshDefaults()))
         let settingsURL = try snapshot(SettingsView(settings: settings, model: ignoring).frame(width: 320), name: "settings", size: CGSize(width: 320, height: 560))
 
-        for url in [listURL, darkURL, stubbornURL, confirmURL, forceConfirmURL, emptyURL, errorURL, ignoredURL, settingsURL] {
+        // A container-published port should show the container's name and image, not the
+        // Docker Desktop proxy process that actually owns the socket.
+        let dockerFixtureURL = try #require(Bundle(for: Anchor.self).url(forResource: "docker-ps-sample", withExtension: "txt"))
+        let dockerFixtureText = try String(contentsOf: dockerFixtureURL, encoding: .utf8)
+        let dockerProbe = DockerProbe(runner: FakeRunner(.success(lsofResult(dockerFixtureText))), executablePath: "/test/docker")
+        await dockerProbe.refreshNow()
+        let dockerModel = await loadedModel("p600\nccom.docker.backend\nu501\nf1\nPTCP\nn*:5432\nTST=LISTEN\n", docker: dockerProbe)
+        let dockerURL = try snapshot(PortListView(model: dockerModel, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-docker")
+
+        for url in [listURL, darkURL, stubbornURL, confirmURL, forceConfirmURL, emptyURL, errorURL, ignoredURL, settingsURL, dockerURL] {
             let size = try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int ?? 0
             #expect(size > 1_000, "\(url.lastPathComponent) looks blank")
         }
         print("SNAPSHOTS: \(Self.outputDirectory.path)")
     }
 }
+
+private final class Anchor {}

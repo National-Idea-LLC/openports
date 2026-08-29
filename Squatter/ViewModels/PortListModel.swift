@@ -51,6 +51,15 @@ final class PortListModel {
             restartPollingLoop()
         }
     }
+    /// Annotate Docker-published ports with their container. Off means Squatter never runs
+    /// the `docker` CLI.
+    var dockerIntegration: Bool {
+        didSet {
+            preferences.dockerIntegration = dockerIntegration
+            let enabled = dockerIntegration
+            Task { [scanner] in await scanner.setDockerEnabled(enabled) }
+        }
+    }
 
     @ObservationIgnored private let scanner: PortScanner
     @ObservationIgnored private let killer: ProcessKiller
@@ -82,6 +91,8 @@ final class PortListModel {
         self.ignoredProcessNames = preferences.ignoredProcessNames
         self.sortOrder = preferences.sortOrder
         self.showCountInMenuBar = preferences.showCountInMenuBar
+        self.dockerIntegration = preferences.dockerIntegration
+        Task { [scanner, dockerIntegration] in await scanner.setDockerEnabled(dockerIntegration) }
         restartPollingLoop()
     }
 

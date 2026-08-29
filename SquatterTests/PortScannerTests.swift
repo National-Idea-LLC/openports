@@ -66,6 +66,24 @@ struct PortScannerTests {
         }
     }
 
+    // MARK: Docker annotation
+
+    @Test func dockerAnnotationAttachesContainersByHostPort() async throws {
+        let dockerFixtureURL = try #require(Bundle(for: Anchor.self).url(forResource: "docker-ps-sample", withExtension: "txt"))
+        let dockerFixture = try String(contentsOf: dockerFixtureURL, encoding: .utf8)
+        let docker = DockerProbe(runner: FakeRunner(.success(lsofResult(dockerFixture))), executablePath: "/test/docker")
+        await docker.refreshNow()
+
+        let lsofOutput = sampleLsof + "p7\ncom.docker.backend\nu501\nf1\nPTCP\nn*:5432\nTST=LISTEN\n"
+        let scanner = PortScanner(runner: FakeRunner(.success(lsofResult(lsofOutput))), currentUID: 501, userName: testUserName, docker: docker)
+        let listeners = try await scanner.scan()
+
+        let dockerRow = try #require(listeners.first { $0.port == 5432 })
+        #expect(dockerRow.container?.name == "api-db-1")
+        let plainRow = try #require(listeners.first { $0.port == 3000 })
+        #expect(plainRow.container == nil)
+    }
+
     // MARK: integration — the real binary
 
     @Test func realLsofRunsAndProducesFieldOutput() async throws {
@@ -78,3 +96,5 @@ struct PortScannerTests {
         }
     }
 }
+
+private final class Anchor {}

@@ -36,12 +36,16 @@ struct SettingsView: View {
                         Text(intervalLabel(seconds)).tag(seconds)
                     }
                 }
+                Toggle("Docker integration", isOn: $model.dockerIntegration)
             } footer: {
-                Text(model.showCountInMenuBar
-                    ? "While the list is open. The menu bar count updates every 10 seconds."
-                    : "Only while the list is open.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(model.showCountInMenuBar
+                        ? "While the list is open. The menu bar count updates every 10 seconds."
+                        : "Only while the list is open.")
+                    Text("Names the container behind a published port. Squatter only runs the docker command when Docker is installed.")
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
             Section {
                 LabeledContent("Version", value: settings.appVersion)
