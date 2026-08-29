@@ -25,6 +25,11 @@ each plan so an executor never has to go looking):
 | 004 | Make `project.yml` provably the source of truth for the Xcode project | P2 | S | — | DONE (reviewed) |
 | 005 | Staple the notarization ticket to the app, not just the DMG (E2-218) | P1 | S | — | DONE (script changed; proof pending the next `release.sh --notarize` run) |
 | 006 | Make the Homebrew cask actually installable (E2-219) | P1 | M | — | DONE (tap published and install verified end to end) |
+| 007 | Show which Docker container owns a published port | P2 | L | — | DONE (reviewed + verified against a real daemon; commits `1c92182`, `392a1aa`, `92bf8bb`) |
+| 008 | Offer "Stop Container" instead of killing Docker | P2 | M | 007 | DONE (reviewed; commits `dfc459d`, `f8330ff`, `92bf8bb`, 105 tests). `docker stop` verified against a real daemon from the CLI; the Stop button has not been clicked in the running app. |
+| 009 | Hide ports above a threshold with one switch | P2 | M | — | DONE (reviewed; `worktree-agent-a3b8fc74b0cf93503`, commits `1fb5ab6`+`ad6cc50`, 93 tests) |
+| 010 | Let the ignore list be typed into, not just right-clicked into | P3 | S | — | DONE (reviewed; same worktree, commit `9ae1490`, 100 tests) |
+| 011 | Add a "Report a Bug" link to Settings | P3 | S | — | DONE (reviewed; worktree `worktree-agent-a82dbab60fc874d21`, commit `57e4bfc`, 86 tests) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with
 one-line rationale).
@@ -153,6 +158,158 @@ Homebrew only reads a cask from a tap, so that copy had no consumer. The tap rep
 single source of truth. The tag-triggered release workflow (E2-188) now has one file to update
 instead of two.
 
+## Third batch — features (planned 2026-08-29, against `947e97c`, 84 tests green)
+
+Plans 007-011 did not come from an audit of the code. The owner compared Squatter's settings
+window against the reference app's (a screenshot of Open Ports' preferences) and picked four
+things to close the gap; `improve` was invoked with `plan <description>`, so there is no
+findings table for this batch and nothing here is a defect. **Docker was split into two
+plans**: 007 only *names* the container (read-only), 008 gives the row the power to stop it.
+The label can ship and be lived with before anything gains a destructive Docker action, and
+008 is where all the risk in this batch sits.
+
+What the comparison found, in the owner's priority order:
+
+1. **Docker ports are anonymous and dangerous** (007, 008). Every container-published port
+   renders as one identical `com.docker.backend` row, and its ✕ sends SIGTERM to Docker's
+   host proxy — which does not stop the container and does break Docker's networking for
+   every other one. Spec P2 since 2026-08-26 (`PROJECT_SPEC.md:73`).
+2. **The ignore list is a list, not a rule** (009). Silencing the ~15 macOS daemons on high
+   ephemeral ports means right-clicking each of them, and doing it again when they move. The
+   reference app ships a fixed "Ignore ports 10000+" checkbox; ours makes the number editable
+   and defaults the rule **off** so no existing user's list silently loses rows.
+3. **Ports can only be ignored when they are visible** (010). Settings can list and remove
+   ignore entries but not add them, so a port you want gone must first be listening.
+4. **Nothing in the app points at the issue tracker** (011). No telemetry and no crash
+   reporter is a deliberate choice; having no path at all for a user to report a bug was not.
+
+Where Squatter is already ahead of the reference app, and must stay that way: the ignore list
+is structured rows with per-entry removal rather than an unvalidated free-text blob (010 adds
+input to that shape, it does not replace it), the sort options are named for what they sort
+("Port", "Process name", not "ID"), and the settings copy is consistently sentence case.
+
+### Dependency and ordering notes for this batch
+
+- **008 requires 007** — it acts on `ContainerRef.id`, which 007 introduces. Nothing else in
+  the batch depends on anything.
+- **007, 009, 010 and 011 all edit `Squatter/Views/SettingsView.swift`**, and 009/010 edit
+  adjacent regions of it. Land them one at a time; each plan's STOP conditions tell the
+  executor to re-read the file rather than pattern-match if a sibling landed first.
+  Suggested landing order if the owner wants the cheap wins first: 011 → 010 → 009 → 007 → 008.
+- **Test counts**, so an executor can tell whether it is on the right base: 84 today →
+  +9 (007) → +12 (008) → +9 (009) → +7 (010) → +2 (011). If plans land out of order, add the
+  deltas rather than trusting an absolute number.
+- **Nothing in 007 or 008 has been run against a real Docker daemon.** Docker is not
+  installed on the owner's machine (checked 2026-08-29: no `docker` on `PATH`, no
+  `/var/run/docker.sock`), so both plans are fixture-driven and the fixture was written from
+  the documented `docker ps` format rather than captured from a live daemon. Both carry a
+  STOP condition to update the fixture if reality differs, and both need a manual check
+  against real Docker before release — a `TRACKER.md` box, next to the existing
+  "Manual check: Launch at Login toggle against the signed build".
+
+### Execution record — 2026-08-29
+
+All five executed by dispatched executor subagents in isolated git worktrees, three tracks in
+parallel, every diff reviewed and every done criterion re-run independently by the advisor.
+**Nothing is merged.** The work sits on three local worktree branches; merging is the owner's call.
+
+| Track | Plans | Branch | Commits | Tests |
+|-------|-------|--------|---------|-------|
+| A | 007, 008 | `worktree-agent-a7b617c817641c952` | `1c92182`, `392a1aa`, `dfc459d`, `f8330ff` | 105 |
+| B | 009, 010 | `worktree-agent-a3b8fc74b0cf93503` | `1fb5ab6`, `ad6cc50`, `9ae1490` | 100 |
+| C | 011 | `worktree-agent-a82dbab60fc874d21` | `57e4bfc` | 86 |
+
+Three defects were caught in review that the plans themselves had missed, all three in the
+plans rather than the execution:
+
+- **009 never specified a field style**, so the threshold `TextField` rendered as static
+  right-aligned text with no border — an editable control that looked like a label. Caught by
+  reading the settings snapshot, fixed in `ad6cc50`.
+- **007 left the test suite coupled to the host machine.** `PortScanner.init` defaults
+  `docker: DockerProbe()`, and that default resolves the real filesystem, so every test that
+  did not pass `docker:` built a live probe. On a machine with Docker installed the suite
+  would spawn real `docker ps` calls and annotate listeners with that developer's own
+  containers; since `Listener` compares `container`, anyone running a container on port 3000
+  would have seen `refreshLoadsListeners` fail with a baffling diff. It passed here only
+  because this machine has no Docker. Fixed in `392a1aa`.
+- **008's stop confirmation did not fit the row.** At 360 pt, "Cancel" + "Stop Container" left
+  ~40 pt for the name: the container collapsed to `a…` and the prompt wrapped over four
+  hyphenated lines, asking the user to confirm a destructive action against a container they
+  could not identify — the same defect TRACKER records fixing for the kill prompt in
+  August. Owner decided the confirmation button reads bare **"Stop"**, matching the existing
+  Kill pair where the prompt names the object; the menu item stays "Stop Container". Fixed in
+  `f8330ff`, and `rules/ux-writing.md` now records the final shape.
+
+The executors also caught one plan defect themselves: 007's sketched `DockerProbe.init` could
+not satisfy its own test 6, because "is Docker installed" and "which runner to use" were
+tangled into one parameter. Splitting out `executablePath:` was the executor's call and is
+the right one.
+
+**Owner follow-ups:**
+- **Neither Docker feature has been run against a real daemon** — no Docker on this machine,
+  so 007 and 008 are entirely fixture-driven. Two open manual-check boxes in `TRACKER.md`.
+- Every plan wrote a `TRACKER.md` entry; golden rule #8 needs a matching Linear issue for
+  each. No executor touched Linear.
+- Merge order note: A's `project.pbxproj` conflicts with anything else — resolve by taking
+  either side and re-running `xcodegen generate`, never by hand. A and B both rewrite
+  different branches of the same `switch` in `PortRow.menuItems`.
+- **Open, undecided**: the Settings window is fixed at 320x480 and now holds five sections, so
+  the Ignored section — including 010's new port field — sits below the fold. The form
+  scrolls, so it is reachable but not discoverable. Options: reorder Ignored above About
+  (About belongs last by convention anyway), or grow the window height.
+
+### Real-daemon verification — 2026-08-29
+
+Docker Desktop 4.88.1 / engine 29.7.2 was installed and 007/008 tested against it, since both
+plans had been written entirely from documentation. Five containers covered every case: a plain
+publish, host!=container ports, a port range, a UDP publish, and an exposed-but-unpublished set.
+
+**Confirmed** — the assumptions that mattered all held:
+
+- The `>` escaping is real. Raw `docker ps --no-trunc --format '{{json .}}'` bytes contain
+  `-\u003e` and **zero** literal `->`, so the parser's premise is correct. (The `>` in nginx's
+  maintainer-email label is escaped too, which is why every line matches.)
+- `lsof` reports every published port as `com.docker.backend`, one PID, **uid 501** — so before
+  008 the kill button was genuinely enabled on all of them, and one click would have taken down
+  Docker's networking for every container. The premise of both plans is real, not theoretical.
+- Range publishes appear as separate `lsof` listeners (9000, 9001, 9002), so the range expansion
+  is load-bearing rather than defensive.
+- Full container IDs are 64 lowercase hex; `isValidID` accepts them. The failure stderr is
+  `Error response from daemon: No such container: <id>`, matching the scripted test verbatim.
+  `docker stop` released the port in 0.22 s.
+
+**Two corrections, both applied in `92bf8bb`:**
+
+- **`--time` is deprecated.** `docker stop --time 5` prints `Flag --time has been deprecated,
+  use --timeout instead` to stdout. `docker stop --help` documents `-t, --timeout`. All three
+  spellings were tested: `--time` warns, `--timeout` and `-t` are clean. Settled on **`-t`** —
+  it is valid on both old and new engines, whereas `--timeout` is recent and `--time` is what
+  older engines used, and Squatter cannot know which version the user has.
+- **The synthetic fixture encoded a shape Docker never emits.** Exposed-but-unpublished ports do
+  not appear alongside publishes on the same container; bare `80/tcp, 443/tcp` shows only on a
+  container that publishes nothing. The fixture is now the real captured output, which is
+  strictly better: it contains a genuine UDP-only container and a genuine exposed-only one, so
+  those tests exercise real shapes instead of hand-written guesses.
+
+**Incidental**: `docker` falls back to the passwd database when `HOME` is unset, so the
+`environment: ["HOME": ...]` decision in `ProcessRunner` is defensible but not load-bearing on
+Docker 29. Harmless; left as-is.
+
+**Still open**: nobody has clicked Stop Container in the running app. Everything beneath the UI
+is verified against a real daemon — the parser on real output, the real `lsof` shape, and a real
+`docker stop` — but the SwiftUI wiring has only been exercised by tests and offscreen snapshots.
+That box stays unticked in `TRACKER.md` deliberately; the executor was right not to claim it.
+
+### Considered and not planned in this batch
+
+- **A "Give Feedback" link** beside Report a Bug (the reference app has both). One
+  destination is clearer than two that go to the same tracker.
+- **Sorting by PID** ("ID" in the reference app's Sort by menu). It is meaningless as a
+  primary sort — PIDs are allocation order, not anything the user reasons about — and Port
+  and Process name already cover the real cases.
+- **A free-text ignore box** replacing the structured rows. The rows are better: they show
+  what is ignored, remove one entry at a time, and cannot be corrupted by a typo.
+
 ## Dependency notes
 
 - **003 requires 002.** A timeout is only testable through the `ProcessRunner` seam that 002
@@ -216,7 +373,7 @@ Raised during the audit and left for the owner to weigh:
   with a local `squatter` keychain profile. A tag-triggered workflow (archive → notarize →
   upload DMG → bump the cask sha256) is the difference between shipping v0.1.1 and not
   bothering. Plan 004 is the first step and says so in its maintenance notes.
-- **Docker awareness (P2 in the spec).** Docker-published ports surface as
+- **Docker awareness (P2 in the spec).** *Planned 2026-08-29 as plans 007 and 008.* Docker-published ports surface as
   `com.docker.backend`, which tells the user nothing and must not be killed. Annotating the
   container and offering "Stop Container" is the one feature that would make Squatter better
   than `lsof -i` rather than merely faster. It costs a second subprocess, which is a
