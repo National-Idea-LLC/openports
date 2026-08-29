@@ -188,6 +188,65 @@ struct PortListModelTests {
         #expect(Preferences(defaults: defaults).ignoredProcessNames.isEmpty)
     }
 
+    // MARK: typed ignore list
+
+    @Test func typedPortsAreAddedAndNormalised() async {
+        let model = makeModel()
+        let result = model.addIgnoredPorts(from: "3000, 5173\n8080 9090")
+        #expect(result.added == [3000, 5173, 8080, 9090])
+        #expect(result.skipped == [])
+        #expect(model.ignoredPorts == [3000, 5173, 8080, 9090])
+    }
+
+    @Test func invalidTokensAreReportedNotSwallowed() async {
+        let model = makeModel()
+        let result = model.addIgnoredPorts(from: "3000, abc, 99999, 0, -1, 3000.5")
+        #expect(result.added == [3000])
+        #expect(result.skipped == ["abc", "99999", "0", "-1", "3000.5"])
+    }
+
+    @Test func emptyInputChangesNothing() async {
+        let model = makeModel()
+        let before = model.ignoredPorts
+        let result = model.addIgnoredPorts(from: "   ,,\n ")
+        #expect(result.added.isEmpty)
+        #expect(result.skipped.isEmpty)
+        #expect(model.ignoredPorts == before)
+    }
+
+    @Test func typedPortsHideMatchingRowsImmediately() async {
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(Self.twoLsof))))
+        await model.refresh()
+        model.addIgnoredPorts(from: "3000")
+        #expect(model.filtered.map(\.port) == [5432])
+        #expect(model.hiddenCount == 1)
+    }
+
+    @Test func typedPortsPersistAcrossModels() async {
+        let defaults = freshDefaults()
+        let first = makeModel(defaults: defaults)
+        first.addIgnoredPorts(from: "3000, 5173")
+
+        let second = makeModel(defaults: defaults)
+        #expect(second.ignoredPorts == [3000, 5173])
+    }
+
+    @Test func addingASelectedPortClearsTheSelection() async {
+        let model = makeModel()
+        await model.refresh()
+        model.selection = sampleListener.id
+        model.addIgnoredPorts(from: "3000")
+        #expect(model.selection == nil)
+    }
+
+    @Test func duplicatesAreIdempotent() async {
+        let model = makeModel()
+        _ = model.addIgnoredPorts(from: "3000")
+        let second = model.addIgnoredPorts(from: "3000")
+        #expect(model.ignoredPorts.count == 1)
+        #expect(second.added == [3000])
+    }
+
     @Test func textFilterAndIgnoreCompose() async {
         let model = makeModel(runner: FakeRunner(.success(lsofResult(Self.twoLsof))))
         await model.refresh()

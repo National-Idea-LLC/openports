@@ -357,6 +357,35 @@ final class PortListModel {
         preferences.ignoredProcessNames = ignoredProcessNames
     }
 
+    /// Result of adding typed ports: what was added, and the tokens that were not ports.
+    struct AddedPorts: Equatable, Sendable {
+        var added: Set<UInt16> = []
+        var skipped: [String] = []
+    }
+
+    /// Adds every port in `text` to the ignore list. Accepts commas, newlines, spaces and
+    /// tabs as separators, so a pasted list works as-is. Tokens that are not a port in
+    /// 1…65535 are returned in `skipped` rather than silently dropped.
+    @discardableResult
+    func addIgnoredPorts(from text: String) -> AddedPorts {
+        var result = AddedPorts()
+        let separators = CharacterSet(charactersIn: ",;\n\t ")
+        for token in text.components(separatedBy: separators) {
+            let trimmed = token.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.isEmpty else { continue }
+            guard let port = UInt16(trimmed), port > 0 else {
+                result.skipped.append(trimmed)
+                continue
+            }
+            result.added.insert(port)
+        }
+        guard !result.added.isEmpty else { return result }
+        ignoredPorts.formUnion(result.added)
+        preferences.ignoredPorts = ignoredPorts
+        clearSelectionIfHidden()
+        return result
+    }
+
     /// Turns the whole threshold rule off — the undo for a row hidden by `.highPort`,
     /// which no list removal can reveal.
     func stopHidingHighPorts() { hideHighPorts = false }
