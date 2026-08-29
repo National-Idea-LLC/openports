@@ -12,12 +12,15 @@ struct PortRow: View {
     private var killState: KillState? { model.killState(for: listener) }
     private var canKill: Bool { listener.isOwnedByCurrentUser }
     private var isIgnored: Bool { model.isIgnored(listener) }
+    /// A row Squatter mapped to a Docker container: Stop Container replaces Kill/Force Kill.
+    private var isContainer: Bool { listener.container != nil }
 
     /// The question this row is asking, or `nil` when it is not awaiting confirmation.
     private var confirmationPrompt: Text? {
         switch killState {
         case .confirming: Text("Kill this process?")
         case .confirmingForce: Text("Force kill this process?")
+        case .confirmingStop: Text("Stop this container?")
         default: nil
         }
     }
@@ -56,15 +59,18 @@ struct PortRow: View {
         .accessibilityLabel(Text(accessibilityText))
         .accessibilityAction(named: Text("Open in Browser")) { model.open(listener) }
         .accessibilityAction(named: Text("Copy URL")) { model.copyURL(listener) }
-        .accessibilityAction(named: Text("Kill Process")) { model.requestKill(listener) }
+        .accessibilityAction(named: isContainer ? Text("Stop Container") : Text("Kill Process")) {
+            if isContainer {
+                model.requestStopContainer(listener)
+            } else {
+                model.requestKill(listener)
+            }
+        }
     }
 
     private var details: some View {
         VStack(alignment: .leading, spacing: 1) {
-            Text(listener.processName)
-                .font(.callout.weight(.medium))
-                .lineLimit(1)
-                .foregroundStyle(isIgnored ? .secondary : .primary)
+            titleLine
             if let confirmationPrompt {
                 // The name above already says which process; this line asks, so the buttons
                 // never have to compete with a long name for width.
@@ -73,8 +79,14 @@ struct PortRow: View {
                     .foregroundStyle(.red)
             } else {
                 HStack(spacing: 6) {
-                    Text(verbatim: "PID \(listener.pid)")
-                        .monospacedDigit()
+                    if let container = listener.container {
+                        // The PID of com.docker.backend is the same for every container row
+                        // and tells the user nothing; the image tells them what it is.
+                        Text(verbatim: container.image)
+                    } else {
+                        Text(verbatim: "PID \(listener.pid)")
+                            .monospacedDigit()
+                    }
                     ForEach(listener.addresses.sorted(), id: \.self) { address in
                         AddressChip(address: address)
                     }
@@ -87,12 +99,33 @@ struct PortRow: View {
         }
     }
 
+    @ViewBuilder
+    private var titleLine: some View {
+        if let container = listener.container {
+            HStack(spacing: 4) {
+                Image(systemName: "shippingbox.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .help(Text("Published by Docker container \(container.name) → port \(String(container.containerPort))"))
+                Text(listener.displayName)
+                    .font(.callout.weight(.medium))
+                    .lineLimit(1)
+                    .foregroundStyle(isIgnored ? .secondary : .primary)
+            }
+        } else {
+            Text(listener.processName)
+                .font(.callout.weight(.medium))
+                .lineLimit(1)
+                .foregroundStyle(isIgnored ? .secondary : .primary)
+        }
+    }
+
     // MARK: LED
 
     private var ledColor: Color {
         switch killState {
-        case .confirming, .confirmingForce: .red
-        case .terminating, .forcing: .orange
+        case .confirming, .confirmingForce, .confirmingStop: .red
+        case .terminating, .forcing, .stopping: .orange
         case .stillRunning, .failed: .red
         case nil:
             if isIgnored { .primary.opacity(0.15) }
@@ -140,10 +173,31 @@ struct PortRow: View {
                 .accessibilityLabel(Text("Confirm force killing \(listener.processName) on port \(String(listener.port))"))
             }
             .fixedSize()
+        case .confirmingStop:
+            // Matches the `.confirming` case's layout exactly: `.fixedSize()` and layout
+            // priority exist because long names once squeezed these buttons into ellipses.
+            // The button says "Stop", not "Stop Container" — same idiom as the Kill pair
+            // above, where the prompt line already names the object and the button is the
+            // bare verb. Accessibility keeps the full container name regardless.
+            HStack(spacing: 8) {
+                Button("Cancel") { model.cancelKill(listener) }
+                    .controlSize(.small)
+                    .keyboardShortcut(.cancelAction)
+                Button("Stop", role: .destructive) {
+                    Task { await model.stopContainer(listener) }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+                .controlSize(.small)
+                .accessibilityLabel(Text("Confirm stopping \(listener.displayName) on port \(String(listener.port))"))
+            }
+            .fixedSize()
         case .terminating:
             progress(Text("Killing…"))
         case .forcing:
             progress(Text("Force killing…"))
+        case .stopping:
+            progress(Text("Stopping…"))
         case .stillRunning:
             HStack(spacing: 8) {
                 Text("Still running")
@@ -205,14 +259,22 @@ struct PortRow: View {
             .accessibilityLabel(Text("Open \(listener.processName) on port \(String(listener.port)) in browser"))
             .help(Text("Open \(listener.localURLString)"))
 
-            RowAction(systemImage: "xmark", tint: canKill ? .red : .secondary) {
-                model.requestKill(listener)
+            if isContainer {
+                RowAction(systemImage: "stop.fill", tint: .red) {
+                    model.requestStopContainer(listener)
+                }
+                .accessibilityLabel(Text("Stop container \(listener.displayName) on port \(String(listener.port))"))
+                .help(Text("Stop the Docker container \(listener.displayName)"))
+            } else {
+                RowAction(systemImage: "xmark", tint: canKill ? .red : .secondary) {
+                    model.requestKill(listener)
+                }
+                .disabled(!canKill)
+                .accessibilityLabel(Text("Kill \(listener.processName) on port \(String(listener.port))"))
+                .help(canKill
+                    ? Text("Kill \(listener.processName) (SIGTERM)")
+                    : Text("Owned by \(listener.user). Kill it from that account or with sudo in Terminal."))
             }
-            .disabled(!canKill)
-            .accessibilityLabel(Text("Kill \(listener.processName) on port \(String(listener.port))"))
-            .help(canKill
-                ? Text("Kill \(listener.processName) (SIGTERM)")
-                : Text("Owned by \(listener.user). Kill it from that account or with sudo in Terminal."))
         }
     }
 
@@ -236,14 +298,20 @@ struct PortRow: View {
         Button("Copy Port", systemImage: "number") { model.copyPort(listener) }
         Button("Copy PID", systemImage: "tag") { model.copyPID(listener) }
         Divider()
-        Button("Kill Process", systemImage: "xmark.circle", role: .destructive) {
-            model.requestKill(listener)
+        if isContainer {
+            Button("Stop Container", systemImage: "stop.circle", role: .destructive) {
+                model.requestStopContainer(listener)
+            }
+        } else {
+            Button("Kill Process", systemImage: "xmark.circle", role: .destructive) {
+                model.requestKill(listener)
+            }
+            .disabled(!canKill)
+            Button("Force Kill", systemImage: "bolt.fill", role: .destructive) {
+                model.requestForceKill(listener)
+            }
+            .disabled(!canKill)
         }
-        .disabled(!canKill)
-        Button("Force Kill", systemImage: "bolt.fill", role: .destructive) {
-            model.requestForceKill(listener)
-        }
-        .disabled(!canKill)
         Divider()
         if isIgnored {
             Button("Unignore", systemImage: "eye") { model.unignore(listener) }
@@ -260,7 +328,11 @@ struct PortRow: View {
     // MARK: Text
 
     private var accessibilityText: String {
-        var text = String(localized: "\(listener.processName) on port \(String(listener.port)), PID \(String(listener.pid))")
+        var text = if let container = listener.container {
+            String(localized: "\(container.name), Docker container from \(container.image), on port \(String(listener.port))")
+        } else {
+            String(localized: "\(listener.processName) on port \(String(listener.port)), PID \(String(listener.pid))")
+        }
         if !canKill { text += String(localized: ", owned by \(listener.user)") }
         if isIgnored { text += String(localized: ", ignored") }
         return text

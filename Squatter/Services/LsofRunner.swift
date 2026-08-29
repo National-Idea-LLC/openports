@@ -52,6 +52,10 @@ struct ProcessRunner: Sendable {
     let executablePath: String
     let arguments: [String]
     var timeout: Duration = ProcessRunner.defaultTimeout
+    /// Passed to the child verbatim. `lsof` needs nothing; the `docker` CLI needs `HOME`
+    /// to find `~/.docker/config.json` and its current context. Empty stays the default so
+    /// nothing inherits the app's environment by accident.
+    var environment: [String: String] = [:]
 
     func run() async throws -> CommandResult {
         // Reused from the one-subprocess world: the app only ever runs `lsof`, so a missing
@@ -63,7 +67,7 @@ struct ProcessRunner: Sendable {
         let process = Process()
         process.executableURL = URL(filePath: executablePath)
         process.arguments = arguments
-        process.environment = [:]
+        process.environment = environment
         let stdoutPipe = Pipe()
         let stderrPipe = Pipe()
         process.standardOutput = stdoutPipe

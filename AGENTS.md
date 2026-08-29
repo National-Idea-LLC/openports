@@ -17,7 +17,7 @@ points here — add conventions to this file or [rules/](rules/), never to CLAUD
 4. **Keep `.gitignore` updated** whenever tooling or generated files change. Never commit secrets, signing identities, or release binaries.
 5. **Keep this AGENTS.md current** as commands, conventions, or structure change.
 6. **Stay minimal.** No third-party packages, no App Sandbox, no privilege escalation, no telemetry or network calls. If a feature needs one of these, stop and ask.
-7. **Never spawn a shell.** `lsof` is invoked by absolute path with fixed arguments via `Process`; processes are killed with `kill(2)` only after re-validating the PID still maps to the scanned process name.
+7. **Never spawn a shell.** `lsof` and `docker` are invoked by absolute path — `docker` from a fixed allowlist in `DockerProbe.searchPaths`, never resolved via the shell's search path — with fixed arguments via `Process`; processes are killed with `kill(2)` only after re-validating the PID still maps to the scanned process name.
 8. **Keep the Linear project in sync** — [Squatter](https://linear.app/ielyas/project/squatter-8016284756f8) (team Elyas, `E2-…`). Every TRACKER.md status change gets the matching Linear update (issue created / In Progress / In Review, milestone = phase). Never set an issue to Done/Canceled unless the owner explicitly asks. Details: [rules/issue-tracker-status.md](rules/issue-tracker-status.md).
 
 ---

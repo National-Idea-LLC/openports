@@ -5,6 +5,8 @@ All notable user-facing changes to Squatter. Written for the people who use it â
 ## [Unreleased]
 
 ### Added
+- Ports published by a Docker container now show the container's name and image (e.g. `api-db-1` / `postgres:16`) instead of `com.docker.backend`. A new "Docker integration" setting lets you turn this off; Squatter only runs the `docker` command when Docker is installed.
+- Ports published by Docker now offer Stop Container, which stops that container instead of killing Docker itself.
 
 ### Changed
 

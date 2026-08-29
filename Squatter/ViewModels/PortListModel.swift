@@ -13,6 +13,10 @@ enum KillState: Equatable, Sendable {
     case stillRunning
     /// SIGKILL sent; waiting for exit.
     case forcing
+    /// Stop Container was requested; waiting for confirmation before `docker stop`.
+    case confirmingStop
+    /// `docker stop` is running.
+    case stopping
     case failed(String)
 }
 
@@ -51,9 +55,19 @@ final class PortListModel {
             restartPollingLoop()
         }
     }
+    /// Annotate Docker-published ports with their container. Off means Squatter never runs
+    /// the `docker` CLI.
+    var dockerIntegration: Bool {
+        didSet {
+            preferences.dockerIntegration = dockerIntegration
+            let enabled = dockerIntegration
+            Task { [scanner] in await scanner.setDockerEnabled(enabled) }
+        }
+    }
 
     @ObservationIgnored private let scanner: PortScanner
     @ObservationIgnored private let killer: ProcessKiller
+    @ObservationIgnored private let stopper: ContainerStopper
     @ObservationIgnored private let actions: any SystemActions
     @ObservationIgnored private let preferences: Preferences
     @ObservationIgnored private let forceKillGrace: Duration
@@ -65,6 +79,7 @@ final class PortListModel {
     init(
         scanner: PortScanner = PortScanner(),
         killer: ProcessKiller = ProcessKiller(),
+        stopper: ContainerStopper = ContainerStopper(),
         actions: any SystemActions = AppKitSystemActions(),
         preferences: Preferences = Preferences(),
         forceKillGrace: Duration = .seconds(2),
@@ -73,6 +88,7 @@ final class PortListModel {
     ) {
         self.scanner = scanner
         self.killer = killer
+        self.stopper = stopper
         self.actions = actions
         self.preferences = preferences
         self.forceKillGrace = forceKillGrace
@@ -82,6 +98,8 @@ final class PortListModel {
         self.ignoredProcessNames = preferences.ignoredProcessNames
         self.sortOrder = preferences.sortOrder
         self.showCountInMenuBar = preferences.showCountInMenuBar
+        self.dockerIntegration = preferences.dockerIntegration
+        Task { [scanner, dockerIntegration] in await scanner.setDockerEnabled(dockerIntegration) }
         restartPollingLoop()
     }
 
@@ -201,18 +219,31 @@ final class PortListModel {
     // MARK: Kill
 
     /// Arms the confirmation. Nothing is signalled until `kill(_:)`.
-    /// Only one row can be armed at a time — arming a new one cancels the previous.
+    /// Only one row can be armed at a time — arming a new one cancels the previous. A row
+    /// Squatter mapped to a Docker container cannot arm a process kill at all — see
+    /// `requestStopContainer(_:)`, which is the only destructive action available for it.
     func requestKill(_ listener: Listener) {
-        guard listener.isOwnedByCurrentUser, killStates[listener.id] == nil else { return }
+        guard listener.isOwnedByCurrentUser, listener.container == nil, killStates[listener.id] == nil else { return }
         cancelAllKillConfirmations()
         killStates[listener.id] = .confirming
     }
 
     /// Arms the Force Kill confirmation. Nothing is signalled until `forceKill(_:)`.
     func requestForceKill(_ listener: Listener) {
-        guard listener.isOwnedByCurrentUser, killStates[listener.id] == nil else { return }
+        guard listener.isOwnedByCurrentUser, listener.container == nil, killStates[listener.id] == nil else { return }
         cancelAllKillConfirmations()
         killStates[listener.id] = .confirmingForce
+    }
+
+    /// Arms the Stop Container confirmation. Nothing runs until `stopContainer(_:)`.
+    /// Only rows Squatter mapped to a container can be armed — never a bare process. The
+    /// guard is `container != nil`, **not** `isOwnedByCurrentUser`: the Docker proxy process
+    /// may well be owned by the user, but what authorises this action is that Squatter
+    /// identified a container, not who owns the proxy.
+    func requestStopContainer(_ listener: Listener) {
+        guard listener.container != nil, killStates[listener.id] == nil else { return }
+        cancelAllKillConfirmations()
+        killStates[listener.id] = .confirmingStop
     }
 
     func cancelKill(_ listener: Listener) {
@@ -230,7 +261,7 @@ final class PortListModel {
     /// The two armed-but-unsignalled states. Anything else is a kill already in flight
     /// and must survive cancellation.
     private static func isConfirming(_ state: KillState?) -> Bool {
-        state == .confirming || state == .confirmingForce
+        state == .confirming || state == .confirmingForce || state == .confirmingStop
     }
 
     func kill(_ listener: Listener) async {
@@ -264,6 +295,21 @@ final class PortListModel {
         await refresh()
     }
 
+    /// Runs `docker stop` and refreshes on success. The guard mirrors `requestStopContainer`:
+    /// authorised by "Squatter identified a container", not by process ownership.
+    func stopContainer(_ listener: Listener) async {
+        guard let container = listener.container else { return }
+        killStates[listener.id] = .stopping
+        do {
+            try await stopper.stop(container)
+        } catch {
+            killStates[listener.id] = .failed(error.localizedDescription)
+            return
+        }
+        killStates[listener.id] = nil
+        await refresh()
+    }
+
     func dismissKillError(for listener: Listener) {
         if case .failed = killStates[listener.id] { killStates[listener.id] = nil }
     }
@@ -288,9 +334,12 @@ final class PortListModel {
     /// or that already have a kill in flight.
     @discardableResult
     func killSelected() -> Bool {
-        guard let listener = selectedListener, listener.isOwnedByCurrentUser, killStates[listener.id] == nil else {
-            return false
+        guard let listener = selectedListener, killStates[listener.id] == nil else { return false }
+        if listener.container != nil {
+            requestStopContainer(listener)
+            return true
         }
+        guard listener.isOwnedByCurrentUser else { return false }
         requestKill(listener)
         return true
     }
