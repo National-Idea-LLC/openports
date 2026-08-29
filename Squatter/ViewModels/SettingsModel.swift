@@ -8,6 +8,7 @@ final class SettingsModel {
     static let refreshIntervalChoices: [TimeInterval] = [1, 2, 5]
     static let releasesURL = URL(string: "https://github.com/National-Idea-LLC/squatter/releases")
     static let sourceURL = URL(string: "https://github.com/National-Idea-LLC/squatter")
+    static let issuesURL = URL(string: "https://github.com/National-Idea-LLC/squatter/issues/new")
 
     /// "0.1.0 (1)" from the bundle, or "—" when running outside a bundle (tests).
     static var bundleVersion: String {
@@ -17,7 +18,11 @@ final class SettingsModel {
         return build.map { "\(short) (\($0))" } ?? short
     }
 
+    /// "Version 15.6 (Build 24G84)" — the second thing every bug report is missing.
+    static var systemVersion: String { ProcessInfo.processInfo.operatingSystemVersionString }
+
     let appVersion: String
+    let systemVersion: String
 
     private(set) var loginItemStatus: LoginItemStatus
     /// What went wrong the last time Launch at Login was toggled; `nil` after a success.
@@ -31,12 +36,14 @@ final class SettingsModel {
         loginItem: any LoginItemManaging = SystemLoginItem(),
         preferences: Preferences = Preferences(),
         actions: any SystemActions = AppKitSystemActions(),
-        appVersion: String = SettingsModel.bundleVersion
+        appVersion: String = SettingsModel.bundleVersion,
+        systemVersion: String = SettingsModel.systemVersion
     ) {
         self.loginItem = loginItem
         self.preferences = preferences
         self.actions = actions
         self.appVersion = appVersion
+        self.systemVersion = systemVersion
         self.loginItemStatus = loginItem.status
     }
 
@@ -48,6 +55,27 @@ final class SettingsModel {
 
     func openSource() {
         guard let url = Self.sourceURL else { return }
+        actions.open(url)
+    }
+
+    /// Opens the issue form with the two version strings already filled in. Nothing else is
+    /// collected: the body is a template the user edits in their browser before submitting.
+    func reportBug() {
+        guard let base = Self.issuesURL,
+              var components = URLComponents(url: base, resolvingAgainstBaseURL: false) else { return }
+        let body = String(
+            localized: """
+                What happened:
+
+                What you expected:
+
+                ---
+                Squatter \(appVersion)
+                macOS \(systemVersion)
+                """
+        )
+        components.queryItems = [URLQueryItem(name: "body", value: body)]
+        guard let url = components.url else { return }
         actions.open(url)
     }
 

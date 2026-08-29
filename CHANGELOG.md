@@ -9,6 +9,7 @@ All notable user-facing changes to Squatter. Written for the people who use it �
 - Ports published by Docker now offer Stop Container, which stops that container instead of killing Docker itself.
 - A new setting hides ports above a number you choose — 10,000 by default — so the list shows your dev servers instead of macOS background services. Off by default, so nobody's list changes on its own.
 - You can now type ports straight into the ignore list in Settings — separate them with commas, spaces, or new lines — instead of waiting for a port to appear in the list so you can right-click it.
+- Settings has a Report a Bug button that opens a new issue with your Squatter and macOS versions already filled in.
 
 ### Changed
 

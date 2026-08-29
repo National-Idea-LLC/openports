@@ -68,6 +68,44 @@ struct SettingsModelTests {
         #expect(!SettingsModel.bundleVersion.isEmpty)
     }
 
+    @Test func reportBugOpensAPrefilledIssueForm() throws {
+        let actions = RecordingActions()
+        let model = SettingsModel(
+            loginItem: FakeLoginItem(),
+            preferences: Preferences(defaults: freshDefaults()),
+            actions: actions,
+            appVersion: "9.9.9 (42)",
+            systemVersion: "Version 15.6 (Build 24G84)"
+        )
+        model.reportBug()
+        let url = try #require(actions.opened.last)
+        #expect(url.absoluteString.hasPrefix("https://github.com/National-Idea-LLC/squatter/issues/new?body="))
+        let body = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?
+            .queryItems?.first { $0.name == "body" }?.value)
+        #expect(body.contains("Squatter 9.9.9 (42)"))
+        #expect(body.contains("macOS Version 15.6 (Build 24G84)"))
+        #expect(body.contains("What happened:"))
+        #expect(actions.opened.count == 1)
+    }
+
+    @Test func theBugReportBodyCarriesOnlyVersions() throws {
+        let actions = RecordingActions()
+        let model = SettingsModel(
+            loginItem: FakeLoginItem(),
+            preferences: Preferences(defaults: freshDefaults()),
+            actions: actions,
+            appVersion: "9.9.9 (42)",
+            systemVersion: "Version 15.6 (Build 24G84)"
+        )
+        model.reportBug()
+        let url = try #require(actions.opened.last)
+        let body = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?
+            .queryItems?.first { $0.name == "body" }?.value)
+        #expect(!body.contains(NSUserName()))
+        #expect(!body.contains(NSHomeDirectory()))
+        #expect(!body.lowercased().contains("port"))
+    }
+
     @Test func statusIsReReadOnDemand() {
         let item = FakeLoginItem(status: .disabled)
         let (model, _) = make(item)
