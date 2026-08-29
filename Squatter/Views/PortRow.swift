@@ -176,11 +176,14 @@ struct PortRow: View {
         case .confirmingStop:
             // Matches the `.confirming` case's layout exactly: `.fixedSize()` and layout
             // priority exist because long names once squeezed these buttons into ellipses.
+            // The button says "Stop", not "Stop Container" — same idiom as the Kill pair
+            // above, where the prompt line already names the object and the button is the
+            // bare verb. Accessibility keeps the full container name regardless.
             HStack(spacing: 8) {
                 Button("Cancel") { model.cancelKill(listener) }
                     .controlSize(.small)
                     .keyboardShortcut(.cancelAction)
-                Button("Stop Container", role: .destructive) {
+                Button("Stop", role: .destructive) {
                     Task { await model.stopContainer(listener) }
                 }
                 .buttonStyle(.borderedProminent)
