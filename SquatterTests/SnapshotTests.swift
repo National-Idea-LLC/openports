@@ -91,6 +91,14 @@ struct SnapshotTests {
         ignoring.showIgnored = true
         let ignoredURL = try snapshot(PortListView(model: ignoring, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-ignored")
 
+        let highPorts = many + "p20\ncmDNSResponder\nu501\nf1\nPTCP\nn*:52398\nTST=LISTEN\n"
+        let highPortModel = await loadedModel(highPorts)
+        highPortModel.hideHighPorts = true
+        highPortModel.showIgnored = true
+        let highPortsURL = try snapshot(PortListView(model: highPortModel, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-high-ports")
+
+        // hideHighPorts on so the new settings section renders with its number field enabled.
+        ignoring.hideHighPorts = true
         let approval = FakeLoginItem(status: .requiresApproval)
         let settings = SettingsModel(loginItem: approval, preferences: Preferences(defaults: freshDefaults()))
         let settingsURL = try snapshot(SettingsView(settings: settings, model: ignoring).frame(width: 320), name: "settings", size: CGSize(width: 320, height: 560))
@@ -109,7 +117,8 @@ struct SnapshotTests {
         dockerModel.requestStopContainer(containerRow)
         let confirmStopURL = try snapshot(PortListView(model: dockerModel, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-confirm-stop")
 
-        for url in [listURL, darkURL, stubbornURL, confirmURL, forceConfirmURL, emptyURL, errorURL, ignoredURL, settingsURL, dockerURL, confirmStopURL] {
+
+        for url in [listURL, darkURL, stubbornURL, confirmURL, forceConfirmURL, emptyURL, errorURL, ignoredURL, highPortsURL, settingsURL, dockerURL, confirmStopURL] {
             let size = try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int ?? 0
             #expect(size > 1_000, "\(url.lastPathComponent) looks blank")
         }

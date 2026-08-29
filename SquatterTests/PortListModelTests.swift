@@ -214,6 +214,65 @@ struct PortListModelTests {
         #expect(Preferences(defaults: defaults).ignoredProcessNames.isEmpty)
     }
 
+    // MARK: typed ignore list
+
+    @Test func typedPortsAreAddedAndNormalised() async {
+        let model = makeModel()
+        let result = model.addIgnoredPorts(from: "3000, 5173\n8080 9090")
+        #expect(result.added == [3000, 5173, 8080, 9090])
+        #expect(result.skipped == [])
+        #expect(model.ignoredPorts == [3000, 5173, 8080, 9090])
+    }
+
+    @Test func invalidTokensAreReportedNotSwallowed() async {
+        let model = makeModel()
+        let result = model.addIgnoredPorts(from: "3000, abc, 99999, 0, -1, 3000.5")
+        #expect(result.added == [3000])
+        #expect(result.skipped == ["abc", "99999", "0", "-1", "3000.5"])
+    }
+
+    @Test func emptyInputChangesNothing() async {
+        let model = makeModel()
+        let before = model.ignoredPorts
+        let result = model.addIgnoredPorts(from: "   ,,\n ")
+        #expect(result.added.isEmpty)
+        #expect(result.skipped.isEmpty)
+        #expect(model.ignoredPorts == before)
+    }
+
+    @Test func typedPortsHideMatchingRowsImmediately() async {
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(Self.twoLsof))))
+        await model.refresh()
+        model.addIgnoredPorts(from: "3000")
+        #expect(model.filtered.map(\.port) == [5432])
+        #expect(model.hiddenCount == 1)
+    }
+
+    @Test func typedPortsPersistAcrossModels() async {
+        let defaults = freshDefaults()
+        let first = makeModel(defaults: defaults)
+        first.addIgnoredPorts(from: "3000, 5173")
+
+        let second = makeModel(defaults: defaults)
+        #expect(second.ignoredPorts == [3000, 5173])
+    }
+
+    @Test func addingASelectedPortClearsTheSelection() async {
+        let model = makeModel()
+        await model.refresh()
+        model.selection = sampleListener.id
+        model.addIgnoredPorts(from: "3000")
+        #expect(model.selection == nil)
+    }
+
+    @Test func duplicatesAreIdempotent() async {
+        let model = makeModel()
+        _ = model.addIgnoredPorts(from: "3000")
+        let second = model.addIgnoredPorts(from: "3000")
+        #expect(model.ignoredPorts.count == 1)
+        #expect(second.added == [3000])
+    }
+
     @Test func textFilterAndIgnoreCompose() async {
         let model = makeModel(runner: FakeRunner(.success(lsofResult(Self.twoLsof))))
         await model.refresh()
@@ -222,6 +281,93 @@ struct PortListModelTests {
         #expect(model.filtered.isEmpty)
         model.showIgnored = true
         #expect(model.filtered.map(\.processName) == ["node"])
+    }
+
+    // MARK: high port threshold
+
+    private static let highPortLsof = sampleLsof + "p9\ncmDNSResponder\nu501\nf1\nPTCP\nn*:52398\nTST=LISTEN\n"
+
+    @Test func hideHighPortsIsOffByDefault() async {
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(Self.highPortLsof))))
+        await model.refresh()
+        #expect(!model.hideHighPorts)
+        #expect(model.filtered.map(\.port).sorted() == [3000, 52398])
+        #expect(model.hiddenCount == 0)
+    }
+
+    @Test func thresholdHidesPortsStrictlyAbove() async {
+        let lsof = sampleLsof
+            + "p10\ncdaemon\nu501\nf1\nPTCP\nn*:10000\nTST=LISTEN\n"
+            + "p11\ncdaemon\nu501\nf1\nPTCP\nn*:10001\nTST=LISTEN\n"
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(lsof))))
+        await model.refresh()
+        model.hideHighPorts = true
+        model.highPortThreshold = 10_000
+        let visiblePorts = model.filtered.map(\.port)
+        #expect(visiblePorts.contains(10000), "10000 is not above the threshold")
+        #expect(!visiblePorts.contains(10001), "10001 is above the threshold")
+    }
+
+    @Test func hiddenHighPortsAreCountedAndRevealable() async {
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(Self.highPortLsof))))
+        await model.refresh()
+        model.hideHighPorts = true
+        #expect(model.hiddenCount == 1)
+        #expect(model.filtered.map(\.port) == [3000])
+        model.showIgnored = true
+        let ignored = model.groups.first { $0.kind == .ignored }
+        #expect(ignored?.listeners.map(\.port) == [52398])
+    }
+
+    @Test func explicitIgnoreOutranksTheThreshold() async {
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(Self.highPortLsof))))
+        await model.refresh()
+        model.hideHighPorts = true
+        let highListener = model.listeners.first { $0.port == 52398 }!
+        model.ignorePort(of: highListener)
+        #expect(model.ignoreReason(highListener) == .port, "an explicit list entry outranks the rule")
+    }
+
+    @Test func stopHidingHighPortsRevealsEverything() async {
+        let defaults = freshDefaults()
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(Self.highPortLsof))), defaults: defaults)
+        await model.refresh()
+        model.hideHighPorts = true
+        #expect(model.hiddenCount == 1)
+        model.stopHidingHighPorts()
+        #expect(model.hiddenCount == 0)
+        #expect(Preferences(defaults: defaults).hideHighPorts == false)
+    }
+
+    @Test func thresholdPersistsAcrossModels() async {
+        let defaults = freshDefaults()
+        let first = makeModel(runner: FakeRunner(.success(lsofResult(Self.highPortLsof))), defaults: defaults)
+        await first.refresh()
+        first.hideHighPorts = true
+        first.highPortThreshold = 40_000
+
+        let second = makeModel(runner: FakeRunner(.success(lsofResult(Self.highPortLsof))), defaults: defaults)
+        await second.refresh()
+        #expect(second.hideHighPorts)
+        #expect(second.highPortThreshold == 40_000)
+        #expect(second.filtered.map(\.port) == first.filtered.map(\.port))
+    }
+
+    @Test func selectionClearsWhenTheThresholdHidesIt() async {
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(Self.highPortLsof))))
+        await model.refresh()
+        let highListener = model.listeners.first { $0.port == 52398 }!
+        model.selection = highListener.id
+        model.hideHighPorts = true
+        #expect(model.selection == nil)
+    }
+
+    @Test func menuBarCountExcludesHighPorts() async {
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(Self.highPortLsof))))
+        await model.refresh()
+        model.hideHighPorts = true
+        model.showCountInMenuBar = true
+        #expect(model.menuBarCount == 1)
     }
 
     // MARK: sort
@@ -690,8 +836,18 @@ struct PreferencesTests {
         #expect(Preferences(defaults: defaults).sortOrder == .port)
     }
 
+    @Test func thresholdIsClampedOnRead() {
+        let defaults = freshDefaults()
+        let prefs = Preferences(defaults: defaults)
+        #expect(prefs.highPortThreshold == 10_000, "unset reads as the default")
+        defaults.set(0, forKey: DefaultsKeys.highPortThreshold)
+        #expect(prefs.highPortThreshold == 10_000)
+        defaults.set(999_999, forKey: DefaultsKeys.highPortThreshold)
+        #expect(prefs.highPortThreshold == 65_535)
+    }
+
     @Test func keysCarryThePrefix() {
-        for key in [DefaultsKeys.refreshInterval, DefaultsKeys.showCountInMenuBar, DefaultsKeys.ignoredPorts, DefaultsKeys.ignoredProcessNames, DefaultsKeys.sortOrder] {
+        for key in [DefaultsKeys.refreshInterval, DefaultsKeys.showCountInMenuBar, DefaultsKeys.ignoredPorts, DefaultsKeys.ignoredProcessNames, DefaultsKeys.sortOrder, DefaultsKeys.hideHighPorts, DefaultsKeys.highPortThreshold] {
             #expect(key.hasPrefix("squatter."))
         }
     }

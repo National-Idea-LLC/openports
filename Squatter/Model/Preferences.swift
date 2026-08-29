@@ -8,6 +8,8 @@ enum DefaultsKeys {
     static let ignoredProcessNames = "squatter.ignoredProcessNames"
     static let sortOrder = "squatter.sortOrder"
     static let dockerIntegration = "squatter.dockerIntegration"
+    static let hideHighPorts = "squatter.hideHighPorts"
+    static let highPortThreshold = "squatter.highPortThreshold"
 }
 
 /// How the list is ordered. Raw values are persisted — don't rename.
@@ -21,6 +23,7 @@ enum SortOrder: String, CaseIterable, Sendable {
 @MainActor
 struct Preferences {
     static let defaultRefreshInterval: TimeInterval = 2
+    static let defaultHighPortThreshold: UInt16 = 10_000
 
     private let defaults: UserDefaults
 
@@ -68,5 +71,23 @@ struct Preferences {
             return defaults.bool(forKey: DefaultsKeys.dockerIntegration)
         }
         nonmutating set { defaults.set(newValue, forKey: DefaultsKeys.dockerIntegration) }
+    }
+
+    /// Off by default: an update must never make rows vanish from someone's list without
+    /// them asking.
+    var hideHighPorts: Bool {
+        get { defaults.bool(forKey: DefaultsKeys.hideHighPorts) }
+        nonmutating set { defaults.set(newValue, forKey: DefaultsKeys.hideHighPorts) }
+    }
+
+    /// Ports strictly above this are hidden while `hideHighPorts` is on. Clamped on read,
+    /// like `refreshInterval`, so a hand-edited plist can't hide everything.
+    var highPortThreshold: UInt16 {
+        get {
+            let stored = defaults.integer(forKey: DefaultsKeys.highPortThreshold)
+            guard stored > 0 else { return Self.defaultHighPortThreshold }
+            return UInt16(min(max(stored, 1), 65_535))
+        }
+        nonmutating set { defaults.set(Int(newValue), forKey: DefaultsKeys.highPortThreshold) }
     }
 }

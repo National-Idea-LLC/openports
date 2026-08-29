@@ -63,6 +63,7 @@ Developers running multiple local servers (Vite, Next, Rails, Docker, Postgres, 
 
 ### P1 — Important, Can Launch Without
 - [ ] **Ignore list**: right-click → "Ignore port" / "Ignore process"; hidden rows counted in a footer ("3 hidden · Show"); persisted in `UserDefaults`.
+- [ ] **Hide high ports**: a Settings toggle plus an editable threshold (default 10,000) hides every listener above it — most of what's left after that point is macOS background services, not dev servers. Off by default. Counts toward the same hidden-rows footer as the ignore list; a row hidden this way offers "Show Ports Above N" instead of "Unignore", since turning the rule off is the only way to reveal it.
 - [ ] **Sort options**: by port (default), by process name.
 - [ ] **Show system/root listeners**: rows owned by other users are shown greyed with "requires admin to kill" (data is already visible in `lsof` output for many system daemons; killing them is out of scope).
 - [ ] **Menu bar count badge**: optionally show the number of listeners in the menu bar title.

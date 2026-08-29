@@ -7,10 +7,13 @@ All notable user-facing changes to Squatter. Written for the people who use it �
 ### Added
 - Ports published by a Docker container now show the container's name and image (e.g. `api-db-1` / `postgres:16`) instead of `com.docker.backend`. A new "Docker integration" setting lets you turn this off; Squatter only runs the `docker` command when Docker is installed.
 - Ports published by Docker now offer Stop Container, which stops that container instead of killing Docker itself.
+- A new setting hides ports above a number you choose — 10,000 by default — so the list shows your dev servers instead of macOS background services. Off by default, so nobody's list changes on its own.
+- You can now type ports straight into the ignore list in Settings — separate them with commas, spaces, or new lines — instead of waiting for a port to appear in the list so you can right-click it.
 
 ### Changed
 
 ### Fixed
+- The "Hide ports above" field in Settings now looks like a field you can type in, instead of plain text.
 
 ### Removed
 

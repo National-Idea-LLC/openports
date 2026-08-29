@@ -4,6 +4,10 @@ import SwiftUI
 struct SettingsView: View {
     @Bindable var settings: SettingsModel
     @Bindable var model: PortListModel
+    @State private var portsToAdd = ""
+    /// Tokens the last submission could not read as ports, echoed back so nothing is
+    /// silently dropped.
+    @State private var skippedPorts: [String] = []
 
     var body: some View {
         Form {
@@ -48,6 +52,25 @@ struct SettingsView: View {
                 .foregroundStyle(.secondary)
             }
             Section {
+                Toggle("Hide high ports", isOn: $model.hideHighPorts)
+                LabeledContent("Hide ports above") {
+                    TextField(
+                        "",
+                        value: $model.highPortThreshold,
+                        format: .number.grouping(.never)
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .labelsHidden()
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 64)
+                    .disabled(!model.hideHighPorts)
+                }
+            } footer: {
+                Text("Most ports above 10,000 belong to macOS background services, not to your dev servers. Hidden rows are counted next to the eye in the list.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 LabeledContent("Version", value: settings.appVersion)
                 LabeledContent {
                     Button("Check for Updates") { settings.checkForUpdates() }
@@ -68,15 +91,36 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            if !model.ignoredPorts.isEmpty || !model.ignoredProcessNames.isEmpty {
-                Section("Ignored") {
-                    ForEach(model.ignoredPorts.sorted(), id: \.self) { port in
-                        ignoredRow(Text("Port \(String(port))")) { model.removeIgnoredPort(port) }
-                    }
-                    ForEach(model.ignoredProcessNames.sorted(), id: \.self) { name in
-                        ignoredRow(Text(name)) { model.removeIgnoredProcessName(name) }
+            Section {
+                LabeledContent("Ignore these ports") {
+                    HStack(spacing: 6) {
+                        TextField(String(localized: "3000, 5173"), text: $portsToAdd)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 120)
+                            .onSubmit(addPorts)
+                        Button("Add Ports", systemImage: "plus") { addPorts() }
+                            .labelStyle(.iconOnly)
+                            .controlSize(.small)
+                            .disabled(portsToAdd.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
                 }
+                if !skippedPorts.isEmpty {
+                    Text("Skipped \(skippedPorts.joined(separator: ", ")) — a port is a number from 1 to 65535.")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+                ForEach(model.ignoredPorts.sorted(), id: \.self) { port in
+                    ignoredRow(Text("Port \(String(port))")) { model.removeIgnoredPort(port) }
+                }
+                ForEach(model.ignoredProcessNames.sorted(), id: \.self) { name in
+                    ignoredRow(Text(name)) { model.removeIgnoredProcessName(name) }
+                }
+            } header: {
+                Text("Ignored")
+            } footer: {
+                Text("Separate ports with a comma, a space, or a new line. Right-click any row in the list to ignore it by process name.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .formStyle(.grouped)
@@ -95,6 +139,13 @@ struct SettingsView: View {
         } label: {
             label
         }
+    }
+
+    private func addPorts() {
+        let result = model.addIgnoredPorts(from: portsToAdd)
+        skippedPorts = result.skipped
+        // Keep only what could not be read, so the user can fix it in place.
+        portsToAdd = result.skipped.joined(separator: ", ")
     }
 
     private func intervalLabel(_ seconds: TimeInterval) -> String {
