@@ -1,0 +1,136 @@
+name: Update Homebrew cask
+
+# The cask lives in National-Idea-LLC/homebrew-tap, which is the only copy. It has to be
+# bumped for every release; when it lags, `brew install` fails for everyone at once with a
+# checksum mismatch. This does the bump from the published asset so it cannot drift.
+#
+# Signing and notarization deliberately stay on the maintainer's Mac: putting the Developer
+# ID certificate in GitHub secrets would let a GitHub compromise sign a malicious app, which
+# is a much larger blast radius than this workflow needs.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish to the tap (e.g. v0.1.2)"
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cask-bump
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    name: Verify the build, then bump the cask
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - name: Resolve the release
+        id: rel
+        env:
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          set -euo pipefail
+          [ -n "$TAG" ] || { echo "No tag resolved"; exit 1; }
+          VERSION="${TAG#v}"
+          echo "tag=$TAG"          >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION"  >> "$GITHUB_OUTPUT"
+          echo "dmg=Squatter-$VERSION.dmg" >> "$GITHUB_OUTPUT"
+          echo "Release $TAG -> version $VERSION"
+
+      - name: Download the published DMG
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.rel.outputs.tag }}
+          DMG: ${{ steps.rel.outputs.dmg }}
+        run: |
+          set -euo pipefail
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$DMG" --dir dist
+          ls -l "dist/$DMG"
+
+      - name: Refuse to ship an unnotarized, unstapled, or mislabelled build
+        env:
+          DMG: ${{ steps.rel.outputs.dmg }}
+          VERSION: ${{ steps.rel.outputs.version }}
+        run: |
+          set -euo pipefail
+          hdiutil attach "dist/$DMG" -nobrowse -quiet -mountpoint /tmp/mnt
+          ditto /tmp/mnt/Squatter.app /tmp/app/Squatter.app
+          hdiutil detach /tmp/mnt -quiet
+
+          # The app must carry its OWN ticket, not just the DMG. v0.1.1 shipped without this
+          # and would have been blocked on an offline first launch; this is that regression test.
+          xcrun stapler validate /tmp/app/Squatter.app
+
+          spctl -a -vv -t exec /tmp/app/Squatter.app 2>&1 | tee /tmp/spctl.txt
+          grep -q "source=Notarized Developer ID" /tmp/spctl.txt
+
+          ACTUAL=$(defaults read /tmp/app/Squatter.app/Contents/Info.plist CFBundleShortVersionString)
+          if [ "$ACTUAL" != "$VERSION" ]; then
+            echo "Bundle version $ACTUAL does not match release tag version $VERSION"; exit 1
+          fi
+          echo "Verified: stapled, notarized, version $ACTUAL"
+
+      - name: Compute the checksum
+        id: sum
+        env:
+          DMG: ${{ steps.rel.outputs.dmg }}
+        run: |
+          set -euo pipefail
+          echo "sha256=$(shasum -a 256 "dist/$DMG" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Open and merge the cask bump
+        env:
+          # Fine-grained PAT scoped to homebrew-tap only: Contents write, Pull requests write.
+          GH_TOKEN: ${{ secrets.TAP_TOKEN }}
+          VERSION: ${{ steps.rel.outputs.version }}
+          SHA256: ${{ steps.sum.outputs.sha256 }}
+        run: |
+          set -euo pipefail
+          TAP=National-Idea-LLC/homebrew-tap
+          git clone --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/$TAP.git" tap
+          cd tap
+
+          CURRENT=$(awk -F'"' '/^  version /{print $2}' Casks/squatter.rb)
+          if [ "$CURRENT" = "$VERSION" ]; then
+            echo "Cask is already at $VERSION — nothing to do."; exit 0
+          fi
+
+          /usr/bin/sed -i '' \
+            -e "s/^  version \".*\"/  version \"$VERSION\"/" \
+            -e "s/^  sha256 \".*\"/  sha256 \"$SHA256\"/" \
+            Casks/squatter.rb
+          git diff --stat
+
+          # Exactly two lines may change. Anything else means the file drifted from the
+          # shape this script assumes, and a wrong cask breaks every user's install at once.
+          CHANGED=$(git diff --numstat -- Casks/squatter.rb | awk '{print $1"/"$2}')
+          [ "$CHANGED" = "2/2" ] || { echo "Unexpected diff ($CHANGED) — refusing"; exit 1; }
+
+          BRANCH="cask/$VERSION"
+          git switch -c "$BRANCH"
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -qam "Bump Squatter to $VERSION"
+          git push -q origin "$BRANCH"
+
+          # The tap requires verified signatures on main, and commits pushed by a token are
+          # unsigned. A squash merge is signed by GitHub itself, so it satisfies the rule —
+          # this is why the bump goes through a PR rather than straight to main.
+          PR=$(gh pr create --repo "$TAP" --base main --head "$BRANCH" \
+            --title "Bump Squatter to $VERSION" \
+            --body "Automated from the \`$VERSION\` release. sha256 computed from the published DMG, which was verified as notarized and stapled before this PR was opened." \
+            | grep -oE '[0-9]+$')
+
+          # Merge through the REST API, not `gh pr merge`. GitHub reports the PR as BLOCKED
+          # while the signature rule is unsatisfied -- which it is, until the merge commit
+          # exists -- and `gh` refuses on that status. The API merge creates the signed commit
+          # and is accepted. Verified against this ruleset, not assumed.
+          gh api -X PUT "repos/$TAP/pulls/$PR/merge" -f merge_method=squash
+          gh api -X DELETE "repos/$TAP/git/refs/heads/$BRANCH" || true
+          echo "Cask bumped to $VERSION"
