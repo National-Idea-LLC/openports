@@ -152,6 +152,33 @@ struct PortListModelTests {
         #expect(await runner.launches == launches, "must not scan after stopPolling")
     }
 
+    /// The footer's refresh icon swaps for a spinner while `isRefreshing` is true. A poll every
+    /// two seconds made it strobe, so only a scan the user asked for may set it — while the list
+    /// itself still has to keep updating on the poll.
+    @Test func backgroundPollingUpdatesTheListWithoutFlashingTheRefreshIndicator() async throws {
+        final class Flag: @unchecked Sendable { var didFire = false }
+        let runner = FakeRunner(.success(lsofResult(sampleLsof)))
+        let defaults = freshDefaults()
+        Preferences(defaults: defaults).refreshInterval = 0.5 // clamp floor; fast enough for a test
+        let model = makeModel(runner: runner, defaults: defaults)
+
+        // Fires on the first change to anything read in the first closure, then stops tracking —
+        // "did `isRefreshing` ever move", which is exactly what the eye sees as a flicker.
+        let flag = Flag()
+        withObservationTracking { _ = model.isRefreshing } onChange: { flag.didFire = true }
+
+        model.startPolling()
+        try await Task.sleep(for: .milliseconds(1200))
+        model.stopPolling()
+
+        #expect(await runner.launches >= 2, "the poll must keep scanning")
+        #expect(model.listeners == [sampleListener], "the list must still be up to date")
+        #expect(!flag.didFire, "a background poll must not touch isRefreshing")
+
+        await model.refresh()
+        #expect(flag.didFire, "a refresh the user asked for must show progress")
+    }
+
     @Test func selectionClearsWhenRowDisappears() async {
         let runner = FakeRunner(.success(lsofResult(sampleLsof)))
         let model = makeModel(runner: runner)
@@ -850,6 +877,30 @@ struct PreferencesTests {
         for key in [DefaultsKeys.refreshInterval, DefaultsKeys.showCountInMenuBar, DefaultsKeys.ignoredPorts, DefaultsKeys.ignoredProcessNames, DefaultsKeys.sortOrder, DefaultsKeys.hideHighPorts, DefaultsKeys.highPortThreshold] {
             #expect(key.hasPrefix("squatter."))
         }
+        // The one deliberate exception: AppKit reads this exact string, so a `squatter.`
+        // prefix would silently do nothing.
+        #expect(DefaultsKeys.initialToolTipDelay == "NSInitialToolTipDelay")
+    }
+
+    /// The row's ⋯ / ↗ / ✕ chips only exist while the row is hovered, so AppKit's stock delay
+    /// outlasts the time the pointer is over them.
+    @Test func toolTipDelayIsShortenedForHoverRevealedChips() {
+        // No "unset" precondition to assert: `register(defaults:)` writes to the process-wide
+        // NSRegistrationDomain, which every suite consults, and the app under test registers it
+        // at launch. That it is already visible here is the wiring working.
+        let defaults = freshDefaults()
+        Preferences.registerToolTipDelay(in: defaults)
+        #expect(defaults.integer(forKey: DefaultsKeys.initialToolTipDelay) == Preferences.toolTipDelayMilliseconds)
+        #expect(Preferences.toolTipDelayMilliseconds < 1_000, "must land while the chip is still under the cursor")
+    }
+
+    /// Registered, not set: the value stays in the registration domain, so it never lands in the
+    /// user's plist and an explicit `defaults write` of the same key still wins.
+    @Test func toolTipDelayDoesNotOverrideAnExplicitUserSetting() {
+        let defaults = freshDefaults()
+        defaults.set(1_500, forKey: DefaultsKeys.initialToolTipDelay)
+        Preferences.registerToolTipDelay(in: defaults)
+        #expect(defaults.integer(forKey: DefaultsKeys.initialToolTipDelay) == 1_500)
     }
 }
 

@@ -8,12 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		047842168E98E3DA742047B3 /* ProcessKiller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7077596CAE863FE3E62245FD /* ProcessKiller.swift */; };
+		062E0B7973E3B7DA621615C0 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = A63AB6F43DBC3C4AD3C8DD9F /* AppIcon.icon */; };
 		06E86C358764505BC58C3B3C /* PortRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E24ADD61D90D12374BFE2E54 /* PortRow.swift */; };
 		0B2F398054336703CC30C651 /* SystemActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7B51E4B0082BCFDFF15A08 /* SystemActions.swift */; };
 		1E353C3DD6BF90AA660A2070 /* ContainerStopperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE20B9DF9CD90B7571C33E4 /* ContainerStopperTests.swift */; };
 		2714B6872A1E6F72323E5ECF /* docker-ps-sample.txt in Resources */ = {isa = PBXBuildFile; fileRef = 79C90748F607B5AED42984BC /* docker-ps-sample.txt */; };
 		44825945E94BFC7F45752DA4 /* SettingsModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 260686C41B3BF8859A40B24F /* SettingsModelTests.swift */; };
 		453B2640ED6240446647CB4D /* PortListModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D41CCFA526C37194579DD61 /* PortListModelTests.swift */; };
+		477A7E8C330DFE7CE4A854C2 /* Glass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F054766F465A479DBA315CF /* Glass.swift */; };
 		4D7C4AE39EF51FD51587A74A /* ListenerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D1D2BABEAD4883EC684374E /* ListenerTests.swift */; };
 		4D89A9C534F4354CC45ACBD1 /* PortListModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE9406DD715F6649B347628B /* PortListModel.swift */; };
 		4E07580406E51A67675A5769 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB9D683D427119F26ED79956 /* Preferences.swift */; };
@@ -55,6 +57,7 @@
 		140D76EC9CAAA310A129F5DC /* Listener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Listener.swift; sourceTree = "<group>"; };
 		1A835191EBE19DFB26670E92 /* PortScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortScanner.swift; sourceTree = "<group>"; };
 		260686C41B3BF8859A40B24F /* SettingsModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModelTests.swift; sourceTree = "<group>"; };
+		2F054766F465A479DBA315CF /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
 		327309754BDD25C90544E8CD /* DockerProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockerProbeTests.swift; sourceTree = "<group>"; };
 		33C96B821FB9E46F3CCB1543 /* Squatter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Squatter.entitlements; sourceTree = "<group>"; };
 		3D41CCFA526C37194579DD61 /* PortListModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortListModelTests.swift; sourceTree = "<group>"; };
@@ -70,6 +73,7 @@
 		9A9EF2D70620759ABC83BD58 /* lsof-sample.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "lsof-sample.txt"; sourceTree = "<group>"; };
 		A075467266762D38618B2FB1 /* SettingsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModel.swift; sourceTree = "<group>"; };
 		A5412315077E0ADA855C3022 /* ContainerStopper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerStopper.swift; sourceTree = "<group>"; };
+		A63AB6F43DBC3C4AD3C8DD9F /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		A917D9F91EB4C4B17A65F529 /* SnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotTests.swift; sourceTree = "<group>"; };
 		AB9D683D427119F26ED79956 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		ACFC57CEC22AC119320E67B9 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -108,6 +112,7 @@
 		56089AC5342F9A08BF9A9C4B /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				2F054766F465A479DBA315CF /* Glass.swift */,
 				73839A6602150E8EC0825B8C /* PortListView.swift */,
 				E24ADD61D90D12374BFE2E54 /* PortRow.swift */,
 				ACFC57CEC22AC119320E67B9 /* SettingsView.swift */,
@@ -174,6 +179,7 @@
 		E1ACC98CE90DF88730D854B8 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				A63AB6F43DBC3C4AD3C8DD9F /* AppIcon.icon */,
 				8B0E0121DC24D19C318A5070 /* Assets.xcassets */,
 			);
 			path = Resources;
@@ -281,6 +287,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				062E0B7973E3B7DA621615C0 /* AppIcon.icon in Resources */,
 				F4D398DE12425896C733B815 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -303,6 +310,7 @@
 			files = (
 				EA8A8329EEADBEED4B53126D /* ContainerStopper.swift in Sources */,
 				80835CA04772C47CC22801BC /* DockerProbe.swift in Sources */,
+				477A7E8C330DFE7CE4A854C2 /* Glass.swift in Sources */,
 				9313F8154DE4F9B5134CECB9 /* Listener.swift in Sources */,
 				BF6AA3EAC29BE7B8C429423E /* LoginItem.swift in Sources */,
 				9AB696FBFF44F0AB4AF88617 /* LsofParser.swift in Sources */,

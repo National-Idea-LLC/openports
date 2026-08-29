@@ -9,18 +9,42 @@ struct PortListView: View {
     @FocusState private var isListFocused: Bool
 
     var body: some View {
-        VStack(spacing: 0) {
-            filterBar
+        layout
+            .frame(width: 360, height: 460)
+            // On macOS 26 the menu bar panel is already Liquid Glass; painting a material over it
+            // would flatten it back into an opaque sheet.
+            .background(LiquidGlass.isAvailable ? AnyShapeStyle(.clear) : AnyShapeStyle(.regularMaterial))
+            .onAppear { model.startPolling() }
+            .onDisappear { model.stopPolling() }
+    }
+
+    /// Glass bars float over the list, so on macOS 26 the filter bar and status bar are safe-area
+    /// insets: the list keeps its full height, scrolls under them, and fades at both edges. Without
+    /// glass they are opaque, so they stack instead and the list stops where they begin.
+    @ViewBuilder
+    private var layout: some View {
+        if LiquidGlass.isAvailable {
             content
-            statusBar
+                .safeAreaInset(edge: .top, spacing: 0) { filterBar }
+                .safeAreaInset(edge: .bottom, spacing: 0) { statusBar }
+        } else {
+            VStack(spacing: 0) {
+                filterBar
+                content
+                statusBar
+            }
         }
-        .frame(width: 360, height: 460)
-        .background(.regularMaterial)
-        .onAppear { model.startPolling() }
-        .onDisappear { model.stopPolling() }
     }
 
     // MARK: Filter bar
+
+    /// Tahoe search fields are capsules; the older rounded rectangle matches the rest of a
+    /// pre-glass window, where a capsule would look out of place.
+    private var searchFieldShape: AnyShape {
+        LiquidGlass.isAvailable
+            ? AnyShape(Capsule(style: .continuous))
+            : AnyShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
 
     private var filterBar: some View {
         HStack(spacing: 8) {
@@ -41,9 +65,9 @@ struct PortListView: View {
                 .accessibilityLabel(Text("Clear filter"))
             }
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 12)
         .padding(.vertical, 7)
-        .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .glassSurface(in: searchFieldShape, fallback: AnyShapeStyle(.quaternary.opacity(0.6)))
         .padding(.horizontal, 12)
         .padding(.top, 12)
         .padding(.bottom, 8)
@@ -97,6 +121,7 @@ struct PortListView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        .softScrollEdges()
         .environment(\.defaultMinListRowHeight, 24)
         .focused($isListFocused)
         .onAppear { isListFocused = true }
@@ -131,7 +156,13 @@ struct PortListView: View {
     // MARK: Status bar
 
     private var statusBar: some View {
-        HStack(spacing: 12) {
+        GlassGroup(spacing: 8) {
+            statusBarControls
+        }
+    }
+
+    private var statusBarControls: some View {
+        HStack(spacing: 8) {
             Button {
                 Task { await model.refresh() }
             } label: {
@@ -187,11 +218,15 @@ struct PortListView: View {
         }
         .font(.caption)
         .foregroundStyle(.secondary)
-        .buttonStyle(.plain)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 9)
-        .background(.bar)
-        .overlay(alignment: .top) { Divider() }
+        // Glass buttons float straight on the window's own glass, so the bar behind them and the
+        // hairline that separated it would only add weight. Pre-glass, both still earn their keep.
+        .chromeButtonStyle()
+        .padding(.horizontal, LiquidGlass.isAvailable ? 10 : 14)
+        .padding(.vertical, LiquidGlass.isAvailable ? 6 : 9)
+        .background(LiquidGlass.isAvailable ? AnyShapeStyle(.clear) : AnyShapeStyle(.bar))
+        .overlay(alignment: .top) {
+            if !LiquidGlass.isAvailable { Divider() }
+        }
     }
 
     // MARK: Text

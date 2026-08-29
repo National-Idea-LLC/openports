@@ -10,6 +10,10 @@ enum DefaultsKeys {
     static let dockerIntegration = "squatter.dockerIntegration"
     static let hideHighPorts = "squatter.hideHighPorts"
     static let highPortThreshold = "squatter.highPortThreshold"
+
+    /// AppKit's own key, so it carries no `squatter.` prefix and must not be renamed.
+    /// Milliseconds a control must be hovered before its `.help()` tooltip appears.
+    static let initialToolTipDelay = "NSInitialToolTipDelay"
 }
 
 /// How the list is ordered. Raw values are persisted — don't rename.
@@ -25,10 +29,24 @@ struct Preferences {
     static let defaultRefreshInterval: TimeInterval = 2
     static let defaultHighPortThreshold: UInt16 = 10_000
 
+    /// The row's ⋯ / ↗ / ✕ chips only exist while the row is hovered, so AppKit's stock delay
+    /// (about two seconds) outlasts the time the pointer is actually over them — the tooltip
+    /// arrives after you have already moved on, or not at all. This is short enough to land
+    /// while the chip is still under the cursor, long enough not to fire on a pointer just
+    /// crossing the row.
+    static let toolTipDelayMilliseconds = 400
+
     private let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+    }
+
+    /// Shortens the tooltip delay for the whole app. Registered rather than set, so it stays out
+    /// of the user's plist and any explicit `defaults write` of the same key still wins.
+    /// Call once before the first view is built.
+    static func registerToolTipDelay(in defaults: UserDefaults = .standard) {
+        defaults.register(defaults: [DefaultsKeys.initialToolTipDelay: toolTipDelayMilliseconds])
     }
 
     /// Seconds between automatic scans while the popover is open. Clamped to a sane range.

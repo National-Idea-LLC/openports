@@ -33,7 +33,7 @@ Run from the repo root.
 - `xcodebuild -project Squatter.xcodeproj -scheme Squatter -destination 'platform=macOS' test` — unit tests (Swift Testing)
 - `xcodebuild -project Squatter.xcodeproj -scheme Squatter -configuration Release archive -archivePath build/Squatter.xcarchive` — release archive
 - `scripts/release.sh [--notarize]` — test, archive, export Developer ID, verify, build and sign the DMG; `--notarize` also submits and staples (needs the `squatter` keychain profile)
-- `swift scripts/make-icon.swift` — regenerate the app icon set
+- `scripts/sync-app-icon.sh` — copy the Icon Composer source from `brand/` into `Squatter/Resources/AppIcon.icon`, normalising the two keys Xcode 26.6's actool cannot parse. Run after every re-export from Icon Composer; never hand-edit the copy under `Squatter/Resources`.
 - `swiftlint` — lint (only if `.swiftlint.yml` is added; not required for M0)
 - Debug helper: `lsof -nP -iTCP -sTCP:LISTEN +c0 -F pcunPT` — the exact command the scanner runs
 

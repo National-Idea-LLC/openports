@@ -42,6 +42,8 @@ final class PortListModel {
     private(set) var listeners: [Listener] = []
     /// Message from the most recent failed scan; `nil` once a scan succeeds again.
     private(set) var lastError: String?
+    /// True only while a scan the *user* asked for is running. Background polls leave it
+    /// false, so the footer's refresh icon does not blink every couple of seconds.
     private(set) var isRefreshing = false
     /// False until the first scan completes, so the UI can distinguish "loading" from "empty".
     private(set) var hasLoaded = false
@@ -229,16 +231,25 @@ final class PortListModel {
         pollTask = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
-                await refresh()
+                await scan(showingProgress: false)
                 let interval = isPopoverVisible ? Duration.seconds(preferences.refreshInterval) : badgeInterval
                 do { try await Task.sleep(for: interval) } catch { return }
             }
         }
     }
 
+    /// A scan the user asked for — the Refresh button, ⌘R, or a Retry button. Shows progress.
     func refresh() async {
-        isRefreshing = true
-        defer { isRefreshing = false }
+        await scan(showingProgress: true)
+    }
+
+    /// The scan itself. `showingProgress` drives `isRefreshing` and nothing else: a poll that
+    /// ticks every couple of seconds would otherwise strobe the footer icon between the
+    /// arrow and a spinner, which reads as a fault rather than as work. The list, the counts
+    /// and the error still update either way, so the numbers stay current in both modes.
+    private func scan(showingProgress: Bool) async {
+        if showingProgress { isRefreshing = true }
+        defer { if showingProgress { isRefreshing = false } }
         do {
             listeners = try await scanner.scan()
             lastError = nil
@@ -310,7 +321,7 @@ final class PortListModel {
         }
         if await killer.waitForExit(of: listener, timeout: forceKillGrace) {
             killStates[listener.id] = nil
-            await refresh()
+            await scan(showingProgress: false)
         } else {
             killStates[listener.id] = .stillRunning
         }
@@ -327,7 +338,7 @@ final class PortListModel {
         }
         _ = await killer.waitForExit(of: listener, timeout: forceKillWait)
         killStates[listener.id] = nil
-        await refresh()
+        await scan(showingProgress: false)
     }
 
     /// Runs `docker stop` and refreshes on success. The guard mirrors `requestStopContainer`:
@@ -342,7 +353,7 @@ final class PortListModel {
             return
         }
         killStates[listener.id] = nil
-        await refresh()
+        await scan(showingProgress: false)
     }
 
     func dismissKillError(for listener: Listener) {

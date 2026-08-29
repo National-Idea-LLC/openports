@@ -5,6 +5,10 @@ struct SquatterApp: App {
     @State private var model = PortListModel()
     @State private var settings = SettingsModel()
 
+    init() {
+        Preferences.registerToolTipDelay()
+    }
+
     var body: some Scene {
         MenuBarExtra {
             PortListView(model: model, settings: settings)

@@ -5,10 +5,16 @@ All notable user-facing changes to Squatter. Written for the people who use it �
 ## [Unreleased]
 
 ### Added
+- Every row now shows its address — `http://localhost:3000` — on its own line, so you can read it without hovering. Click it to open in your browser, same as the ↗ button.
 
 ### Changed
+- Squatter has a new app icon. It is the same dark panel with one lit green port, redrawn so macOS renders it with real depth and lighting instead of as a flat picture, and it now has its own dark and tinted versions that follow whatever appearance you have set.
+- On macOS 26 and later, Squatter now uses the system's Liquid Glass look. The window, the search field, the footer buttons, and the buttons on each row are translucent and pick up whatever is behind them, and the list fades softly under the search field and the footer as you scroll. On macOS 15 the app looks exactly as it did before.
 
 ### Fixed
+- The tooltips on each row's buttons now appear quickly enough to actually read. They were on the system's two-second delay, but the ⋯, ↗ and ✕ buttons only exist while you're hovering the row — so the tip usually arrived after you'd moved on, or never showed at all.
+- Settings is easier to read: the explanations under each group are darker and now say what they are about instead of starting mid-sentence.
+- The refresh icon in the footer no longer blinks every couple of seconds. It only spins when you ask for a refresh — the list and the counts still update on their own in the background, as before.
 
 ### Removed
 

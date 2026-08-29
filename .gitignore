@@ -50,3 +50,6 @@ ExportOptions*.plist
 
 # Agent scratch (Claude Code worktrees, session state)
 .claude/
+
+# Design source (Icon Composer exports are regenerable from the .icon)
+brand/**/Exports/

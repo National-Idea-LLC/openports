@@ -25,22 +25,38 @@ struct PortRow: View {
         }
     }
 
+    /// Where the text column starts: LED (7) + spacing (10) + port column (62) + spacing (10).
+    /// The URL sits below the action chips rather than beside them, so it needs the inset spelled
+    /// out to line up with the process name.
+    private static let textColumnInset: CGFloat = 89
+
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            LED(color: ledColor)
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .center, spacing: 10) {
+                LED(color: ledColor)
 
-            Text(String(listener.port))
-                .font(.system(.title3, design: .monospaced).weight(.semibold))
-                .monospacedDigit()
-                .frame(width: 62, alignment: .leading)
-                .foregroundStyle(isIgnored ? .secondary : .primary)
+                Text(String(listener.port))
+                    .font(.system(.title3, design: .monospaced).weight(.semibold))
+                    .monospacedDigit()
+                    .frame(width: 62, alignment: .leading)
+                    .foregroundStyle(isIgnored ? .secondary : .primary)
 
-            details
+                details
 
-            Spacer(minLength: 6)
+                Spacer(minLength: 6)
 
-            trailing
-                .layoutPriority(1)
+                trailing
+                    .layoutPriority(1)
+            }
+
+            // Full row width, below the chips rather than beside them: sharing the line with the
+            // hover actions truncated it to "http://lo…host:3000" on exactly the row being read.
+            if confirmationPrompt == nil {
+                URLLine(url: listener.localURLString, isIgnored: isIgnored) {
+                    model.open(listener)
+                }
+                .padding(.leading, Self.textColumnInset)
+            }
         }
         .padding(.vertical, 5)
         .padding(.horizontal, 6)
@@ -148,13 +164,13 @@ struct PortRow: View {
             // would otherwise squeeze the buttons into ellipses.
             HStack(spacing: 8) {
                 Button("Cancel") { model.cancelKill(listener) }
+                    .glassButtonStyle()
                     .controlSize(.small)
                     .keyboardShortcut(.cancelAction)
                 Button("Kill", role: .destructive) {
                     Task { await model.kill(listener) }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
+                .prominentButtonStyle(tint: .red)
                 .controlSize(.small)
                 .accessibilityLabel(Text("Confirm killing \(listener.processName) on port \(String(listener.port))"))
             }
@@ -162,13 +178,13 @@ struct PortRow: View {
         case .confirmingForce:
             HStack(spacing: 8) {
                 Button("Cancel") { model.cancelKill(listener) }
+                    .glassButtonStyle()
                     .controlSize(.small)
                     .keyboardShortcut(.cancelAction)
                 Button("Force Kill", role: .destructive) {
                     Task { await model.forceKill(listener) }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
+                .prominentButtonStyle(tint: .red)
                 .controlSize(.small)
                 .accessibilityLabel(Text("Confirm force killing \(listener.processName) on port \(String(listener.port))"))
             }
@@ -181,13 +197,13 @@ struct PortRow: View {
             // bare verb. Accessibility keeps the full container name regardless.
             HStack(spacing: 8) {
                 Button("Cancel") { model.cancelKill(listener) }
+                    .glassButtonStyle()
                     .controlSize(.small)
                     .keyboardShortcut(.cancelAction)
                 Button("Stop", role: .destructive) {
                     Task { await model.stopContainer(listener) }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
+                .prominentButtonStyle(tint: .red)
                 .controlSize(.small)
                 .accessibilityLabel(Text("Confirm stopping \(listener.displayName) on port \(String(listener.port))"))
             }
@@ -206,8 +222,7 @@ struct PortRow: View {
                 Button("Force Kill", role: .destructive) {
                     Task { await model.forceKill(listener) }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
+                .prominentButtonStyle(tint: .red)
                 .controlSize(.small)
                 .accessibilityLabel(Text("Force kill \(listener.processName) on port \(String(listener.port))"))
             }
@@ -234,6 +249,12 @@ struct PortRow: View {
     }
 
     private var hoverActions: some View {
+        GlassGroup(spacing: 6) {
+            hoverActionChips
+        }
+    }
+
+    private var hoverActionChips: some View {
         HStack(spacing: 4) {
             Menu {
                 menuItems
@@ -249,7 +270,7 @@ struct PortRow: View {
             .frame(width: 24, height: 24)
             .foregroundStyle(.secondary)
             // The borderless menu style drops the label's background, so the chip lives here.
-            .background(.thickMaterial, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .glassSurface(in: LiquidGlass.chipShape, interactive: true, fallback: AnyShapeStyle(.thickMaterial))
             .accessibilityLabel(Text("More actions for \(listener.processName) on port \(String(listener.port))"))
             .help(Text("More actions"))
 
@@ -364,11 +385,50 @@ private struct AddressChip: View {
     }
 }
 
+/// The listener's URL, spelled out on its own line so it can be read and clicked without
+/// hovering the row for the ↗ button's tooltip.
+///
+/// Always `http://localhost:<port>` — see `Listener.localURLString`. On a dev machine localhost
+/// reaches every locally-bound port whatever the row advertises, so this stays right even for a
+/// row bound to `0.0.0.0`; the address chip above is what reports the actual binding.
+private struct URLLine: View {
+    let url: String
+    let isIgnored: Bool
+    let open: () -> Void
+
+    @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Button(action: open) {
+            Text(verbatim: url)
+                .font(.caption2.monospaced())
+                .lineLimit(1)
+                .truncationMode(.middle)
+                // Underline only on hover: a permanently underlined line in every row turns the
+                // list into a wall of rules.
+                .underline(isHovering)
+                .foregroundStyle(isIgnored ? AnyShapeStyle(.secondary) : AnyShapeStyle(.tint))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovering = hovering
+            // The row's own cursor is the arrow; a link should say it is one.
+            if hovering { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+        }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isHovering)
+        // The row carries one combined label and an "Open in Browser" action already, so this
+        // must not surface as a second, near-duplicate target.
+        .accessibilityHidden(true)
+    }
+}
+
 /// Square icon button that only shows on hover/selection.
 ///
-/// The chip is drawn in a material rather than a tinted wash: the row underneath can be the
-/// window background, the hover fill, or the accent-coloured selection, and only an opaque
-/// surface keeps the glyph legible on all three.
+/// The chip is drawn in glass, or in a material below macOS 26, rather than a tinted wash: the row
+/// underneath can be the window background, the hover fill, or the accent-coloured selection, and
+/// only a surface of its own keeps the glyph legible on all three.
 private struct RowAction: View {
     let systemImage: String
     let tint: Color
@@ -379,7 +439,7 @@ private struct RowAction: View {
             Image(systemName: systemImage)
                 .font(.caption.weight(.bold))
                 .frame(width: 24, height: 24)
-                .background(.thickMaterial, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .glassSurface(in: LiquidGlass.chipShape, interactive: true, fallback: AnyShapeStyle(.thickMaterial))
                 .foregroundStyle(tint)
         }
         .buttonStyle(.plain)
