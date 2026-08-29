@@ -5,6 +5,7 @@ All notable user-facing changes to Squatter. Written for the people who use it �
 ## [Unreleased]
 
 ### Added
+- A new setting hides ports above a number you choose — 10,000 by default — so the list shows your dev servers instead of macOS background services. Off by default, so nobody's list changes on its own.
 
 ### Changed
 

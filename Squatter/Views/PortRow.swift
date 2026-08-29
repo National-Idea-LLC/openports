@@ -245,9 +245,16 @@ struct PortRow: View {
         }
         .disabled(!canKill)
         Divider()
-        if isIgnored {
+        switch model.ignoreReason(listener) {
+        case .port, .processName:
             Button("Unignore", systemImage: "eye") { model.unignore(listener) }
-        } else {
+        case .highPort:
+            // Unignore would be a dead button here: this row is hidden by a rule, and no
+            // list removal reveals it. Offer the rule's own undo instead.
+            Button(String(localized: "Show Ports Above \(String(model.highPortThreshold))"), systemImage: "eye") {
+                model.stopHidingHighPorts()
+            }
+        case nil:
             Button(String(localized: "Ignore Port \(String(listener.port))"), systemImage: "eye.slash") {
                 model.ignorePort(of: listener)
             }

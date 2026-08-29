@@ -23,6 +23,14 @@ struct ListenerGroup: Identifiable, Equatable {
     var id: Kind { kind }
 }
 
+/// Why a row is hidden. The threshold is a rule, not a list entry, so the row's undo
+/// action differs — see `PortRow.menuItems`.
+enum IgnoreReason: Equatable, Sendable {
+    case port
+    case processName
+    case highPort
+}
+
 /// Single source of truth for the popover. Views bind to it and hold no logic.
 @MainActor
 @Observable
@@ -49,6 +57,20 @@ final class PortListModel {
         didSet {
             preferences.showCountInMenuBar = showCountInMenuBar
             restartPollingLoop()
+        }
+    }
+    /// Hide ports above `highPortThreshold` — most of them are macOS background services.
+    var hideHighPorts: Bool {
+        didSet {
+            preferences.hideHighPorts = hideHighPorts
+            clearSelectionIfHidden()
+        }
+    }
+
+    var highPortThreshold: UInt16 {
+        didSet {
+            preferences.highPortThreshold = highPortThreshold
+            clearSelectionIfHidden()
         }
     }
 
@@ -82,6 +104,8 @@ final class PortListModel {
         self.ignoredProcessNames = preferences.ignoredProcessNames
         self.sortOrder = preferences.sortOrder
         self.showCountInMenuBar = preferences.showCountInMenuBar
+        self.hideHighPorts = preferences.hideHighPorts
+        self.highPortThreshold = preferences.highPortThreshold
         restartPollingLoop()
     }
 
@@ -129,9 +153,17 @@ final class PortListModel {
     /// How many current listeners the ignore list hides (independent of the text filter).
     var hiddenCount: Int { listeners.count(where: isIgnored) }
 
-    func isIgnored(_ listener: Listener) -> Bool {
-        ignoredPorts.contains(listener.port) || ignoredProcessNames.contains(listener.processName)
+    /// Why this listener is hidden, or `nil` when it is not.
+    /// Order matters: an explicit list entry outranks the threshold rule, so a port the user
+    /// ignored by hand still offers Unignore even when the rule would also hide it.
+    func ignoreReason(_ listener: Listener) -> IgnoreReason? {
+        if ignoredPorts.contains(listener.port) { return .port }
+        if ignoredProcessNames.contains(listener.processName) { return .processName }
+        if hideHighPorts, listener.port > highPortThreshold { return .highPort }
+        return nil
     }
+
+    func isIgnored(_ listener: Listener) -> Bool { ignoreReason(listener) != nil }
 
     var isPolling: Bool { pollTask != nil }
 
@@ -324,6 +356,10 @@ final class PortListModel {
         ignoredProcessNames.remove(name)
         preferences.ignoredProcessNames = ignoredProcessNames
     }
+
+    /// Turns the whole threshold rule off — the undo for a row hidden by `.highPort`,
+    /// which no list removal can reveal.
+    func stopHidingHighPorts() { hideHighPorts = false }
 
     private func clearSelectionIfHidden() {
         guard let selection, !filtered.contains(where: { $0.id == selection }) else { return }

@@ -44,6 +44,24 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
             Section {
+                Toggle("Hide high ports", isOn: $model.hideHighPorts)
+                LabeledContent("Hide ports above") {
+                    TextField(
+                        "",
+                        value: $model.highPortThreshold,
+                        format: .number.grouping(.never)
+                    )
+                    .labelsHidden()
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 64)
+                    .disabled(!model.hideHighPorts)
+                }
+            } footer: {
+                Text("Most ports above 10,000 belong to macOS background services, not to your dev servers. Hidden rows are counted next to the eye in the list.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Section {
                 LabeledContent("Version", value: settings.appVersion)
                 LabeledContent {
                     Button("Check for Updates") { settings.checkForUpdates() }
