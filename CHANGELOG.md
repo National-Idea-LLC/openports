@@ -7,11 +7,17 @@ All notable user-facing changes to Squatter. Written for the people who use it �
 ### Added
 
 ### Changed
-- Settings' ignore list is laid out again. The box you type ports into is now full width, with the example `3000, 5173` sitting inside it as a hint rather than beside it as text you could not edit, and "Separate ports with a comma, a space, or a new line." moved up next to the box it describes. Everything you have ignored now appears as small chips under **Ports** and **Processes**, so eight ignored ports take two lines instead of eight rows — and you can tell at a glance which are ports and which are process names. Click a chip to stop ignoring it.
 
 ### Fixed
 
 ### Removed
+
+## [0.4.1] - 2026-08-30
+
+Settings' ignore list got the redesign it needed: a full-width box to type ports into, and everything you have ignored shown as chips instead of a row apiece.
+
+### Changed
+- Settings' ignore list is laid out again. The box you type ports into is now full width, with the example `3000, 5173` sitting inside it as a hint rather than beside it as text you could not edit, and "Separate ports with a comma, a space, or a new line." moved up next to the box it describes. Everything you have ignored now appears as small chips under **Ports** and **Processes**, so eight ignored ports take two lines instead of eight rows — and you can tell at a glance which are ports and which are process names. Click a chip to stop ignoring it.
 
 ## [0.4.0] - 2026-08-30
 
