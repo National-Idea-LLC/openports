@@ -166,19 +166,20 @@ struct PortListView: View {
             Button {
                 Task { await model.refresh() }
             } label: {
-                HStack(spacing: 6) {
-                    if model.isRefreshing {
-                        ProgressView().controlSize(.mini)
-                    } else {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    Text(countText)
-                        .monospacedDigit()
-                }
+                // The arrow is the progress indicator: it turns while the scan runs, rather than
+                // being swapped out for a `ProgressView`. One glyph that moves, instead of two
+                // glyphs trading places — and no width change under the button as they do.
+                // The stock rate is about a second per turn, which reads as reluctant on a scan
+                // that is already done; at 5x a turn takes ~200 ms, which is what
+                // `PortListModel.minimumRefreshDisplay` holds the arrow open for. Change one and
+                // the other wants changing too — the hold is meant to be about one revolution.
+                Image(systemName: "arrow.clockwise")
+                    .symbolEffect(.rotate, options: .repeat(.continuous).speed(5), isActive: model.isRefreshing)
             }
             .keyboardShortcut("r")
-            .accessibilityLabel(Text("Refresh list"))
-            .help(Text("Refresh (⌘R)"))
+            // The count reads as clutter next to the icon, but VoiceOver and the tooltip still carry it.
+            .accessibilityLabel(Text("Refresh list, \(countText)"))
+            .help(Text("Refresh (⌘R) — \(countText)"))
 
             if model.hiddenCount > 0 {
                 Button {
@@ -186,6 +187,16 @@ struct PortListView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: model.showIgnored ? "eye" : "eye.slash")
+                            // Magic Replace draws the slash on and off instead of swapping two
+                            // glyphs — eye/eye.slash is Apple's own example of a related pair, and
+                            // the stroke drawing itself *is* the state change. The fallback never
+                            // runs for this pair; `.magic` just requires one.
+                            .contentTransition(.symbolEffect(.replace.magic(fallback: .upUp)))
+                            // Scoped to the icon rather than wrapping the toggle in `withAnimation`,
+                            // which would also slide every ignored row into the list behind it.
+                            // Quicker than `.default` (~0.35 s): the slash drawing on is the answer
+                            // to a click, and an answer that takes a third of a second feels asked.
+                            .animation(.easeInOut(duration: 0.2), value: model.showIgnored)
                         Text(hiddenText).monospacedDigit()
                     }
                 }
@@ -197,7 +208,11 @@ struct PortListView: View {
             Button {
                 isShowingSettings.toggle()
             } label: {
+                // Bounce, not rotate: the gear is not doing work, it is acknowledging a click —
+                // the HIG's own use for bounce. Fires on close as well as open, since the popover
+                // is anchored below the button and leaves it visible.
                 Image(systemName: "gearshape")
+                    .symbolEffect(.bounce.up, options: .nonRepeating, value: isShowingSettings)
             }
             .keyboardShortcut(",")
             .accessibilityLabel(Text("Settings"))

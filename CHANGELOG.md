@@ -7,6 +7,8 @@ All notable user-facing changes to Squatter. Written for the people who use it �
 ### Added
 
 ### Changed
+- The buttons in the footer animate now. The refresh arrow spins while it scans, instead of being swapped out for a spinner; the eye draws its slash on and off as you show or hide ignored ports; and the gear gives a small bounce when you open Settings.
+- The Refresh button in the footer is now just the icon. The count beside it — "7 of 17", or "17 listening" when nothing is filtered — is gone from view; hover the button and the tooltip still tells you, and the menu bar keeps showing the number.
 
 ### Fixed
 - The address on each row is readable again. It was drawn in the accent colour, which washed out against the translucent panel on macOS 26 — how readable it was depended on your wallpaper. It now uses the same colour as the process name above it and is underlined, so it stays legible in light and dark mode over anything.

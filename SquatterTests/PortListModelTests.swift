@@ -9,7 +9,8 @@ struct PortListModelTests {
         kills: KillRecorder = KillRecorder(names: [42: "node"]),
         actions: RecordingActions = RecordingActions(),
         defaults: UserDefaults = freshDefaults(),
-        badgeInterval: Duration = .milliseconds(100)
+        badgeInterval: Duration = .milliseconds(100),
+        minimumRefreshDisplay: Duration = .zero
     ) -> PortListModel {
         PortListModel(
             scanner: PortScanner(runner: runner, currentUID: 501, userName: testUserName, docker: nil),
@@ -18,7 +19,8 @@ struct PortListModelTests {
             preferences: Preferences(defaults: defaults),
             forceKillGrace: .milliseconds(60),
             forceKillWait: .milliseconds(60),
-            badgeInterval: badgeInterval
+            badgeInterval: badgeInterval,
+            minimumRefreshDisplay: minimumRefreshDisplay
         )
     }
 
@@ -177,6 +179,40 @@ struct PortListModelTests {
 
         await model.refresh()
         #expect(flag.didFire, "a refresh the user asked for must show progress")
+    }
+
+    /// The footer's arrow rotates while `isRefreshing`, so a scan that returns in 80 ms would
+    /// stop it a fraction of a turn in. The hold keeps the indicator up long enough to read as a
+    /// refresh — but it must not hold the *list* back, which is the half that would be a
+    /// regression: the rows and counts are already current before the arrow stops.
+    @Test func aFastRefreshStillShowsTheIndicatorLongEnoughToSeeIt() async throws {
+        let model = makeModel(minimumRefreshDisplay: .milliseconds(300))
+        let refresh = Task { await model.refresh() }
+
+        try await Task.sleep(for: .milliseconds(120)) // well past a fake scan, well short of the hold
+        #expect(model.isRefreshing, "the indicator holds after a scan that returned instantly")
+        #expect(model.listeners == [sampleListener], "the list is current *during* the hold, not after it")
+
+        await refresh.value
+        #expect(!model.isRefreshing, "and it clears once the hold is over")
+    }
+
+    /// A background poll never sets `isRefreshing`, so it must never pay the hold either —
+    /// otherwise a hold longer than the poll interval would throttle the list to the indicator's
+    /// pace for an indicator nobody is showing.
+    @Test func aBackgroundPollDoesNotPayTheIndicatorHold() async throws {
+        let runner = FakeRunner(.success(lsofResult(sampleLsof)))
+        let defaults = freshDefaults()
+        Preferences(defaults: defaults).refreshInterval = 0.5
+        // Far longer than the window below: if the poll waited on this, it would scan once at most.
+        let model = makeModel(runner: runner, defaults: defaults, minimumRefreshDisplay: .seconds(30))
+
+        model.startPolling()
+        try await Task.sleep(for: .milliseconds(1200))
+        model.stopPolling()
+
+        #expect(await runner.launches >= 2, "the poll must keep its own cadence")
+        #expect(!model.isRefreshing)
     }
 
     @Test func selectionClearsWhenRowDisappears() async {

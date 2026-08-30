@@ -42,8 +42,9 @@ final class PortListModel {
     private(set) var listeners: [Listener] = []
     /// Message from the most recent failed scan; `nil` once a scan succeeds again.
     private(set) var lastError: String?
-    /// True only while a scan the *user* asked for is running. Background polls leave it
-    /// false, so the footer's refresh icon does not blink every couple of seconds.
+    /// Drives the footer arrow's rotation. True only while a scan the *user* asked for is
+    /// running — background polls leave it false, so the icon does not spin every couple of
+    /// seconds — and held open for at least `minimumRefreshDisplay` so the turn completes.
     private(set) var isRefreshing = false
     /// False until the first scan completes, so the UI can distinguish "loading" from "empty".
     private(set) var hasLoaded = false
@@ -98,6 +99,11 @@ final class PortListModel {
     @ObservationIgnored private let forceKillGrace: Duration
     @ObservationIgnored private let forceKillWait: Duration
     @ObservationIgnored private let badgeInterval: Duration
+    /// How long `isRefreshing` stays true at minimum, so the footer's rotating arrow completes a
+    /// turn instead of twitching. A local `lsof` scan usually returns in well under 100 ms. Paired
+    /// with the arrow's 5x rotation speed in `PortListView`: this is about one revolution, and
+    /// raising it past that leaves the arrow spinning after the list has already settled.
+    @ObservationIgnored private let minimumRefreshDisplay: Duration
     @ObservationIgnored private var pollTask: Task<Void, Never>?
     @ObservationIgnored private var isPopoverVisible = false
 
@@ -109,7 +115,8 @@ final class PortListModel {
         preferences: Preferences = Preferences(),
         forceKillGrace: Duration = .seconds(2),
         forceKillWait: Duration = .seconds(1),
-        badgeInterval: Duration = .seconds(10)
+        badgeInterval: Duration = .seconds(10),
+        minimumRefreshDisplay: Duration = .milliseconds(200)
     ) {
         self.scanner = scanner
         self.killer = killer
@@ -119,6 +126,7 @@ final class PortListModel {
         self.forceKillGrace = forceKillGrace
         self.forceKillWait = forceKillWait
         self.badgeInterval = badgeInterval
+        self.minimumRefreshDisplay = minimumRefreshDisplay
         self.ignoredPorts = preferences.ignoredPorts
         self.ignoredProcessNames = preferences.ignoredProcessNames
         self.sortOrder = preferences.sortOrder
@@ -244,12 +252,13 @@ final class PortListModel {
     }
 
     /// The scan itself. `showingProgress` drives `isRefreshing` and nothing else: a poll that
-    /// ticks every couple of seconds would otherwise strobe the footer icon between the
-    /// arrow and a spinner, which reads as a fault rather than as work. The list, the counts
-    /// and the error still update either way, so the numbers stay current in both modes.
+    /// ticks every couple of seconds would otherwise strobe the footer's arrow, which reads as a
+    /// fault rather than as work. The list, the counts and the error still update either way, so
+    /// the numbers stay current in both modes.
     private func scan(showingProgress: Bool) async {
         if showingProgress { isRefreshing = true }
         defer { if showingProgress { isRefreshing = false } }
+        let started = ContinuousClock.now
         do {
             listeners = try await scanner.scan()
             lastError = nil
@@ -260,6 +269,16 @@ final class PortListModel {
         let present = Set(listeners.map(\.id))
         killStates = killStates.filter { present.contains($0.key) }
         if let selection, !present.contains(selection) { self.selection = nil }
+        // Hold the indicator open — *after* every line above, so the rows and counts are already
+        // on screen and only the arrow is still turning. A scan that returns in 80 ms would
+        // otherwise stop the rotation a fraction of a turn in, which reads as a twitch rather
+        // than as a refresh. A slow scan overruns this and keeps spinning on its own.
+        if showingProgress {
+            let elapsed = ContinuousClock.now - started
+            if elapsed < minimumRefreshDisplay {
+                try? await Task.sleep(for: minimumRefreshDisplay - elapsed)
+            }
+        }
     }
 
     // MARK: Kill
