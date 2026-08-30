@@ -40,7 +40,11 @@ targets:
         LSUIElement: true
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         LSApplicationCategoryType: public.app-category.developer-tools
-        NSHumanReadableCopyright: "© 2026 National Idea LLC. MIT License."
+        # Shown in Finder's Get Info *and* in the app's own About section, which reads this
+        # key rather than hardcoding the credit — one place to bump the year. Publication
+        # year, not the user's clock: an old build must not claim a year it did not ship in.
+        # The MIT licence has its own row in About, so it is not repeated here.
+        NSHumanReadableCopyright: "© 2026 National Idea LLC"
     entitlements:
       path: Squatter/Squatter.entitlements
     settings:

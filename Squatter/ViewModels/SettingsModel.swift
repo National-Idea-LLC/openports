@@ -9,6 +9,7 @@ final class SettingsModel {
     static let releasesURL = URL(string: "https://github.com/National-Idea-LLC/squatter/releases")
     static let sourceURL = URL(string: "https://github.com/National-Idea-LLC/squatter")
     static let issuesURL = URL(string: "https://github.com/National-Idea-LLC/squatter/issues/new")
+    static let companyURL = URL(string: "https://ni.sa")
 
     /// "0.1.0 (1)" from the bundle, or "—" when running outside a bundle (tests).
     static var bundleVersion: String {
@@ -21,8 +22,17 @@ final class SettingsModel {
     /// "Version 15.6 (Build 24G84)" — the second thing every bug report is missing.
     static var systemVersion: String { ProcessInfo.processInfo.operatingSystemVersionString }
 
+    /// "© 2026 National Idea LLC" from `NSHumanReadableCopyright`, so the credit in About and the
+    /// one Finder shows in Get Info cannot drift apart. The year is the build's, set in
+    /// `project.yml` — deliberately not `Date()`, which would have an old copy claim the year it
+    /// happens to be run in.
+    static var bundleCopyright: String {
+        Bundle.main.infoDictionary?["NSHumanReadableCopyright"] as? String ?? "© National Idea LLC"
+    }
+
     let appVersion: String
     let systemVersion: String
+    let copyright: String
 
     private(set) var loginItemStatus: LoginItemStatus
     /// What went wrong the last time Launch at Login was toggled; `nil` after a success.
@@ -37,13 +47,15 @@ final class SettingsModel {
         preferences: Preferences = Preferences(),
         actions: any SystemActions = AppKitSystemActions(),
         appVersion: String = SettingsModel.bundleVersion,
-        systemVersion: String = SettingsModel.systemVersion
+        systemVersion: String = SettingsModel.systemVersion,
+        copyright: String = SettingsModel.bundleCopyright
     ) {
         self.loginItem = loginItem
         self.preferences = preferences
         self.actions = actions
         self.appVersion = appVersion
         self.systemVersion = systemVersion
+        self.copyright = copyright
         self.loginItemStatus = loginItem.status
     }
 
@@ -55,6 +67,13 @@ final class SettingsModel {
 
     func openSource() {
         guard let url = Self.sourceURL else { return }
+        actions.open(url)
+    }
+
+    /// The company behind Squatter. Same rule as every other link here: it opens in the browser,
+    /// the app itself never makes the request.
+    func openCompany() {
+        guard let url = Self.companyURL else { return }
         actions.open(url)
     }
 

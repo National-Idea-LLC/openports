@@ -124,6 +124,11 @@ struct SettingsView: View {
                 } label: {
                     Text("Version")
                 }
+                // Updates and bug reports keep their buttons: each does something on your behalf —
+                // one checks, the other opens a form with your versions already filled in — so the
+                // verb belongs on a control. The two below are plain destinations, and read as
+                // links: the whole row is the target and the arrow says where it goes. Their
+                // visible text is not a verb, so each carries one in its accessibility action.
                 LabeledContent {
                     Button("Check for Updates") { settings.checkForUpdates() }
                         .controlSize(.small)
@@ -136,12 +141,11 @@ struct SettingsView: View {
                 } label: {
                     Text("Something broken?")
                 }
-                LabeledContent {
-                    Button("View Source") { settings.openSource() }
-                        .controlSize(.small)
-                } label: {
-                    Text("Open source, MIT")
-                }
+                LinkRow(Text("Open source, MIT"), action: Text("View Source")) { settings.openSource() }
+                // The credit itself is the label, so it reads as a statement rather than as the
+                // answer to a question. Text comes from NSHumanReadableCopyright — see
+                // `SettingsModel.bundleCopyright` for why the year is the build's, not today's.
+                LinkRow(Text(settings.copyright), action: Text("Visit ni.sa")) { settings.openCompany() }
             } header: {
                 Text("About")
             } footer: {
@@ -176,6 +180,53 @@ struct SettingsView: View {
 
     private func intervalLabel(_ seconds: TimeInterval) -> String {
         seconds == 1 ? String(localized: "1 second") : String(localized: "\(Int(seconds)) seconds")
+    }
+}
+
+/// A settings row that opens something in the browser. The row is the button — a label with a
+/// small button parked at the trailing edge gives you a ~90 pt target in a 320 pt panel, and
+/// reads as a form control rather than as the link it is.
+private struct LinkRow: View {
+    private let label: Text
+    private let action: Text
+    private let open: () -> Void
+
+    @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// - Parameters:
+    ///   - label: what the row says, e.g. "Open source, MIT".
+    ///   - action: the verb VoiceOver reads instead, e.g. "View Source" — the visible text
+    ///     describes the destination, which is not something you can be told to do.
+    init(_ label: Text, action: Text, open: @escaping () -> Void) {
+        self.label = label
+        self.action = action
+        self.open = open
+    }
+
+    var body: some View {
+        Button(action: open) {
+            LabeledContent {
+                Image(systemName: "arrow.up.right")
+                    .foregroundStyle(.secondary)
+                    .opacity(isHovering ? 1 : 0.6)
+            } label: {
+                label
+            }
+            // Without this the hit area is the text and the glyph, not the gap between them,
+            // which is most of the row.
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovering = hovering
+            if hovering { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+        }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isHovering)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction(named: action, open)
     }
 }
 

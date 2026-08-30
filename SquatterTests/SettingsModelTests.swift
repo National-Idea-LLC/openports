@@ -55,17 +55,31 @@ struct SettingsModelTests {
         #expect(SettingsModel.refreshIntervalChoices == [1, 2, 5])
     }
 
-    @Test func updatesAndSourceOpenGitHubInTheBrowser() {
+    @Test func updatesSourceAndTheCompanyCreditOpenInTheBrowser() {
         let actions = RecordingActions()
         let model = SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()), actions: actions, appVersion: "9.9.9 (42)")
         model.checkForUpdates()
         model.openSource()
+        model.openCompany()
         #expect(actions.opened.map(\.absoluteString) == [
             "https://github.com/National-Idea-LLC/squatter/releases",
             "https://github.com/National-Idea-LLC/squatter",
+            "https://ni.sa",
         ])
         #expect(model.appVersion == "9.9.9 (42)")
         #expect(!SettingsModel.bundleVersion.isEmpty)
+    }
+
+    /// The About credit reads `NSHumanReadableCopyright` instead of hardcoding a string, so the
+    /// year Finder shows in Get Info and the year the app shows can never disagree. If this fails
+    /// after an Info.plist edit, the credit in Settings has gone blank — nothing else would say so.
+    @Test func theCompanyCreditComesFromTheBundle() {
+        // Matched by shape, not by literal: bumping the year in project.yml is a one-line edit
+        // and must not also mean editing a test that would then assert nothing new.
+        let credit = SettingsModel.bundleCopyright
+        #expect(credit.wholeMatch(of: /© \d{4} National Idea LLC/) != nil, "got \(credit)")
+        let model = SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))
+        #expect(model.copyright == credit)
     }
 
     @Test func reportBugOpensAPrefilledIssueForm() throws {
