@@ -5,6 +5,18 @@ All notable user-facing changes to Squatter. Written for the people who use it �
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [0.4.0] - 2026-08-30
+
+Squatter now updates itself — this is the last version you install by hand — and the footer buttons, About links and row addresses all got a polish.
+
+### Added
 - You can now sort the list by PID, alongside Port and Process name (Settings). PID order is roughly the order things started in, so the server you launched last sits at the bottom.
 - Settings now credits the company behind Squatter, with a link to ni.sa.
 - Squatter can now update itself. It asks once whether it may check for updates; when one is found, a dot appears on the Settings gear and Settings › About offers Install Update. You can turn automatic checks on or off in Settings.
@@ -17,8 +29,6 @@ All notable user-facing changes to Squatter. Written for the people who use it �
 
 ### Fixed
 - The address on each row is readable again. It was drawn in the accent colour, which washed out against the translucent panel on macOS 26 — how readable it was depended on your wallpaper. It now uses the same colour as the process name above it and is underlined, so it stays legible in light and dark mode over anything.
-
-### Removed
 
 ## [0.3.0] - 2026-08-29
 
