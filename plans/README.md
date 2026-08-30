@@ -31,6 +31,7 @@ each plan so an executor never has to go looking):
 | 010 | Let the ignore list be typed into, not just right-clicked into | P3 | S | — | DONE (reviewed; same worktree, commit `9ae1490`, 100 tests) |
 | 011 | Add a "Report a Bug" link to Settings | P3 | S | — | DONE (reviewed; worktree `worktree-agent-a82dbab60fc874d21`, commit `57e4bfc`, 86 tests) |
 | 012 | Make the snapshot tests assert rendered dimensions, so they can fail (E2-226) | P2 | S | — | DONE (reviewed; commit `d6d1ace`, merged in `d435add`, 123 tests) |
+| 013 | Squatter updates itself through Sparkle | P1 | L | — | DONE (reviewed; commit `bd9eaec`, fast-forwarded into `main` 2026-08-30, 135 tests) |
 
 **All eleven are merged into `main` and re-verified at commit `02b3a9c` on 2026-08-29** —
 see "Reconciliation — 2026-08-29" at the end of this file for what was checked and what is
@@ -314,6 +315,87 @@ That box stays unticked in `TRACKER.md` deliberately; the executor was right not
   and Process name already cover the real cases.
 - **A free-text ignore box** replacing the structured rows. The rows are better: they show
   what is ignored, remove one entry at a time, and cannot be corrupted by a typo.
+
+## Fourth batch — self-updating (planned 2026-08-30, against `ef534b2`, 130 tests green)
+
+Plan 013 is an owner request (`improve plan add sparkle for auto updates`), not an audit
+finding. It reverses a principle the repo states in five places — "no third-party
+dependencies, no network calls" — so the plan rewrites those statements alongside the code
+rather than leaving the docs to contradict the app. What still holds after it, and is
+written into the plan as non-negotiable: no telemetry (Sparkle's system profiling stays
+off), the app's own code makes no request, and the update check is opt-in through Sparkle's
+permission prompt.
+
+Decisions the advisor made so the executor does not have to (all in the plan's table):
+Sparkle 2.9.6 pinned exactly; the appcast is a **GitHub Release asset** read through
+`releases/latest/download/appcast.xml`, so publishing a release is the whole deployment;
+the DMG stays the one artifact; the EdDSA private key lives in the login Keychain and its
+public half in `project.yml`; a background check that finds an update shows a dot on the
+gear and an Install Update row instead of an alert nobody would see (Squatter has no
+windows); tests never start the updater.
+
+**Verified before hand-off, in a scratch copy of the repo** (the working tree was not
+touched): XcodeGen 2.46.0 accepts the `packages:` block and emits the reference; the
+`@preconcurrency` delegate conformance compiles under Swift 6 strict concurrency; the
+Debug build embeds and signs `Sparkle.framework` with no entitlement change; CI's ad-hoc
+signing runs all 130 tests green with Sparkle embedded; and `generate_appcast` 2.9.6 was
+run against a dummy DMG. That last probe found the plan's most important guard:
+**`generate_appcast` only warns when the app's `SUPublicEDKey` does not match the signing
+key, then writes an unsigned item and exits 0.** An unsigned item is one Sparkle will refuse
+to install, so `release.sh` gains an explicit public-key equality check and a grep for
+`sparkle:edSignature=`, and `cask.yml` refuses to bump Homebrew for a release whose appcast
+is missing or unsigned. It also refuses an app that fails Apple's code-signing checks, which
+a Developer ID export passes.
+
+**Owner steps the plan cannot do**: back up the private key outside the Mac, add
+`auto_updates true` to the cask in the tap, cut 0.4.0 (the first version users can update
+*to* — 0.3.0 users update by hand one last time), and file the Linear issue.
+
+**Reviewed 2026-08-30** (`improve review-plan 13`, same commit, plus a cold read by a
+fresh-context agent). The plan's code excerpts and doc line references all matched; what
+changed is the parts an executor would have got wrong. The one finding that needs the
+owner: **the login Keychain already holds a Sparkle key** (default account `ed25519`,
+GhostCursor's production key — its release script runs `generate_appcast` with no
+`--account`). The original step 1 would have reused it silently. Step 3 is now an
+AskUserQuestion gate — share the key (Sparkle's own recommendation; one backup covers both
+apps) or a dedicated `--account squatter` — and the answer becomes one `SPARKLE_ACCOUNT`
+constant in `release.sh`. Steps 1–3 were reordered so the build order is the step order,
+and the Sparkle tools are located from Squatter's own `BUILD_ROOT` rather than a `find`
+under DerivedData, which today returns two other projects' Sparkle 2.6.x tools first.
+Fixed outright: no `xcodegen generate` after creating `Updater.swift` (the pbxproj lists
+files explicitly — the build would have "succeeded" without compiling it); `$TAG` used in a
+`cask.yml` step whose `env:` never exports it (`set -u` would abort every run); a
+`git status | grep` check that can never match because git collapses the untracked
+directory; a non-recursive `grep` on a directory; a `grep -c` count that could not reach
+its expected value; an `awk` self-test expecting the wrong lines. Added from Sparkle's
+header: the `standardUserDriverDidReceiveUserAttention(forUpdate:)` hook, the callback
+Sparkle names for dismissing a custom indicator when the user brings a held update into
+focus. Release notes are now **embedded** in the appcast (`--embed-release-notes`,
+`sparkle:format="markdown"`) instead of linked as a third asset — verified against 2.9.6's
+real `generate_appcast` on a dummy DMG in `/tmp`, along with: `.md` notes are accepted by
+2.9.6 (not by 2.6.x), a key mismatch writes an item with no `sparkle:edSignature` and
+exits 0, no key at all exits non-zero, and an app failing `codesign` is refused.
+
+**Executed 2026-08-30** by a Sonnet executor in worktree `worktree-agent-ac742734e89cf5296`
+(commit `bd9eaec`), after the owner chose to share the existing `ed25519` Keychain key.
+**Verdict: APPROVE.** Re-run by the advisor in the worktree: every done criterion holds —
+23 files changed, all in scope; `xcodegen generate` leaves no diff; `Package.resolved` pins
+2.9.6 and is tracked; `SUPublicEDKey` is 44 chars and equal to GhostCursor's committed key;
+`SUEnableAutomaticChecks` absent, `SUEnableSystemProfiling` present; entitlements untouched;
+no `URLSession` in app code; `release.sh` parses with the appcast stage after `stapler
+staple`; `cask.yml` parses and exports `TAG`; the doc-truth grep is empty; 135 tests in 11
+suites pass with normal and ad-hoc signing. The diff matches the plan's code line for line;
+the five new tests assert real behaviour (updater called instead of browser, toggle
+round-trip, pending version surfaced, delegate decision, held-update lifecycle including
+the attention hook). Two documented deviations, both correct: a comment in `release.sh`
+reworded so the plan's own `grep -c` count holds, and the PROJECT_SPEC line reworded to
+avoid the literal "Sparkle-free" the doc-truth grep forbids. One caveat the plan got wrong:
+the settings snapshot renders only the top 480 pt of a scrolling form, so the "Version 9.9.9
+is available" row is below the fold in `settings.png` (pre-existing behaviour, not a
+regression); that state is covered by the unit tests and the running app, not the image.
+The executor saw one transient `** TEST FAILED **` right after `run-debug.sh` relaunched the
+app; four subsequent full runs (two by the executor, two by the advisor) were clean.
+**Merging is the owner's call**; nothing was pushed, Linear untouched.
 
 ## Dependency notes
 
