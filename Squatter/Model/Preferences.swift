@@ -20,6 +20,8 @@ enum DefaultsKeys {
 enum SortOrder: String, CaseIterable, Sendable {
     case port
     case processName
+    /// Ascending PID, which is roughly launch order — the newest dev server is at the bottom.
+    case pid
 }
 
 /// Typed access to the app's `UserDefaults`. Inject a private suite in tests.

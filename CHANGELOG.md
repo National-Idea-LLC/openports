@@ -5,6 +5,7 @@ All notable user-facing changes to Squatter. Written for the people who use it â
 ## [Unreleased]
 
 ### Added
+- You can now sort the list by PID, alongside Port and Process name (Settings). PID order is roughly the order things started in, so the server you launched last sits at the bottom.
 
 ### Changed
 - The buttons in the footer animate now. The refresh arrow spins while it scans, instead of being swapped out for a spinner; the eye draws its slash on and off as you show or hide ignored ports; and the gear gives a small bounce when you open Settings.

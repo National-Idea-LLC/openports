@@ -162,6 +162,10 @@ final class PortListModel {
                 guard names == .orderedSame else { return names == .orderedAscending }
                 return ($0.port, $0.pid) < ($1.port, $1.pid)
             }
+        case .pid:
+            // Port breaks the tie: one process can hold several, and they would otherwise come
+            // out in whatever order the scan produced.
+            return visible.sorted { ($0.pid, $0.port) < ($1.pid, $1.port) }
         }
     }
 

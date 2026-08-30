@@ -38,6 +38,7 @@ struct SettingsView: View {
                 Picker(selection: $model.sortOrder) {
                     Text("Port").tag(SortOrder.port)
                     Text("Process name").tag(SortOrder.processName)
+                    Text("PID").tag(SortOrder.pid)
                 } label: {
                     Text("Sort by")
                 }

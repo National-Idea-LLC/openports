@@ -452,6 +452,25 @@ struct PortListModelTests {
         #expect(makeModel(defaults: defaults).sortOrder == .processName, "restored on next launch")
     }
 
+    /// PID order is roughly launch order, which is the question "which of these did I just
+    /// start" — hence the tie-break on port rather than on name: one process holding several
+    /// ports must not come out in scan order inside its own PID.
+    @Test func sortByPIDIsAscendingThenPort() async {
+        let lsof = "p900\ncnode\nu501\nf1\nPTCP\nn*:3000\nTST=LISTEN\n"
+            + "p12\ncpostgres\nu501\nf1\nPTCP\nn*:5432\nTST=LISTEN\n"
+            + "p900\ncnode\nu501\nf2\nPTCP\nn*:24678\nTST=LISTEN\n"
+            + "p120\nccaddy\nu501\nf1\nPTCP\nn*:443\nTST=LISTEN\n"
+        let defaults = freshDefaults()
+        let model = makeModel(runner: FakeRunner(.success(lsofResult(lsof))), defaults: defaults)
+        await model.refresh()
+
+        model.sortOrder = .pid
+        // 12 before 120 before 900: numeric, not the string order the row's "PID 87489" might suggest.
+        #expect(model.filtered.map { "\($0.pid):\($0.port)" } == ["12:5432", "120:443", "900:3000", "900:24678"])
+        #expect(Preferences(defaults: defaults).sortOrder == .pid, "persisted")
+        #expect(makeModel(defaults: defaults).sortOrder == .pid, "restored on next launch")
+    }
+
     @Test func groupsSplitYoursOthersAndIgnored() async {
         let lsof = "p1\nclaunchd\nu0\nf1\nPTCP\nn*:22\nTST=LISTEN\n" + sampleLsof
             + "p7\ncpostgres\nu501\nf1\nPTCP\nn127.0.0.1:5432\nTST=LISTEN\n"
