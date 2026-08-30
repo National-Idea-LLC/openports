@@ -24,7 +24,7 @@ _macOS native conventions — SwiftUI, HIG, concurrency, UserDefaults_
 ## Data & persistence
 
 - UserDefaults keys: prefix `squatter.`, define once in a `DefaultsKeys` enum, never rename shipped keys without a migration.
-- No Keychain, network, or file storage expected. Adding any of them is an architecture change — ask first.
+- No file storage, and no network beyond Sparkle's update check. Adding either is an architecture change — ask first.
 
 ## Architecture & concurrency
 

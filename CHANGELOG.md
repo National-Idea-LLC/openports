@@ -7,11 +7,13 @@ All notable user-facing changes to Squatter. Written for the people who use it �
 ### Added
 - You can now sort the list by PID, alongside Port and Process name (Settings). PID order is roughly the order things started in, so the server you launched last sits at the bottom.
 - Settings now credits the company behind Squatter, with a link to ni.sa.
+- Squatter can now update itself. It asks once whether it may check for updates; when one is found, a dot appears on the Settings gear and Settings › About offers Install Update. You can turn automatic checks on or off in Settings.
 
 ### Changed
 - The buttons in the footer animate now. The refresh arrow spins while it scans, instead of being swapped out for a spinner; the eye draws its slash on and off as you show or hide ignored ports; and the gear gives a small bounce when you open Settings.
 - In Settings, the "Open source, MIT" and copyright rows are links you can click anywhere along, marked with a ↗, rather than a label with a button parked at the end. Check for Updates and Report a Bug keep their buttons — those do something for you rather than just going somewhere.
 - The Refresh button in the footer is now just the icon. The count beside it — "7 of 17", or "17 listening" when nothing is filtered — is gone from view; hover the button and the tooltip still tells you, and the menu bar keeps showing the number.
+- Check for Updates in Settings now checks from inside the app instead of opening the Releases page.
 
 ### Fixed
 - The address on each row is readable again. It was drawn in the accent colour, which washed out against the translucent panel on macOS 26 — how readable it was depended on your wallpaper. It now uses the same colour as the process name above it and is underlined, so it stays legible in light and dark mode over anything.

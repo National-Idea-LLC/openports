@@ -130,10 +130,23 @@ struct SettingsView: View {
                 // links: the whole row is the target and the arrow says where it goes. Their
                 // visible text is not a verb, so each carries one in its accessibility action.
                 LabeledContent {
-                    Button("Check for Updates") { settings.checkForUpdates() }
-                        .controlSize(.small)
+                    if settings.pendingUpdateVersion != nil {
+                        Button("Install Update") { settings.checkForUpdates() }
+                            .controlSize(.small)
+                    } else {
+                        Button("Check for Updates") { settings.checkForUpdates() }
+                            .controlSize(.small)
+                            .disabled(!settings.canCheckForUpdates)
+                    }
                 } label: {
-                    Text("Updates")
+                    if let version = settings.pendingUpdateVersion {
+                        Text("Version \(version) is available")
+                    } else {
+                        Text("Updates")
+                    }
+                }
+                Toggle(isOn: $settings.automaticUpdateChecks) {
+                    Text("Check for updates automatically")
                 }
                 LabeledContent {
                     Button("Report a Bug") { settings.reportBug() }
@@ -149,7 +162,7 @@ struct SettingsView: View {
             } header: {
                 Text("About")
             } footer: {
-                Text("Squatter never connects to the internet on its own. Checking for updates or reporting a bug opens GitHub in your browser.")
+                Text("Checking for updates is the only time Squatter goes online, and it asks before it starts doing that on its own. Reporting a bug opens GitHub in your browser.")
                     .settingsFooter()
             }
         }
@@ -246,5 +259,5 @@ private extension View {
 }
 
 #Preview {
-    SettingsView(settings: SettingsModel(), model: PortListModel())
+    SettingsView(settings: SettingsModel(updater: SparkleUpdater(startingUpdater: false)), model: PortListModel())
 }

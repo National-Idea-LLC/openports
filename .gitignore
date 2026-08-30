@@ -19,7 +19,7 @@ playground.xcworkspace
 # Swift Package Manager
 .build/
 .swiftpm/
-Package.resolved
+# Package.resolved is committed: it pins the Sparkle revision every build resolves.
 
 # Signing / release artifacts
 *.p12

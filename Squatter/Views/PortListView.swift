@@ -213,9 +213,19 @@ struct PortListView: View {
                 // is anchored below the button and leaves it visible.
                 Image(systemName: "gearshape")
                     .symbolEffect(.bounce.up, options: .nonRepeating, value: isShowingSettings)
+                    // A found update waits here instead of in an alert the user would never
+                    // see: Squatter has no windows for one to land in front of.
+                    .overlay(alignment: .topTrailing) {
+                        if settings.pendingUpdateVersion != nil {
+                            Circle()
+                                .fill(.tint)
+                                .frame(width: 6, height: 6)
+                                .offset(x: 3, y: -3)
+                        }
+                    }
             }
             .keyboardShortcut(",")
-            .accessibilityLabel(Text("Settings"))
+            .accessibilityLabel(settings.pendingUpdateVersion == nil ? Text("Settings") : Text("Settings, update available"))
             .help(Text("Settings (⌘,)"))
             .popover(isPresented: $isShowingSettings, arrowEdge: .bottom) {
                 SettingsView(settings: settings, model: model)
@@ -346,5 +356,5 @@ private struct StateView<Content: View>: View {
 }
 
 #Preview("Empty") {
-    PortListView(model: PortListModel(), settings: SettingsModel())
+    PortListView(model: PortListModel(), settings: SettingsModel(updater: SparkleUpdater(startingUpdater: false)))
 }

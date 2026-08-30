@@ -9,7 +9,7 @@ _Secrets, API keys, and persistent configuration handling_
 
 ## Secrets
 
-Squatter has no accounts, no API keys, and makes no network calls. Keep it that way; if a secret is ever unavoidable:
+Squatter has no accounts and no API keys; its only network call is Sparkle's update check. Its one secret is the Sparkle EdDSA private key, kept in the maintainer's login Keychain by `generate_keys` — never exported into the repo. For anything else:
 
 - Secrets live in the macOS **Keychain** only. Never in UserDefaults, plists, source, or committed `.env` files.
 - Sensitive features are **opt-in** (default off) with an explicit enable flag.

@@ -68,15 +68,15 @@ struct SnapshotTests {
             + "p9\ncT3 Code (Alpha)\nu501\nf1\nPTCP\nn127.0.0.1:61921\nTST=LISTEN\n"
         let list = await loadedModel(many)
         list.selection = sampleListener.id
-        let listURL = try snapshot(PortListView(model: list, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list")
-        let darkURL = try snapshot(PortListView(model: list, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-dark", dark: true)
+        let listURL = try snapshot(PortListView(model: list, settings: SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults()))), name: "list")
+        let darkURL = try snapshot(PortListView(model: list, settings: SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults()))), name: "list-dark", dark: true)
 
         let stubborn = await loadedModel(many)
         await stubborn.kill(sampleListener) // names never change → .stillRunning after the grace period
-        let stubbornURL = try snapshot(PortListView(model: stubborn, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-force-kill")
+        let stubbornURL = try snapshot(PortListView(model: stubborn, settings: SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults()))), name: "list-force-kill")
 
         let empty = await loadedModel("")
-        let emptyURL = try snapshot(PortListView(model: empty, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "empty")
+        let emptyURL = try snapshot(PortListView(model: empty, settings: SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults()))), name: "empty")
 
         let failing = PortListModel(
             scanner: PortScanner(runner: FakeRunner(.failure(.lsofNotFound(path: "/usr/sbin/lsof"))), currentUID: 501, docker: nil),
@@ -85,36 +85,36 @@ struct SnapshotTests {
             preferences: Preferences(defaults: freshDefaults())
         )
         await failing.refresh()
-        let errorURL = try snapshot(PortListView(model: failing, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "error")
+        let errorURL = try snapshot(PortListView(model: failing, settings: SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults()))), name: "error")
 
         // Arm the longest name in the fixture — the confirmation must not truncate its buttons.
         let longName = many + "p11\ncAdobe Desktop Service\nu501\nf1\nPTCP\nn127.0.0.1:15292\nTST=LISTEN\n"
         let confirming = await loadedModel(longName, kills: KillRecorder(names: [11: "Adobe Desktop Service"]))
         let victim = try #require(confirming.listeners.first { $0.processName == "Adobe Desktop Service" })
         confirming.requestKill(victim)
-        let confirmURL = try snapshot(PortListView(model: confirming, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-confirm-kill")
+        let confirmURL = try snapshot(PortListView(model: confirming, settings: SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults()))), name: "list-confirm-kill")
 
         let forcing = await loadedModel(longName, kills: KillRecorder(names: [11: "Adobe Desktop Service"]))
         let forceVictim = try #require(forcing.listeners.first { $0.processName == "Adobe Desktop Service" })
         forcing.requestForceKill(forceVictim)
-        let forceConfirmURL = try snapshot(PortListView(model: forcing, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-confirm-force-kill")
+        let forceConfirmURL = try snapshot(PortListView(model: forcing, settings: SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults()))), name: "list-confirm-force-kill")
 
         let ignoring = await loadedModel(many)
         ignoring.ignorePort(of: sampleListener)
         ignoring.ignoreProcess(of: Listener(port: 22, pid: 1, processName: "launchd", user: "root", addresses: ["*"], isOwnedByCurrentUser: false))
         ignoring.showIgnored = true
-        let ignoredURL = try snapshot(PortListView(model: ignoring, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-ignored")
+        let ignoredURL = try snapshot(PortListView(model: ignoring, settings: SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults()))), name: "list-ignored")
 
         let highPorts = many + "p20\ncmDNSResponder\nu501\nf1\nPTCP\nn*:52398\nTST=LISTEN\n"
         let highPortModel = await loadedModel(highPorts)
         highPortModel.hideHighPorts = true
         highPortModel.showIgnored = true
-        let highPortsURL = try snapshot(PortListView(model: highPortModel, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-high-ports")
+        let highPortsURL = try snapshot(PortListView(model: highPortModel, settings: SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults()))), name: "list-high-ports")
 
         // hideHighPorts on so the new settings section renders with its number field enabled.
         ignoring.hideHighPorts = true
         let approval = FakeLoginItem(status: .requiresApproval)
-        let settings = SettingsModel(loginItem: approval, preferences: Preferences(defaults: freshDefaults()))
+        let settings = SettingsModel(loginItem: approval, updater: FakeUpdater(pendingUpdateVersion: "9.9.9"), preferences: Preferences(defaults: freshDefaults()))
         let settingsURL = try snapshot(SettingsView(settings: settings, model: ignoring).frame(width: 320), name: "settings", size: CGSize(width: 320, height: 480))
 
         // A container-published port should show the container's name and image, not the
@@ -124,12 +124,12 @@ struct SnapshotTests {
         let dockerProbe = DockerProbe(runner: FakeRunner(.success(lsofResult(dockerFixtureText))), executablePath: "/test/docker")
         await dockerProbe.refreshNow()
         let dockerModel = await loadedModel("p600\nccom.docker.backend\nu501\nf1\nPTCP\nn*:5432\nTST=LISTEN\n", docker: dockerProbe)
-        let dockerURL = try snapshot(PortListView(model: dockerModel, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-docker")
+        let dockerURL = try snapshot(PortListView(model: dockerModel, settings: SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults()))), name: "list-docker")
 
         // Stop Container's confirmation must not truncate its buttons any more than Kill's does.
         let containerRow = try #require(dockerModel.listeners.first { $0.container != nil })
         dockerModel.requestStopContainer(containerRow)
-        let confirmStopURL = try snapshot(PortListView(model: dockerModel, settings: SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))), name: "list-confirm-stop")
+        let confirmStopURL = try snapshot(PortListView(model: dockerModel, settings: SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults()))), name: "list-confirm-stop")
 
         for url in [listURL, darkURL, stubbornURL, confirmURL, forceConfirmURL, emptyURL, errorURL, ignoredURL, highPortsURL, settingsURL, dockerURL, confirmStopURL] {
             let size = try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int ?? 0

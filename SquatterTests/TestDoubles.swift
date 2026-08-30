@@ -162,3 +162,17 @@ final class FakeLoginItem: LoginItemManaging {
 
     func openSystemSettings() { openedSettings += 1 }
 }
+
+/// Scripted updater: records checks, holds the automatic-checks flag in memory, and lets a
+/// test plant a "found" version the way a background check would.
+@MainActor
+final class FakeUpdater: UpdateChecking {
+    var canCheckForUpdates = true
+    var automaticallyChecksForUpdates = false
+    var pendingUpdateVersion: String?
+    private(set) var checkCalls = 0
+
+    init(pendingUpdateVersion: String? = nil) { self.pendingUpdateVersion = pendingUpdateVersion }
+
+    func checkForUpdates() { checkCalls += 1 }
+}

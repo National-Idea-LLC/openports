@@ -6,7 +6,6 @@ import Observation
 @Observable
 final class SettingsModel {
     static let refreshIntervalChoices: [TimeInterval] = [1, 2, 5]
-    static let releasesURL = URL(string: "https://github.com/National-Idea-LLC/squatter/releases")
     static let sourceURL = URL(string: "https://github.com/National-Idea-LLC/squatter")
     static let issuesURL = URL(string: "https://github.com/National-Idea-LLC/squatter/issues/new")
     static let companyURL = URL(string: "https://ni.sa")
@@ -39,11 +38,13 @@ final class SettingsModel {
     private(set) var loginItemError: String?
 
     @ObservationIgnored private let loginItem: any LoginItemManaging
+    @ObservationIgnored private let updater: any UpdateChecking
     @ObservationIgnored private let preferences: Preferences
     @ObservationIgnored private let actions: any SystemActions
 
     init(
         loginItem: any LoginItemManaging = SystemLoginItem(),
+        updater: any UpdateChecking,
         preferences: Preferences = Preferences(),
         actions: any SystemActions = AppKitSystemActions(),
         appVersion: String = SettingsModel.bundleVersion,
@@ -51,6 +52,7 @@ final class SettingsModel {
         copyright: String = SettingsModel.bundleCopyright
     ) {
         self.loginItem = loginItem
+        self.updater = updater
         self.preferences = preferences
         self.actions = actions
         self.appVersion = appVersion
@@ -59,10 +61,23 @@ final class SettingsModel {
         self.loginItemStatus = loginItem.status
     }
 
-    /// No auto-updater: open the GitHub Releases page in the browser.
+    /// User-initiated. Sparkle shows its own progress and result windows; if a background
+    /// check already found a version, this is also how the user gets to install it.
     func checkForUpdates() {
-        guard let url = Self.releasesURL else { return }
-        actions.open(url)
+        updater.checkForUpdates()
+    }
+
+    var canCheckForUpdates: Bool { updater.canCheckForUpdates }
+
+    /// Newest version a background check found, or nil. Drives the dot on the footer gear
+    /// and the Updates row in About.
+    var pendingUpdateVersion: String? { updater.pendingUpdateVersion }
+
+    /// Bindable. Sparkle owns the persistence — it asks the user on the second launch and
+    /// stores the answer in the app's defaults under its own key.
+    var automaticUpdateChecks: Bool {
+        get { updater.automaticallyChecksForUpdates }
+        set { updater.automaticallyChecksForUpdates = newValue }
     }
 
     func openSource() {

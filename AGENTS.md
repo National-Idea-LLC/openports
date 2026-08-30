@@ -2,7 +2,7 @@
 
 A minimal macOS menu bar app that lists every listening TCP port, shows the owning process, and lets you open it in the browser, copy its URL, or kill the process in one click. Full requirements: [PROJECT_SPEC.md](PROJECT_SPEC.md).
 
-Stack: Swift 6 / SwiftUI (`MenuBarExtra`, `@Observable`), macOS 15+, single Xcode app target + unit-test target, zero third-party dependencies, **not sandboxed** (needs `lsof` + `kill(2)`), Developer ID + notarized, distributed via GitHub Releases. Build progress: [TRACKER.md](TRACKER.md).
+Stack: Swift 6 / SwiftUI (`MenuBarExtra`, `@Observable`), macOS 15+, single Xcode app target + unit-test target, one third-party dependency (Sparkle, for updates — pinned in `project.yml`), **not sandboxed** (needs `lsof` + `kill(2)`), Developer ID + notarized, distributed via GitHub Releases. Build progress: [TRACKER.md](TRACKER.md).
 
 This file is the single source of truth for agent guidance. [CLAUDE.md](CLAUDE.md)
 points here — add conventions to this file or [rules/](rules/), never to CLAUDE.md.
@@ -16,7 +16,7 @@ points here — add conventions to this file or [rules/](rules/), never to CLAUD
 3. **Update [CHANGELOG.md](CHANGELOG.md) when users would notice** — friendly, public-facing language under `[Unreleased]`. Skip for refactor/CI/deps/agent docs (TRACKER only).
 4. **Keep `.gitignore` updated** whenever tooling or generated files change. Never commit secrets, signing identities, or release binaries.
 5. **Keep this AGENTS.md current** as commands, conventions, or structure change.
-6. **Stay minimal.** No third-party packages, no App Sandbox, no privilege escalation, no telemetry or network calls. If a feature needs one of these, stop and ask.
+6. **Stay minimal.** No third-party packages beyond Sparkle, no App Sandbox, no privilege escalation, no telemetry, and no network calls other than Sparkle's update check. If a feature needs one of these, stop and ask.
 7. **Never spawn a shell.** `lsof` and `docker` are invoked by absolute path — `docker` from a fixed allowlist in `DockerProbe.searchPaths`, never resolved via the shell's search path — with fixed arguments via `Process`; processes are killed with `kill(2)` only after re-validating the PID still maps to the scanned process name.
 8. **Keep the Linear project in sync** — [Squatter](https://linear.app/ielyas/project/squatter-8016284756f8) (team Elyas, `E2-…`). Every TRACKER.md status change gets the matching Linear update (issue created / In Progress / In Review, milestone = phase). Never set an issue to Done/Canceled unless the owner explicitly asks. Details: [rules/issue-tracker-status.md](rules/issue-tracker-status.md).
 9. **Relaunch the app after any UI change** — run `scripts/run-debug.sh` once the change builds, so the owner can see it without having to ask. Applies to anything visible: layout, copy, icons, colours, animation, the Settings panel. Tests and snapshots are not a substitute — `glassSurface` and anything else that refracts what is behind the window renders wrong offscreen, so only the running app shows the real thing. Skip it for pure refactors, CI, and docs.
@@ -34,7 +34,7 @@ Run from the repo root.
 - `xcodebuild -project Squatter.xcodeproj -scheme Squatter -destination 'platform=macOS' test` — unit tests (Swift Testing)
 - `xcodebuild -project Squatter.xcodeproj -scheme Squatter -configuration Release archive -archivePath build/Squatter.xcarchive` — release archive
 - `scripts/run-debug.sh` — build Debug, quit the running copy, launch the fresh one. Run it after every UI change (golden rule 9). Squatter is `LSUIElement`, so it comes back as a menu bar icon with no window — nothing appears until you click it.
-- `scripts/release.sh [--notarize]` — test, archive, export Developer ID, verify, build and sign the DMG; `--notarize` also submits and staples (needs the `squatter` keychain profile)
+- `scripts/release.sh [--notarize]` — test, archive, export Developer ID, verify, build and sign the DMG, then write a signed `appcast.xml` beside it; `--notarize` also submits and staples (needs the `squatter` keychain profile and the Sparkle EdDSA key in the login Keychain). Bump **both** `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` first — Sparkle compares the build number, so a reused one is invisible to installed copies. Upload the DMG and `appcast.xml` to the same GitHub Release.
 - `scripts/sync-app-icon.sh` — copy the Icon Composer source from `brand/` into `Squatter/Resources/AppIcon.icon`, normalising the two keys Xcode 26.6's actool cannot parse. Run after every re-export from Icon Composer; never hand-edit the copy under `Squatter/Resources`.
 - `swiftlint` — lint (only if `.swiftlint.yml` is added; not required for M0)
 - Debug helper: `lsof -nP -iTCP -sTCP:LISTEN +c0 -F pcunPT` — the exact command the scanner runs
@@ -70,4 +70,4 @@ The detailed rules live in `rules/` — highlights:
 - **Project file:** targets, settings, Info.plist keys, and entitlements live in `project.yml`; change them there and run `xcodegen generate`. Bundle IDs: `sa.ni.squatter` / `sa.ni.squatter.tests`.
 - **Architecture:** `LsofParser` is a pure `String -> [Listener]` function with fixture tests; `PortScanner` is an actor; `PortListModel` is `@MainActor @Observable`; views hold no logic.
 - **Persistent keys/settings:** prefix `UserDefaults` keys with `squatter.`; define each key once in a `DefaultsKeys` enum — never scatter string literals. Do not rename shipped keys without a migration.
-- **Secrets:** none expected. If one ever appears, Keychain only — never UserDefaults, plists, or committed files.
+- **Secrets:** one — the Sparkle EdDSA signing key, which lives in the maintainer's login Keychain (`generate_keys`) and nowhere else. Any other secret: Keychain only — never UserDefaults, plists, or committed files.

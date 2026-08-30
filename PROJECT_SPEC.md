@@ -20,7 +20,7 @@ Developers running multiple local servers (Vite, Next, Rails, Docker, Postgres, 
 | Instantly see what's listening | Time from click on menu bar icon to fully rendered list | < 300 ms on a machine with ≤ 100 listeners |
 | Free a port without the terminal | Clicks to terminate a process | ≤ 2 (open menu → click kill) |
 | Stay out of the way | Idle CPU / memory | ~0% CPU when popover closed; < 30 MB RSS |
-| Minimal surface area | Source size | Single Xcode target, no third-party dependencies |
+| Minimal surface area | Source size | Single Xcode target, one third-party dependency (Sparkle) |
 
 ## Target Users
 
@@ -68,7 +68,7 @@ Developers running multiple local servers (Vite, Next, Rails, Docker, Postgres, 
 - [ ] **Show system/root listeners**: rows owned by other users are shown greyed with "requires admin to kill" (data is already visible in `lsof` output for many system daemons; killing them is out of scope).
 - [ ] **Menu bar count badge**: optionally show the number of listeners in the menu bar title.
 - [ ] **Keyboard navigation**: arrow keys select a row, ⏎ opens in browser, ⌫ kills.
-- [ ] **Sparkle-free updates**: "Check for updates" links to the GitHub releases page (no auto-updater in MVP).
+- [x] **Updates via Sparkle** (added 2026-08-30, superseding the earlier manual-updates-only plan): the app checks a signed appcast published as a GitHub Release asset, after asking the user once.
 
 ### P2 — Nice to Have
 - [x] **Docker awareness**: ports published by a Docker container show its name and image (`docker ps --no-trunc --format json`) and offer **Stop Container** (`docker stop`) instead of Kill/Force Kill.
@@ -255,13 +255,13 @@ Not applicable; fixed-size popover.
 - **Versioning**: SemVer; `CHANGELOG.md` kept per release.
 
 ### Monitoring & Observability
-- No telemetry, no analytics, no network calls at all (privacy is a feature — worth stating on the README).
+- No telemetry, no analytics; the only network call is Sparkle's update check (opt-in).
 - `os.Logger` with subsystem `app.squatter` for local debugging.
 - Crash reports: macOS built-in only.
 
 ## Security Considerations
 
-- [x] No network access; no data leaves the machine.
+- [x] No data leaves the machine. The only outbound request is Sparkle's update check (opt-in); system profiling is off.
 - [x] `lsof` invoked by absolute path (`/usr/sbin/lsof`) with fixed arguments — no shell, no user-controlled arguments.
 - [x] Kill only targets PIDs obtained from the current scan; UI re-validates the PID still maps to the same process name before signaling (guards against PID reuse between scan and click).
 - [x] Hardened Runtime + notarization.
@@ -281,7 +281,7 @@ Not applicable; fixed-size popover.
 | No privilege escalation | Can't kill root-owned listeners | Keeps the app tiny and safe; those are rarely the dev-server problem |
 | Poll only while popover open | No background alerts | Zero idle cost; notifications are P2 |
 | SIGTERM first, SIGKILL on demand | One extra click when a process ignores SIGTERM | Gives servers a chance to clean up (release ports, flush logs) |
-| No third-party deps (no Sparkle) | Manual updates | Minimalism; can add Sparkle later |
+| Sparkle for updates (decided 2026-08-30) | One third-party framework, one signing key to protect | Users never saw fixes otherwise; the feed is a release asset, so releasing is still one step |
 
 ### Technical Debt (Acceptable for MVP)
 - [ ] Parser tolerates only the fixed `-F pcunPT` field set; changes to `lsof` output on future macOS need a fixture update.

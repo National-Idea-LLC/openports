@@ -113,13 +113,14 @@ jobs:
           DMG: ${{ steps.rel.outputs.dmg }}
         run: |
           set -euo pipefail
-          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$DMG" --dir dist
-          ls -l "dist/$DMG"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$DMG" --pattern "appcast.xml" --dir dist
+          ls -l dist
 
-      - name: Refuse to ship an unnotarized, unstapled, or mislabelled build
+      - name: Refuse to ship an unnotarized, unstapled, mislabelled, or update-less build
         env:
           DMG: ${{ steps.rel.outputs.dmg }}
           VERSION: ${{ steps.rel.outputs.version }}
+          TAG: ${{ steps.rel.outputs.tag }}
         run: |
           set -euo pipefail
           hdiutil attach "dist/$DMG" -nobrowse -quiet -mountpoint /tmp/mnt
@@ -138,6 +139,15 @@ jobs:
             echo "Bundle version $ACTUAL does not match release tag version $VERSION"; exit 1
           fi
           echo "Verified: stapled, notarized, version $ACTUAL"
+
+          # Sparkle reads the appcast from the latest release. A release without one, or with
+          # an unsigned or mis-pointed one, would leave every installed copy unable to update
+          # — the cask must not advertise that build either.
+          [ -s dist/appcast.xml ] || { echo "Release $TAG has no appcast.xml asset"; exit 1; }
+          grep -q 'sparkle:edSignature="' dist/appcast.xml || { echo "appcast.xml is unsigned"; exit 1; }
+          grep -q "releases/download/$TAG/$DMG" dist/appcast.xml || { echo "appcast.xml does not point at $DMG under $TAG"; exit 1; }
+          grep -q "<sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>" dist/appcast.xml || { echo "appcast.xml version is not $VERSION"; exit 1; }
+          echo "Verified: appcast present, signed, points at $DMG"
 
       - name: Compute the checksum
         id: sum

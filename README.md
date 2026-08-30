@@ -29,8 +29,8 @@ Local dev servers pile up: `node` on 3000, `vite` on 5173, something forgotten o
 
 ## Principles
 
-- **No network, no telemetry.** It never leaves your Mac.
-- **No third-party dependencies.** Swift 6 / SwiftUI only.
+- **No telemetry.** The only time Squatter goes online is to check for an update, and it asks you before it starts doing that on its own.
+- **One dependency.** [Sparkle](https://sparkle-project.org) for updates; everything else is Swift 6 / SwiftUI.
 - **Not sandboxed, by necessity.** Killing another process needs `kill(2)`; the sandbox forbids it. Distributed as a signed, notarized build via GitHub Releases rather than the Mac App Store.
 
 ## Install

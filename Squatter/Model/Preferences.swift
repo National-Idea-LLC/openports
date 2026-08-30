@@ -14,6 +14,11 @@ enum DefaultsKeys {
     /// AppKit's own key, so it carries no `squatter.` prefix and must not be renamed.
     /// Milliseconds a control must be hovered before its `.help()` tooltip appears.
     static let initialToolTipDelay = "NSInitialToolTipDelay"
+
+    // Sparkle stores its own state in this app's defaults under its own, unprefixed keys —
+    // `SUEnableAutomaticChecks`, `SUScheduledCheckInterval`, `SULastCheckTime`,
+    // `SUHasLaunchedBefore`, `SUSkippedVersion`. Read and written only through
+    // `SparkleUpdater`; never renamed, never mirrored here.
 }
 
 /// How the list is ordered. Raw values are persisted — don't rename.

@@ -28,5 +28,13 @@
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 National Idea LLC</string>
+	<key>SUEnableSystemProfiling</key>
+	<false/>
+	<key>SUFeedURL</key>
+	<string>https://github.com/National-Idea-LLC/squatter/releases/latest/download/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>gEWu/GIBD8BWgt86K7EeXG03pwwzqWmbmG+eVyusEnM=</string>
+	<key>SUVerifyUpdateBeforeExtraction</key>
+	<true/>
 </dict>
 </plist>

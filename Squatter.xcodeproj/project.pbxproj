@@ -22,6 +22,7 @@
 		4F57DCC5472A556D01BD30EC /* SettingsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A075467266762D38618B2FB1 /* SettingsModel.swift */; };
 		5158494330EA0CD9DFECF2F6 /* SquatterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950483E06AD50CDD7A7E1A4C /* SquatterApp.swift */; };
 		53DA1522D9808D099ABD4066 /* LsofRunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FA77E7CB852CE6148D79D60 /* LsofRunnerTests.swift */; };
+		6594A2A82E6655D0B90FED83 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 411CAED985515E705F557D5F /* Sparkle */; };
 		7D3A54930A24C848A690D609 /* PortListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73839A6602150E8EC0825B8C /* PortListView.swift */; };
 		80835CA04772C47CC22801BC /* DockerProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2EC71A2B4DD022FEB9DA3F9 /* DockerProbe.swift */; };
 		89321005E136F3499E448085 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACFC57CEC22AC119320E67B9 /* SettingsView.swift */; };
@@ -29,6 +30,7 @@
 		9313F8154DE4F9B5134CECB9 /* Listener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 140D76EC9CAAA310A129F5DC /* Listener.swift */; };
 		9AB696FBFF44F0AB4AF88617 /* LsofParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09318F82072389F64905A075 /* LsofParser.swift */; };
 		9B5766787A56E61A5BDFAC2E /* TestDoubles.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30E37B93D4AF27C03A7DB8D /* TestDoubles.swift */; };
+		9BABE8D682BF829D55AF9E0A /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB36D1469ECB78433F83DDC /* Updater.swift */; };
 		9F445A200B71549F5B6425A8 /* LsofParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C03600873F2C9F8BFFC667F2 /* LsofParserTests.swift */; };
 		A978EB5F5C5CE9C664E66453 /* PortScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A835191EBE19DFB26670E92 /* PortScanner.swift */; };
 		B4C16B55F4490BBE9A7C2166 /* ProcessKillerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD22B384EF0193A6A63A7215 /* ProcessKillerTests.swift */; };
@@ -75,6 +77,7 @@
 		A5412315077E0ADA855C3022 /* ContainerStopper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerStopper.swift; sourceTree = "<group>"; };
 		A63AB6F43DBC3C4AD3C8DD9F /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		A917D9F91EB4C4B17A65F529 /* SnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotTests.swift; sourceTree = "<group>"; };
+		AAB36D1469ECB78433F83DDC /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
 		AB9D683D427119F26ED79956 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		ACFC57CEC22AC119320E67B9 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B30E37B93D4AF27C03A7DB8D /* TestDoubles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDoubles.swift; sourceTree = "<group>"; };
@@ -88,6 +91,17 @@
 		E2EC71A2B4DD022FEB9DA3F9 /* DockerProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockerProbe.swift; sourceTree = "<group>"; };
 		ECE20B9DF9CD90B7571C33E4 /* ContainerStopperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerStopperTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5933F62D8F0E840830B645C6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6594A2A82E6655D0B90FED83 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		410C9DA56DCE76C79FB18A71 /* SquatterTests */ = {
@@ -145,6 +159,7 @@
 				1A835191EBE19DFB26670E92 /* PortScanner.swift */,
 				7077596CAE863FE3E62245FD /* ProcessKiller.swift */,
 				BC7B51E4B0082BCFDFF15A08 /* SystemActions.swift */,
+				AAB36D1469ECB78433F83DDC /* Updater.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -231,6 +246,7 @@
 			buildPhases = (
 				145F2151DFCA9CE1B47E8B38 /* Sources */,
 				1684C0E66D612025CE36B215 /* Resources */,
+				5933F62D8F0E840830B645C6 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -238,6 +254,7 @@
 			);
 			name = Squatter;
 			packageProductDependencies = (
+				411CAED985515E705F557D5F /* Sparkle */,
 			);
 			productName = Squatter;
 			productReference = 0274282CB88661603CA57822 /* Squatter.app */;
@@ -271,6 +288,9 @@
 			);
 			mainGroup = 8B8C4ECBED2A1BDA9A83145C;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F57FD50B2AB02C2F729FFD88 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 93029D98C3A4DCEBAFCD034F /* Products */;
 			projectDirPath = "";
@@ -325,6 +345,7 @@
 				89321005E136F3499E448085 /* SettingsView.swift in Sources */,
 				5158494330EA0CD9DFECF2F6 /* SquatterApp.swift in Sources */,
 				0B2F398054336703CC30C651 /* SystemActions.swift in Sources */,
+				9BABE8D682BF829D55AF9E0A /* Updater.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -597,6 +618,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F57FD50B2AB02C2F729FFD88 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.9.6;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		411CAED985515E705F557D5F /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F57FD50B2AB02C2F729FFD88 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 3DDB38B08C45EC5619406642 /* Project object */;
 }

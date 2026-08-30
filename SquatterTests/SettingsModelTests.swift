@@ -5,7 +5,7 @@ import Testing
 @MainActor
 struct SettingsModelTests {
     private func make(_ item: FakeLoginItem = FakeLoginItem()) -> (SettingsModel, FakeLoginItem) {
-        (SettingsModel(loginItem: item, preferences: Preferences(defaults: freshDefaults())), item)
+        (SettingsModel(loginItem: item, updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults())), item)
     }
 
     @Test func togglingRegistersAndUnregisters() {
@@ -48,21 +48,19 @@ struct SettingsModelTests {
 
     @Test func refreshIntervalPersists() {
         let defaults = freshDefaults()
-        let model = SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: defaults))
+        let model = SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: defaults))
         #expect(model.refreshInterval == 2)
         model.refreshInterval = 5
         #expect(Preferences(defaults: defaults).refreshInterval == 5)
         #expect(SettingsModel.refreshIntervalChoices == [1, 2, 5])
     }
 
-    @Test func updatesSourceAndTheCompanyCreditOpenInTheBrowser() {
+    @Test func sourceAndTheCompanyCreditOpenInTheBrowser() {
         let actions = RecordingActions()
-        let model = SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()), actions: actions, appVersion: "9.9.9 (42)")
-        model.checkForUpdates()
+        let model = SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults()), actions: actions, appVersion: "9.9.9 (42)")
         model.openSource()
         model.openCompany()
         #expect(actions.opened.map(\.absoluteString) == [
-            "https://github.com/National-Idea-LLC/squatter/releases",
             "https://github.com/National-Idea-LLC/squatter",
             "https://ni.sa",
         ])
@@ -78,7 +76,7 @@ struct SettingsModelTests {
         // and must not also mean editing a test that would then assert nothing new.
         let credit = SettingsModel.bundleCopyright
         #expect(credit.wholeMatch(of: /© \d{4} National Idea LLC/) != nil, "got \(credit)")
-        let model = SettingsModel(loginItem: FakeLoginItem(), preferences: Preferences(defaults: freshDefaults()))
+        let model = SettingsModel(loginItem: FakeLoginItem(), updater: FakeUpdater(), preferences: Preferences(defaults: freshDefaults()))
         #expect(model.copyright == credit)
     }
 
@@ -86,6 +84,7 @@ struct SettingsModelTests {
         let actions = RecordingActions()
         let model = SettingsModel(
             loginItem: FakeLoginItem(),
+            updater: FakeUpdater(),
             preferences: Preferences(defaults: freshDefaults()),
             actions: actions,
             appVersion: "9.9.9 (42)",
@@ -106,6 +105,7 @@ struct SettingsModelTests {
         let actions = RecordingActions()
         let model = SettingsModel(
             loginItem: FakeLoginItem(),
+            updater: FakeUpdater(),
             preferences: Preferences(defaults: freshDefaults()),
             actions: actions,
             appVersion: "9.9.9 (42)",
@@ -127,5 +127,50 @@ struct SettingsModelTests {
         #expect(!model.launchAtLogin)
         model.refreshLoginItemStatus()
         #expect(model.launchAtLogin)
+    }
+
+    @Test func checkingForUpdatesAsksTheUpdaterNotTheBrowser() {
+        let actions = RecordingActions()
+        let updater = FakeUpdater()
+        let model = SettingsModel(loginItem: FakeLoginItem(), updater: updater, preferences: Preferences(defaults: freshDefaults()), actions: actions)
+        model.checkForUpdates()
+        #expect(updater.checkCalls == 1)
+        #expect(actions.opened.isEmpty)
+    }
+
+    @Test func automaticChecksRoundTripThroughTheUpdater() {
+        let updater = FakeUpdater()
+        let model = SettingsModel(loginItem: FakeLoginItem(), updater: updater, preferences: Preferences(defaults: freshDefaults()))
+        #expect(!model.automaticUpdateChecks)
+        model.automaticUpdateChecks = true
+        #expect(updater.automaticallyChecksForUpdates)
+        #expect(model.automaticUpdateChecks)
+    }
+
+    @Test func aVersionFoundInTheBackgroundIsSurfaced() {
+        let updater = FakeUpdater(pendingUpdateVersion: "9.9.9")
+        let model = SettingsModel(loginItem: FakeLoginItem(), updater: updater, preferences: Preferences(defaults: freshDefaults()))
+        #expect(model.pendingUpdateVersion == "9.9.9")
+        #expect(model.canCheckForUpdates)
+    }
+
+    /// The decisions the Sparkle delegate makes, tested without Sparkle objects.
+    @Test func scheduledUpdatesAreOnlyShownInImmediateFocus() {
+        #expect(SparkleUpdater.shouldPresentScheduledUpdate(inImmediateFocus: true))
+        #expect(!SparkleUpdater.shouldPresentScheduledUpdate(inImmediateFocus: false))
+    }
+
+    @Test func aHeldUpdateIsRememberedUntilTheSessionEnds() {
+        let updater = SparkleUpdater(startingUpdater: false)
+        updater.noteUpdate(version: "9.9.9", presentedBySparkle: false)
+        #expect(updater.pendingUpdateVersion == "9.9.9")
+        updater.noteUpdate(version: "9.9.9", presentedBySparkle: true)
+        #expect(updater.pendingUpdateVersion == nil)
+        updater.noteUpdate(version: "9.9.9", presentedBySparkle: false)
+        updater.noteUserAttention()
+        #expect(updater.pendingUpdateVersion == nil)
+        updater.noteUpdate(version: "9.9.9", presentedBySparkle: false)
+        updater.noteUpdateSessionFinished()
+        #expect(updater.pendingUpdateVersion == nil)
     }
 }

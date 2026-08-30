@@ -1,5 +1,12 @@
 # Source of truth for Squatter.xcodeproj — regenerate with `xcodegen generate`.
 name: Squatter
+# Sparkle is the one third-party dependency (owner decision, 2026-08-30 — see
+# PROJECT_SPEC.md "Known Tradeoffs"). Pinned exactly: the framework ships inside a
+# notarized bundle, so it must not move without a deliberate bump here.
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.9.6
 options:
   bundleIdPrefix: sa.ni
   deploymentTarget:
@@ -30,6 +37,8 @@ targets:
       - path: Squatter
         excludes:
           - "Info.plist"
+    dependencies:
+      - package: Sparkle
     info:
       path: Squatter/Info.plist
       properties:
@@ -45,6 +54,18 @@ targets:
         # year, not the user's clock: an old build must not claim a year it did not ship in.
         # The MIT licence has its own row in About, so it is not repeated here.
         NSHumanReadableCopyright: "© 2026 National Idea LLC"
+        # Sparkle. The feed is a release asset: GitHub redirects releases/latest/download/<name>
+        # to the newest release's copy, so publishing a release is the whole deployment.
+        SUFeedURL: https://github.com/National-Idea-LLC/squatter/releases/latest/download/appcast.xml
+        # Public half of the EdDSA pair generated with Sparkle's generate_keys. The private
+        # half lives in the maintainer's login Keychain and nowhere else. If this and the
+        # signing key ever disagree, release.sh refuses to build the appcast.
+        SUPublicEDKey: "gEWu/GIBD8BWgt86K7EeXG03pwwzqWmbmG+eVyusEnM="
+        # Check the signature before touching the archive, not after.
+        SUVerifyUpdateBeforeExtraction: true
+        # No telemetry: Sparkle's anonymous system profile stays off (this is the default,
+        # written down so nobody has to look it up).
+        SUEnableSystemProfiling: false
     entitlements:
       path: Squatter/Squatter.entitlements
     settings:
