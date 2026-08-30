@@ -5,6 +5,8 @@ struct SettingsView: View {
     @Bindable var settings: SettingsModel
     @Bindable var model: PortListModel
     @State private var portsToAdd = ""
+    /// `WrapLayout` places subviews in raw coordinates, which SwiftUI does not mirror for it.
+    @Environment(\.layoutDirection) private var layoutDirection
     /// Tokens the last submission could not read as ports, echoed back so nothing is
     /// silently dropped.
     @State private var skippedPorts: [String] = []
@@ -87,35 +89,42 @@ struct SettingsView: View {
                     .settingsFooter()
             }
             Section {
-                LabeledContent {
-                    HStack(spacing: 6) {
-                        TextField(String(localized: "3000, 5173"), text: $portsToAdd)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 120)
-                            .onSubmit(addPorts)
-                        Button("Add Ports", systemImage: "plus") { addPorts() }
-                            .labelStyle(.iconOnly)
+                // Label above the field, not beside it. In a 320 pt panel a leading label left
+                // ~120 pt for the box — too narrow to show even its own example — and the example
+                // was passed as the field's title, so it rendered as static text *next to* the
+                // box rather than as a hint inside it. Stacking gives the field the full width
+                // and puts label, field and hint on one leading edge.
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Ignore these ports")
+                        .accessibilityHidden(true) // the field below carries the same label
+                    HStack(spacing: 8) {
+                        TextField(text: $portsToAdd, prompt: Text(verbatim: "3000, 5173")) {
+                            Text("Ignore these ports")
+                        }
+                        .textFieldStyle(.roundedBorder)
+                        .labelsHidden()
+                        .onSubmit(addPorts)
+                        Button("Add Ports") { addPorts() }
                             .controlSize(.small)
                             .disabled(portsToAdd.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
-                } label: {
-                    Text("Ignore these ports")
-                }
-                if !skippedPorts.isEmpty {
-                    Text("Skipped \(skippedPorts.joined(separator: ", ")) — a port is a number from 1 to 65535.")
+                    // Syntax hint belongs with the control it describes. It was in the section
+                    // footer, below the whole ignore list, which is the same mistake the footer
+                    // two sections up already had to fix.
+                    Text("Separate ports with a comma, a space, or a new line.")
                         .font(.caption)
-                        .foregroundStyle(.red)
+                        .settingsFooter()
+                    if !skippedPorts.isEmpty {
+                        Text("Skipped \(skippedPorts.joined(separator: ", ")) — a port is a number from 1 to 65535.")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
                 }
-                ForEach(model.ignoredPorts.sorted(), id: \.self) { port in
-                    ignoredRow(Text("Port \(String(port))")) { model.removeIgnoredPort(port) }
-                }
-                ForEach(model.ignoredProcessNames.sorted(), id: \.self) { name in
-                    ignoredRow(Text(name)) { model.removeIgnoredProcessName(name) }
-                }
+                ignoredEntries
             } header: {
                 Text("Ignored")
             } footer: {
-                Text("Separate ports with a comma, a space, or a new line. Right-click any row in the list to ignore it by process name.")
+                Text("Right-click any row in the list to ignore it by process name.")
                     .settingsFooter()
             }
             Section {
@@ -171,16 +180,56 @@ struct SettingsView: View {
         .onAppear { settings.refreshLoginItemStatus() }
     }
 
-    private func ignoredRow(_ label: Text, remove: @escaping () -> Void) -> some View {
-        LabeledContent {
-            Button(action: remove) {
-                Image(systemName: "xmark.circle.fill")
+    /// Everything currently ignored, as chips rather than one form row each: eight ignored ports
+    /// used to be eight full-width rows in a 480 pt panel, and each said "Port" again in a section
+    /// already headed "Ignored". Ports and process names are separately titled — a bare "3000" and
+    /// a bare "node" side by side gave no way to tell which rule you were removing.
+    @ViewBuilder
+    private var ignoredEntries: some View {
+        if model.ignoredPorts.isEmpty, model.ignoredProcessNames.isEmpty {
+            Text("Nothing is ignored yet.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        } else {
+            // 12 between the groups against 6 inside one: twice the inner gap is what makes them
+            // read as two groups, so neither needs a rule drawn between them.
+            VStack(alignment: .leading, spacing: 12) {
+                if !model.ignoredPorts.isEmpty {
+                    ignoredGroup(Text("Ports")) {
+                        ForEach(model.ignoredPorts.sorted(), id: \.self) { port in
+                            IgnoreChip(
+                                label: Text(String(port)).monospacedDigit(),
+                                accessibility: Text("Stop ignoring port \(String(port))")
+                            ) { model.removeIgnoredPort(port) }
+                        }
+                    }
+                }
+                if !model.ignoredProcessNames.isEmpty {
+                    ignoredGroup(Text("Processes")) {
+                        ForEach(model.ignoredProcessNames.sorted(), id: \.self) { name in
+                            IgnoreChip(
+                                label: Text(name),
+                                accessibility: Text("Stop ignoring \(name)")
+                            ) { model.removeIgnoredProcessName(name) }
+                        }
+                    }
+                }
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(.secondary)
-            .accessibilityLabel(Text("Stop ignoring"))
-        } label: {
-            label
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func ignoredGroup(_ title: Text, @ViewBuilder chips: () -> some View) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            title
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            // Neighbouring glass surfaces only blend into each other inside a shared container.
+            GlassGroup(spacing: 6) {
+                WrapLayout(spacing: 6, lineSpacing: 6, layoutDirection: layoutDirection) {
+                    chips()
+                }
+            }
         }
     }
 
@@ -193,6 +242,54 @@ struct SettingsView: View {
 
     private func intervalLabel(_ seconds: TimeInterval) -> String {
         seconds == 1 ? String(localized: "1 second") : String(localized: "\(Int(seconds)) seconds")
+    }
+}
+
+/// One ignored port or process name, as a removable chip.
+///
+/// The whole chip is the button and the ✕ is its affordance: a 12 pt glyph inside a 24 pt chip
+/// would otherwise be the only part you could hit. The glyph stays neutral rather than red —
+/// stopping an ignore is not destructive, it puts the row back in the list — and it is drawn at
+/// the same weight as the dismiss ✕ in the port list so the two read as one vocabulary.
+private struct IgnoreChip: View {
+    let label: Text
+    /// What VoiceOver reads and the tooltip says: a verb, since the visible text is only a name.
+    let accessibility: Text
+    let remove: () -> Void
+
+    @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Button(action: remove) {
+            HStack(spacing: 5) {
+                label
+                    .lineLimit(1)
+                    // A long process name loses its middle rather than its end, where the part
+                    // that distinguishes it usually is.
+                    .truncationMode(.middle)
+                Image(systemName: "xmark")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(.secondary)
+                    .opacity(isHovering ? 1 : 0.6)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .contentShape(Rectangle())
+            .glassSurface(
+                in: LiquidGlass.chipShape,
+                interactive: true,
+                fallback: AnyShapeStyle(.quaternary.opacity(isHovering ? 0.9 : 0.6))
+            )
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovering = hovering
+            if hovering { NSCursor.pointingHand.push() } else { NSCursor.pop() }
+        }
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isHovering)
+        .accessibilityLabel(accessibility)
+        .help(accessibility)
     }
 }
 

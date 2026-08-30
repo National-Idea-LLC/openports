@@ -113,6 +113,17 @@ struct SnapshotTests {
 
         // hideHighPorts on so the new settings section renders with its number field enabled.
         ignoring.hideHighPorts = true
+        // Enough ignored entries for the chips to wrap, plus a name longer than the panel is
+        // wide: a chip that refuses to truncate widens the Form and fails the frame check.
+        ignoring.addIgnoredPorts(from: "3000, 5173, 8080, 4200, 9229, 27017, 6379")
+        ignoring.ignoreProcess(of: Listener(
+            port: 5432,
+            pid: 900,
+            processName: "com.docker.backend.helper.with.a.very.long.name",
+            user: "elyas",
+            addresses: ["*"],
+            isOwnedByCurrentUser: true
+        ))
         let approval = FakeLoginItem(status: .requiresApproval)
         let settings = SettingsModel(loginItem: approval, updater: FakeUpdater(pendingUpdateVersion: "9.9.9"), preferences: Preferences(defaults: freshDefaults()))
         let settingsURL = try snapshot(SettingsView(settings: settings, model: ignoring).frame(width: 320), name: "settings", size: CGSize(width: 320, height: 480))

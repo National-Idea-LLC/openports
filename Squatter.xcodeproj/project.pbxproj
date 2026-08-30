@@ -36,6 +36,7 @@
 		B4C16B55F4490BBE9A7C2166 /* ProcessKillerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD22B384EF0193A6A63A7215 /* ProcessKillerTests.swift */; };
 		B949E7A9F5B2EFC308798622 /* SnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A917D9F91EB4C4B17A65F529 /* SnapshotTests.swift */; };
 		BF6AA3EAC29BE7B8C429423E /* LoginItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30D350415F73080839C4EC5 /* LoginItem.swift */; };
+		DFC83D42B58A5BA5B86C7334 /* WrapLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20366DD36D4743233F943F1D /* WrapLayout.swift */; };
 		EA8A8329EEADBEED4B53126D /* ContainerStopper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5412315077E0ADA855C3022 /* ContainerStopper.swift */; };
 		F0AC9D05F9876B81A987631E /* LsofRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75537A4539E472D0F6E17827 /* LsofRunner.swift */; };
 		F4D398DE12425896C733B815 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8B0E0121DC24D19C318A5070 /* Assets.xcassets */; };
@@ -58,6 +59,7 @@
 		09318F82072389F64905A075 /* LsofParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LsofParser.swift; sourceTree = "<group>"; };
 		140D76EC9CAAA310A129F5DC /* Listener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Listener.swift; sourceTree = "<group>"; };
 		1A835191EBE19DFB26670E92 /* PortScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortScanner.swift; sourceTree = "<group>"; };
+		20366DD36D4743233F943F1D /* WrapLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WrapLayout.swift; sourceTree = "<group>"; };
 		260686C41B3BF8859A40B24F /* SettingsModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsModelTests.swift; sourceTree = "<group>"; };
 		2F054766F465A479DBA315CF /* Glass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Glass.swift; sourceTree = "<group>"; };
 		327309754BDD25C90544E8CD /* DockerProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockerProbeTests.swift; sourceTree = "<group>"; };
@@ -130,6 +132,7 @@
 				73839A6602150E8EC0825B8C /* PortListView.swift */,
 				E24ADD61D90D12374BFE2E54 /* PortRow.swift */,
 				ACFC57CEC22AC119320E67B9 /* SettingsView.swift */,
+				20366DD36D4743233F943F1D /* WrapLayout.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -346,6 +349,7 @@
 				5158494330EA0CD9DFECF2F6 /* SquatterApp.swift in Sources */,
 				0B2F398054336703CC30C651 /* SystemActions.swift in Sources */,
 				9BABE8D682BF829D55AF9E0A /* Updater.swift in Sources */,
+				DFC83D42B58A5BA5B86C7334 /* WrapLayout.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
