@@ -19,6 +19,7 @@ points here — add conventions to this file or [rules/](rules/), never to CLAUD
 6. **Stay minimal.** No third-party packages, no App Sandbox, no privilege escalation, no telemetry or network calls. If a feature needs one of these, stop and ask.
 7. **Never spawn a shell.** `lsof` and `docker` are invoked by absolute path — `docker` from a fixed allowlist in `DockerProbe.searchPaths`, never resolved via the shell's search path — with fixed arguments via `Process`; processes are killed with `kill(2)` only after re-validating the PID still maps to the scanned process name.
 8. **Keep the Linear project in sync** — [Squatter](https://linear.app/ielyas/project/squatter-8016284756f8) (team Elyas, `E2-…`). Every TRACKER.md status change gets the matching Linear update (issue created / In Progress / In Review, milestone = phase). Never set an issue to Done/Canceled unless the owner explicitly asks. Details: [rules/issue-tracker-status.md](rules/issue-tracker-status.md).
+9. **Relaunch the app after any UI change** — run `scripts/run-debug.sh` once the change builds, so the owner can see it without having to ask. Applies to anything visible: layout, copy, icons, colours, animation, the Settings panel. Tests and snapshots are not a substitute — `glassSurface` and anything else that refracts what is behind the window renders wrong offscreen, so only the running app shows the real thing. Skip it for pure refactors, CI, and docs.
 
 ---
 
@@ -32,6 +33,7 @@ Run from the repo root.
 - `xcodebuild -project Squatter.xcodeproj -scheme Squatter -configuration Debug build` — build
 - `xcodebuild -project Squatter.xcodeproj -scheme Squatter -destination 'platform=macOS' test` — unit tests (Swift Testing)
 - `xcodebuild -project Squatter.xcodeproj -scheme Squatter -configuration Release archive -archivePath build/Squatter.xcarchive` — release archive
+- `scripts/run-debug.sh` — build Debug, quit the running copy, launch the fresh one. Run it after every UI change (golden rule 9). Squatter is `LSUIElement`, so it comes back as a menu bar icon with no window — nothing appears until you click it.
 - `scripts/release.sh [--notarize]` — test, archive, export Developer ID, verify, build and sign the DMG; `--notarize` also submits and staples (needs the `squatter` keychain profile)
 - `scripts/sync-app-icon.sh` — copy the Icon Composer source from `brand/` into `Squatter/Resources/AppIcon.icon`, normalising the two keys Xcode 26.6's actool cannot parse. Run after every re-export from Icon Composer; never hand-edit the copy under `Squatter/Resources`.
 - `swiftlint` — lint (only if `.swiftlint.yml` is added; not required for M0)
