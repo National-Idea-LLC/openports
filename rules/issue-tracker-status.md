@@ -18,6 +18,12 @@ _Keep the Linear project in sync with the repo; never close issues without owner
 - **Release** (M3): update the project description's status line; keep milestones' target dates current if the owner sets any.
 - Use `mcp__linear__save_issue` / `save_comment` / `save_milestone`; never bulk-edit or delete issues.
 
+## Plans (`plans/`)
+
+- **Every plan has an issue.** When a plan file is written under `plans/`, create its `E2-` issue in the Squatter project the same session (title `Plan 0NN — <plan title>`, milestone = its phase, body: why it matters, scope, the plan path, the commit it was planned at). Set **In Progress** when an executor is dispatched, **In Review** when it lands; add commit SHAs as comments. Record the id in the plan's row in `plans/README.md`.
+- A plan without an issue is a reconcile finding, not a style nit — ten of this repo's fourteen shipped without one before this rule existed (2026-09-01).
+- If Linear refuses the creation (free-plan issue limit, hit 2026-09-01), write `Linear: refused <date>, <reason>` into the row and say so in the report; do not skip quietly.
+
 ## Status discipline
 
 - **Never** set an issue to **Done** / **Canceled** / **Duplicate** unless the owner **explicitly** says to (e.g. "mark E2-20 done", "close it").
